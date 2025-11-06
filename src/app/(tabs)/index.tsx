@@ -125,7 +125,7 @@ const ExploreTab = () => {
               setSelectedIndex(index)
               const landmark = historicalLandmarks[index]
               centerMapOnCoord([landmark.longitude, landmark.latitude], 18);
-
+              setSearchString('')
             }}
           />
           <Pressable 
