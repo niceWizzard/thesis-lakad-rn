@@ -29,6 +29,7 @@ export default function TabLayout() {
         name="index"
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="location-arrow" color={color} />,
+          tabBarLabel: 'Explore',
           headerShown: false,
         }}
       />
