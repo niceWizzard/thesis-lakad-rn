@@ -101,6 +101,7 @@ const ExploreTab = () => {
     const map = useRef<MapView>(null);
     const [userLocation, setUserLocation] = useState<Location>()
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [bottomSheetHeight, setbottomSheetHeight] = useState(0);
 
 
     // Function to handle the "locate" button press
@@ -161,7 +162,7 @@ const ExploreTab = () => {
                       <Ionicons 
                           name='location-sharp'
                           size={32}
-                          color='red'
+                          color={selectedIndex === index ? 'red' : 'green'}
                         />
                     </Pressable>
                     <Text>{landmark.name}</Text>
@@ -172,7 +173,13 @@ const ExploreTab = () => {
           </MapView>
           {
             selectedIndex !== null && (
-              <View style={{position: 'absolute', bottom: 0, left: 0, right: 0, height: '20%', padding: 12, zIndex: 10}} >
+              <View 
+                style={{position: 'absolute', bottom: 0, left: 0, right: 0, height: '20%', padding: 12, zIndex: 10}} 
+                onLayout={(event) => {
+                  const { height } = event.nativeEvent.layout;
+                  setbottomSheetHeight(height);
+                }}
+              >
                 <Pressable>
                   <Ionicons 
                     name='close-circle'
@@ -186,7 +193,6 @@ const ExploreTab = () => {
             )
           }
           <ExploreSearchBox />
-          {/* Update the onPress handler to use the new function */}
           <Pressable 
             onPress={() => {
               const coordinates: [number, number] = userLocation?.coords.longitude && userLocation?.coords.latitude
@@ -195,7 +201,7 @@ const ExploreTab = () => {
               centerMapOnCoord(coordinates);
             }}
           style={{
-             position: 'absolute', bottom: 32, right: 16, backgroundColor: 'white', padding: 12, borderRadius: 8
+             position: 'absolute', bottom: 32 + (selectedIndex != null ? bottomSheetHeight : 0 ), right: 16, backgroundColor: 'white', padding: 12, borderRadius: 8
             }}>
             <Ionicons 
               name='locate'
