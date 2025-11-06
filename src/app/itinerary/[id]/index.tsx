@@ -126,8 +126,11 @@ const ItineraryView = () => {
                           >
                             <Ionicons name="navigate" size={20} color="#007AFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity style={styles.actionButton}>
-                            <Ionicons name="information-circle" size={20} color="#666" />
+                          <TouchableOpacity style={styles.actionButton}
+                          >
+                            {
+                              <Ionicons name={item.visited ? 'checkmark' : 'checkbox-outline'} size={20} color="#666" />
+                            }
                           </TouchableOpacity>
                         </View>
                       </View>
