@@ -69,6 +69,7 @@ const ExploreTab = () => {
                 <MarkerView
                   key={`landmark-${landmark.id}`}
                   coordinate={[landmark.longitude, landmark.latitude]}
+                  isSelected={index == selectedIndex}
                   >
                   <View style={{alignItems: 'center', backgroundColor: 'transparent',}}>
                     <Pressable
