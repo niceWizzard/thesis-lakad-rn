@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import { Text, View } from '@/src/components/Themed';
@@ -189,6 +189,9 @@ const ExploreTab = () => {
                   />
                 </Pressable>
                 <Text>{historicalLandmarks[selectedIndex].name}</Text>
+                <TouchableOpacity style={{marginTop: 12, padding: 12, backgroundColor: 'blue', borderRadius: 8, alignItems: 'center'}}>
+                  <Text style={{color: 'white'}}>Add To Itinerary</Text>
+                </TouchableOpacity>
               </View>
             )
           }
