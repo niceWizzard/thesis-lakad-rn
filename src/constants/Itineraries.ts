@@ -63,4 +63,14 @@ export const DEFAULT_ITINERARIES : Itinerary[] = [
             },
         ]
     },
+     {
+        id: 'Malolos3',
+        name: 'Long Itinerary',
+        poiOrder: historicalLandmarks.map(v => ({
+            latitude: v.latitude,
+            longitude: v.longitude,
+            name: v.name,
+            visited: false,
+        }))
+    },
 ]
