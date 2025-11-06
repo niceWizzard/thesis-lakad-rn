@@ -1,6 +1,6 @@
+import { Text, View } from "@/src/components/Themed";
 import React from 'react';
-import { StyleSheet} from "react-native";
-import {Text, View} from "@/components/Themed";
+import { StyleSheet } from "react-native";
 
 function MoreTab() {
     return (
