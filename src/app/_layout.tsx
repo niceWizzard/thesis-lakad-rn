@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/src/components/useColorScheme';
+import Mapbox from '@rnmapbox/maps';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -20,6 +21,15 @@ export const unstable_settings = {
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+
+// Initialize mapbox access token
+const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? null
+if(accessToken == null) {
+  throw new Error("Mapbox access token is not defined. Please set EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment variables.");
+}
+Mapbox.setAccessToken(accessToken);
+
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
