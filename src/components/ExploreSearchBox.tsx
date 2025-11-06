@@ -15,8 +15,14 @@ const ExploreSearchBox = ({
       <TextInput 
         placeholder='Search for places...'
         placeholderTextColor={colorScheme == 'dark' ? 'white' : 'black'}
+        
         value={value}
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            color: colorScheme == 'dark' ? 'white' : 'black',
+          }
+        ]}
         onChangeText={(v) => {
           setValue(v)
           onSearch(v)

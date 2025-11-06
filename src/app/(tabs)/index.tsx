@@ -107,6 +107,7 @@ const ExploreTab = () => {
                     size={32}
                     style={{alignSelf: 'flex-end'}}
                     onPress={() => setSelectedIndex(null)}
+                    color="red"
                   />
                 </Pressable>
                 <Text>{historicalLandmarks[selectedIndex].name}</Text>
