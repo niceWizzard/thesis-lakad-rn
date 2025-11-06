@@ -63,6 +63,13 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal',  }} />
+        <Stack.Screen name="itinerary/[id]/index" 
+          options={{
+            title: "Itinerary",
+            animation: 'slide_from_right',
+            animationDuration: 0.5,
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
