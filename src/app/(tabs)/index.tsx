@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
+import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Text, View } from '@/src/components/Themed';
+import { historicalLandmarks } from '@/src/constants/Landmarks';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } from '@rnmapbox/maps';
 import { useRef, useState } from 'react';
@@ -9,90 +11,6 @@ import { useRef, useState } from 'react';
 // Define the default coordinates
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 const TARGET_ZOOM = 15;
-
-const historicalLandmarks = [
-  {
-    name: "Barasoain Church",
-    id: 1,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Church",
-    latitude: 14.84646279,
-    longitude: 120.8126497,
-  },
-  {
-    name: "Basilica Minore de Immaculada Concepcion",
-    id: 2,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Church",
-    latitude: 14.84298357,
-    longitude: 120.8115019,
-  },
-  {
-    name: "Bautista Mansion",
-    id: 3,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.84270054,
-    longitude: 120.8104554,
-  },
-  {
-    name: "Cojuangco House",
-    id: 4,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.84500138,
-    longitude: 120.8126748,
-  },
-  {
-    name: "Gen. Isodoro Torres Marker",
-    id: 5,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.84301953,
-    longitude: 120.8121215,
-  },
-  {
-    name: "Instituto de Mujeres",
-    id: 6,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.8426084,
-    longitude: 120.8096216,
-  },
-  {
-    name: "Kamestisuhan/ Calle Paranchillo",
-    id: 7,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.841805,
-    longitude: 120.8105982,
-  },
-  {
-    name: "Siar Tree",
-    id: 8,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.84289295,
-    longitude: 120.8116524,
-  },
-  {
-    name: "Reyes House",
-    id: 9,
-    city: "CITY OF MALOLOS",
-    categoryMain: "HISTORY AND CULTURE",
-    categorySub: "Landmark",
-    latitude: 14.8422209,
-    longitude: 120.8102771,
-  },
-];
 
 
 const ExploreTab = () => {
@@ -102,6 +20,8 @@ const ExploreTab = () => {
     const [userLocation, setUserLocation] = useState<Location>()
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [bottomSheetHeight, setbottomSheetHeight] = useState(0);
+
+    const [searchString, setSearchString] = useState('')
 
 
     // Function to handle the "locate" button press
@@ -195,7 +115,19 @@ const ExploreTab = () => {
               </View>
             )
           }
-          <ExploreSearchBox />
+          <ExploreSearchBox 
+            onSearch={setSearchString}
+          />
+          <SearchResultsBox
+            searchString={searchString}
+            onResultPress={id => {
+              const index = historicalLandmarks.findIndex(v => v.id == id)
+              setSelectedIndex(index)
+              const landmark = historicalLandmarks[index]
+              centerMapOnCoord([landmark.longitude, landmark.latitude], 18);
+
+            }}
+          />
           <Pressable 
             onPress={() => {
               const coordinates: [number, number] = userLocation?.coords.longitude && userLocation?.coords.latitude

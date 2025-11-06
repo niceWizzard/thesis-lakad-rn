@@ -1,14 +1,26 @@
 import { Ionicons } from '@expo/vector-icons'
-import React from 'react'
-import { StyleSheet, TextInput } from 'react-native'
+import React, { useState } from 'react'
+import { StyleSheet, TextInput, useColorScheme } from 'react-native'
 import { View } from './Themed'
 
-const ExploreSearchBox = () => {
+const ExploreSearchBox = ({
+  onSearch,
+} : {
+  onSearch: (s : string) => void
+}) => {
+  const [value, setValue] = useState('')
+  const colorScheme = useColorScheme()
   return (
     <View style={styles.container}>
       <TextInput 
         placeholder='Search for places...'
+        placeholderTextColor={colorScheme == 'dark' ? 'white' : 'black'}
+        value={value}
         style={styles.input}
+        onChangeText={(v) => {
+          setValue(v)
+          onSearch(v)
+        }}
       />
       <Ionicons 
         name='search'
@@ -24,7 +36,6 @@ const styles = StyleSheet.create({
     container: {
         position: "absolute",
         top: 24,
-        
         borderRadius: 8,
         flexDirection: 'row',
         alignItems: 'center',
