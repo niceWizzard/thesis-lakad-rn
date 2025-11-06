@@ -18,9 +18,11 @@ const ExploreTab = () => {
             compassEnabled
             compassPosition={{bottom: 8, right: 8}}
             compassFadeWhenNorth
+            scaleBarPosition={{bottom: 24, left: 8}}
           >
             <Camera
               ref={camera}
+              zoomLevel={15}
               maxZoomLevel={20}
               minZoomLevel={4}
               centerCoordinate={[120.8092, 14.8605]}
