@@ -1,26 +1,43 @@
+import { Ionicons } from '@expo/vector-icons'
 import React from 'react'
-import { StyleSheet } from 'react-native'
-import { Text, View } from './Themed'
+import { StyleSheet, TextInput } from 'react-native'
+import { View } from './Themed'
 
 const ExploreSearchBox = () => {
   return (
     <View style={styles.container}>
-      <Text>ExploreSearchBox</Text>
+      <TextInput 
+        placeholder='Search for places...'
+        style={styles.input}
+      />
+      <Ionicons 
+        name='search'
+        size={20}
+        color="#666"
+        style={styles.icon}
+      />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
     container: {
-        width: "80%",
         position: "absolute",
         top: 24,
-        left: "50%",
-        transform: "translate(-50%)",
-        padding: 12,
-
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginHorizontal: 16,
     },
-
+    input: {
+        flex: 1,
+        padding: 0, // Remove default padding if needed
+    },
+    icon: {
+        // No flex, just takes its natural size
+    }
 })
 
 export default ExploreSearchBox
