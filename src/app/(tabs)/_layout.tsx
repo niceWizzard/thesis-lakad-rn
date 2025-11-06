@@ -44,6 +44,7 @@ export default function TabLayout() {
         name="more"
         options={{
             title: 'More',
+            headerShown: false,
             tabBarIcon: ({ color }) => <TabBarIcon name="ellipsis-v" color={color} />,
         }}
     />
