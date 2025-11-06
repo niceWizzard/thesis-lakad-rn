@@ -1,15 +1,18 @@
 import FilterAccordion from '@/src/components/FilterAccordion'
 import { Text, View } from '@/src/components/Themed'
+import { historicalLandmarks } from '@/src/constants/Landmarks'
+import { useItineraryStore } from '@/src/stores/useItineraryStore'
+import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import {
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    TextInput,
-    TouchableWithoutFeedback,
-    useColorScheme
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  TouchableWithoutFeedback,
+  useColorScheme
 } from 'react-native'
 
   // District data
@@ -30,6 +33,10 @@ import {
     { id: 'culture', label: 'Cultural Sites' },
   ]
 
+  function shuffle<T>(arr: T[]) {
+    return [...arr].sort(() => Math.random() - 0.5);
+  }
+
 const CreateWithAgamScreen = () => {
   const mode = useColorScheme()
 
@@ -38,6 +45,9 @@ const CreateWithAgamScreen = () => {
     districtItems.map(v => v.id)
   )
   const [selectedCategories, setSelectedCategories] = useState<string[]>(categoryItems.map(v => v.id))
+
+  const addItinerary = useItineraryStore(v => v.addItinerary)
+  const router = useRouter()
 
   function onGenerateClick() {
     if(maxDistance.trim() !== '' && Number.isNaN(Number.parseFloat(maxDistance))) {
@@ -49,13 +59,22 @@ const CreateWithAgamScreen = () => {
         return
     }
 
-    // Log selected filters for debugging
-    console.log('Selected Districts:', selectedDistricts)
-    console.log('Selected Categories:', selectedCategories)
-    console.log('Max Distance:', maxDistance)
-
+    const id = Date.now().toString()
     // Add your generation logic here
-    alert(`Generating with ${selectedDistricts.length} districts and ${selectedCategories.length} categories`)
+    addItinerary({
+      id: id,
+      name: "Agam "+ Date.now(),
+      poiOrder: shuffle(historicalLandmarks).map(v => ({
+        ...v,
+        visited: false,
+      })),
+    })
+    router.replace({
+      pathname: '/itinerary/[id]',
+      params: {
+        id,
+      }
+    })
   }
 
   return (
