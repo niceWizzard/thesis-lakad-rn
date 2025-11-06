@@ -24,8 +24,7 @@ const styles = StyleSheet.create({
     container: {
         position: "absolute",
         top: 24,
-        paddingHorizontal: 12,
-        paddingVertical: 12,
+        
         borderRadius: 8,
         flexDirection: 'row',
         alignItems: 'center',
@@ -34,9 +33,13 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         padding: 0, // Remove default padding if needed
+        paddingHorizontal: 12,
+        paddingVertical: 12,
     },
     icon: {
         // No flex, just takes its natural size
+        paddingHorizontal: 12,
+        paddingVertical: 12,
     }
 })
 
