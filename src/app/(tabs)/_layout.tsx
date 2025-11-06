@@ -28,8 +28,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Explore',
           tabBarIcon: ({ color }) => <TabBarIcon name="location-arrow" color={color} />,
+          headerShown: false,
         }}
       />
       <Tabs.Screen
