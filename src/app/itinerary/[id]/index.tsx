@@ -1,10 +1,9 @@
-import { Text } from '@/src/components/Themed'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Camera, MapView, MarkerView } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
 import React from 'react'
-import { Pressable, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
 const ItineraryView = () => {
   const {id} = useLocalSearchParams()
@@ -49,7 +48,7 @@ const ItineraryView = () => {
                 />
                 
               </Pressable>
-              <Text >
+              <Text style={{color: 'black'}}>
                   {poi.name}
                 </Text>
               </View>

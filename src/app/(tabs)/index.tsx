@@ -86,7 +86,7 @@ const ExploreTab = () => {
                           color={selectedIndex === index ? 'red' : 'green'}
                         />
                     </Pressable>
-                    <Text>{landmark.name}</Text>
+                    <Text style={{color: 'black'}}>{landmark.name}</Text>
                   </View>
                 </MarkerView>
               ))
