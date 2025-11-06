@@ -70,6 +70,12 @@ function RootLayoutNav() {
             animationDuration: 0.5,
           }}
         />
+        <Stack.Screen 
+          name='itinerary/agam'
+          options={{
+            title: '',
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
