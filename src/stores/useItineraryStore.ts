@@ -7,6 +7,7 @@ export const useItineraryStore = create<{
     addItinerary: (a : Itinerary) => void,
     addPoiToItinerary: (poi : POI, itineraryId: string) => void,
     setItineraryPoiOrder: (poiOrder: POI[], itineraryId: string) => void,
+    deleteItinerary: (id: string) => void,
 }>((set, get) => ({
     itineraries: [...DEFAULT_ITINERARIES],
     addItinerary: (itinerary) => {
@@ -33,5 +34,11 @@ export const useItineraryStore = create<{
         }
         itinerary.poiOrder = poiOrder
     },
+    deleteItinerary(id) {
+        const list = get().itineraries
+        set({
+            itineraries: list.filter(v => v.id !== id)
+        })
+    }
 
 }))
