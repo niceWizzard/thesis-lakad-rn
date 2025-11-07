@@ -121,7 +121,10 @@ const ItineraryView = () => {
                         <View style={styles.poiActions}>
                           <TouchableOpacity style={styles.actionButton}
                             onPress={() => {
-                              camera.current?.flyTo([item.longitude, item.latitude])
+                              camera?.current?.setCamera({
+                                zoomLevel: 20,
+                                centerCoordinate: [item.longitude, item.latitude],
+                              })
                             }}
                           >
                             <Ionicons name="navigate" size={20} color="#007AFF" />
