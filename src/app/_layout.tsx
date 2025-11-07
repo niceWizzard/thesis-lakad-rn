@@ -1,12 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/src/components/useColorScheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Mapbox from '@rnmapbox/maps';
 
 export {
@@ -14,14 +16,8 @@ export {
   ErrorBoundary
 } from 'expo-router';
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
-
 
 // Initialize mapbox access token
 const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? null
@@ -30,12 +26,16 @@ if(accessToken == null) {
 }
 Mapbox.setAccessToken(accessToken);
 
-
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('@/assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+
+  const [isReady, setIsReady] = useState(false);
+  const [initialRouteDetermined, setInitialRouteDetermined] = useState(false);
+  const router = useRouter();
+  const segments = useSegments();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -43,13 +43,49 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded && !initialRouteDetermined) {
+      checkOnboardingStatus();
+    }
+  }, [loaded, initialRouteDetermined]); // Added initialRouteDetermined to dependencies
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const haveOnboarded = await AsyncStorage.getItem('haveOnboarded');
+      console.log("Onboarding status:", haveOnboarded);
+      
+      // Prevent multiple redirects
+      setInitialRouteDetermined(true);
+      
+      if (haveOnboarded === 'true') {
+        // Only navigate if we're not already on tabs
+        if (segments[0] !== '(tabs)') {
+          router.replace('/(tabs)');
+        }
+      } else {
+        // Only navigate if we're not already on onboarding
+        if (segments[0] !== '(onboarding)') {
+          router.replace('/(onboarding)');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      setInitialRouteDetermined(true);
+      // Default to onboarding if there's an error
+      if (segments[0] !== '(onboarding)') {
+        router.replace('/(onboarding)');
+      }
+    } finally {
+      setIsReady(true);
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  };
 
-  if (!loaded) {
-    return null;
+  if (!loaded || !isReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
   }
 
   return <RootLayoutNav />;
@@ -60,20 +96,23 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal',  }} />
-        <Stack.Screen name="itinerary/[id]/index" 
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(onboarding)/index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen 
+          name="itinerary/[id]/index" 
           options={{
             title: "Itinerary",
+            headerShown: true,
             animation: 'slide_from_right',
-            animationDuration: 0.5,
           }}
         />
         <Stack.Screen 
           name='itinerary/agam'
           options={{
             title: '',
+            headerShown: true,
           }}
         />
       </Stack>
