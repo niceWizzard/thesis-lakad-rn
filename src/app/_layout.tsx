@@ -11,6 +11,9 @@ import { useColorScheme } from '@/src/components/useColorScheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Mapbox from '@rnmapbox/maps';
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/global.css';
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary
@@ -21,7 +24,7 @@ SplashScreen.preventAutoHideAsync();
 
 // Initialize mapbox access token
 const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? null
-if(accessToken == null) {
+if (accessToken == null) {
   throw new Error("Mapbox access token is not defined. Please set EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN in your environment variables.");
 }
 Mapbox.setAccessToken(accessToken);
@@ -52,10 +55,10 @@ export default function RootLayout() {
     try {
       const haveOnboarded = await AsyncStorage.getItem('haveOnboarded');
       console.log("Onboarding status:", haveOnboarded);
-      
+
       // Prevent multiple redirects
       setInitialRouteDetermined(true);
-      
+
       if (haveOnboarded === 'true') {
         // Only navigate if we're not already on tabs
         if (segments[0] !== '(tabs)') {
@@ -82,9 +85,13 @@ export default function RootLayout() {
 
   if (!loaded || !isReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
+
+      <GluestackUIProvider mode="dark">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      </GluestackUIProvider>
+
     );
   }
 
@@ -95,33 +102,35 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(onboarding)/index" />
-        <Stack.Screen name="(more)/preferences" 
-          options={{
-            title: 'Preferences',
-            headerShown: true,
-          }}
-        />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen 
-          name="itinerary/[id]/index" 
-          options={{
-            title: "Itinerary",
-            headerShown: true,
-            animation: 'slide_from_right',
-          }}
-        />
-        <Stack.Screen 
-          name='itinerary/agam'
-          options={{
-            title: '',
-            headerShown: true,
-          }}
-        />
-      </Stack>
-    </ThemeProvider>
+    <GluestackUIProvider mode="dark">
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(onboarding)/index" />
+          <Stack.Screen name="(more)/preferences"
+            options={{
+              title: 'Preferences',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen
+            name="itinerary/[id]/index"
+            options={{
+              title: "Itinerary",
+              headerShown: true,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name='itinerary/agam'
+            options={{
+              title: '',
+              headerShown: true,
+            }}
+          />
+        </Stack>
+      </ThemeProvider>
+    </GluestackUIProvider>
   );
 }
