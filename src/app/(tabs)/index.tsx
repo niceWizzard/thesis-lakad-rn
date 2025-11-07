@@ -4,6 +4,7 @@ import { Text, View } from '@/src/components/Themed';
 import { historicalLandmarks } from '@/src/constants/Landmarks';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } from '@rnmapbox/maps';
+import { getForegroundPermissionsAsync, requestForegroundPermissionsAsync } from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -23,6 +24,22 @@ const ExploreTab = () => {
     // Animation values
     const slideAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    const checkLocationPermission = async () => {
+        try {
+            // Check if permission is already granted
+            let { status } = await getForegroundPermissionsAsync();
+            console.log("CHECKING!: ", status);
+        if (status !== 'granted') 
+            await requestForegroundPermissionsAsync();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        checkLocationPermission()
+    }, [])
 
     // Animate bottom sheet when selectedIndex changes
     useEffect(() => {
