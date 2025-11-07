@@ -1,13 +1,14 @@
 import { Text, View } from "@/src/components/Themed";
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from "expo-router";
 import React from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    useColorScheme
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme
 } from "react-native";
 
 const coverImage = require('@/assets/images/lakad-cover.png');
@@ -22,6 +23,7 @@ type MenuItem = {
 function MoreTab() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const router = useRouter()
 
   const menuItems: MenuItem[] = [
     {
@@ -34,7 +36,7 @@ function MoreTab() {
       id: '2',
       title: 'Preferences',
       icon: 'options-outline',
-      onPress: () => Alert.alert('Preferences', 'Preferences screen coming soon!'),
+      onPress: () => router.navigate('/(more)/preferences'),
     },
     {
       id: '3',

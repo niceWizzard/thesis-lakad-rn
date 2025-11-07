@@ -9,6 +9,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View
 } from 'react-native'
@@ -87,7 +88,22 @@ const ItineraryView = () => {
           <View style={styles.sheetContent}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.itineraryName}>{itinerary.name}</Text>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                <Text style={styles.itineraryName}>
+                  {itinerary.name}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    ToastAndroid.show('Add POI functionality coming soon!', ToastAndroid.SHORT)
+                  }}
+                >
+                  <Ionicons 
+                    name="add-circle" 
+                    size={32} 
+                    color="#666"
+                  />
+                </Pressable>
+              </View>
               <Text style={styles.poiCount}>
                 {itinerary.poiOrder.length} stops
               </Text>
