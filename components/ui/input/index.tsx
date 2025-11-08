@@ -1,15 +1,11 @@
 'use client';
-import React from 'react';
-import { createInput } from '@gluestack-ui/core/input/creator';
-import { View, Pressable, TextInput } from 'react-native';
-import { tva } from '@gluestack-ui/utils/nativewind-utils';
-import {
-  withStyleContext,
-  useStyleContext,
-} from '@gluestack-ui/utils/nativewind-utils';
-import { cssInterop } from 'nativewind';
-import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 import { PrimitiveIcon, UIIcon } from '@gluestack-ui/core/icon/creator';
+import { createInput } from '@gluestack-ui/core/input/creator';
+import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
+import { tva, useStyleContext, withStyleContext } from '@gluestack-ui/utils/nativewind-utils';
+import { cssInterop } from 'nativewind';
+import React from 'react';
+import { Pressable, TextInput, View } from 'react-native';
 
 const SCOPE = 'INPUT';
 
@@ -38,6 +34,7 @@ const inputStyle = tva({
 
   variants: {
     size: {
+      "2xl": 'h-14',
       xl: 'h-12',
       lg: 'h-11',
       md: 'h-10',
@@ -92,7 +89,7 @@ const inputFieldStyle = tva({
       'md': 'text-base',
       'lg': 'text-lg',
       'xl': 'text-xl',
-      '2xl': 'text-2xl',
+      '2xl': 'text-xl',
       '3xl': 'text-3xl',
       '4xl': 'text-4xl',
       '5xl': 'text-5xl',
