@@ -1,10 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import React from 'react';
-
-import { useClientOnlyValue } from '@/src/components/useClientOnlyValue';
-import { useColorScheme } from '@/src/components/useColorScheme';
-import Colors from '@/src/constants/Colors';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -20,10 +17,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
       }}>
       <Tabs.Screen
         name="index"
@@ -40,14 +34,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="car" color={color} />,
         }}
       />
-    <Tabs.Screen
+      <Tabs.Screen
         name="more"
         options={{
-            title: 'More',
-            headerShown: false,
-            tabBarIcon: ({ color }) => <TabBarIcon name="ellipsis-v" color={color} />,
+          title: 'More',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabBarIcon name="ellipsis-v" color={color} />,
         }}
-    />
+      />
     </Tabs>
   );
 }

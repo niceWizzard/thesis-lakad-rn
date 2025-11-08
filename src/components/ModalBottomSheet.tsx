@@ -1,16 +1,16 @@
 // src/components/ModalBottomSheet.tsx
 import React, { useEffect, useRef } from 'react';
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    PanResponder,
-    StyleSheet,
-    TouchableWithoutFeedback,
-    useColorScheme,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  PanResponder,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  useColorScheme,
+  View,
 } from 'react-native';
-import { Text } from './Themed';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -41,15 +41,15 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
+
   // Animation values
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacityAnim = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
 
   // Calculate sheet height
-  const sheetHeight = typeof height === 'string' 
-    ? (parseInt(height) / 100) * SCREEN_HEIGHT 
+  const sheetHeight = typeof height === 'string'
+    ? (parseInt(height) / 100) * SCREEN_HEIGHT
     : height;
 
   const sheetMaxHeight = typeof maxHeight === 'string'
@@ -96,7 +96,7 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
   // Close animation - only close if hideable
   const closeSheet = () => {
     if (!isHideable) return; // Prevent closing if not hideable
-    
+
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: SCREEN_HEIGHT,
@@ -150,10 +150,10 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
     <View style={StyleSheet.absoluteFill}>
       {/* Backdrop - make non-clickable if not hideable */}
       {showBackdrop && (
-        <TouchableWithoutFeedback 
+        <TouchableWithoutFeedback
           onPress={isHideable ? closeSheet : undefined} // Disable backdrop press if not hideable
         >
-          <Animated.View 
+          <Animated.View
             style={[
               styles.backdrop,
               {
@@ -181,15 +181,15 @@ const BottomSheet: React.FC<BottomSheetProps> = ({
         {/* Handle - hide or show based on hideable state */}
         {isHideable && (
           <View style={styles.handleContainer}>
-            <View 
+            <View
               style={[
                 styles.handle,
                 { backgroundColor: isDark ? '#ffffff40' : '#00000040' }
-              ]} 
+              ]}
             />
           </View>
         )}
-        
+
         {/* Show a different indicator when not hideable */}
         {!isHideable && (
           <View style={styles.nonHideableIndicator}>

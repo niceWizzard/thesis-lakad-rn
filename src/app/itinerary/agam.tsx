@@ -1,5 +1,4 @@
 import FilterAccordion from '@/src/components/FilterAccordion'
-import { Text, View } from '@/src/components/Themed'
 import { historicalLandmarks } from '@/src/constants/Landmarks'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
 import { useRouter } from 'expo-router'
@@ -10,32 +9,34 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Text,
   TextInput,
   TouchableWithoutFeedback,
-  useColorScheme
+  useColorScheme,
+  View
 } from 'react-native'
 
-  // District data
-  const districtItems = [
-    { id: 'district1', label: 'District 1' },
-    { id: 'district2', label: 'District 2' },
-    { id: 'district3', label: 'District 3' },
-    { id: 'district4', label: 'District 4' },
-    { id: 'district5', label: 'District 5' },
-    { id: 'district6', label: 'District 6' },
-    { id: 'lone', label: 'Lone District' },
-  ]
+// District data
+const districtItems = [
+  { id: 'district1', label: 'District 1' },
+  { id: 'district2', label: 'District 2' },
+  { id: 'district3', label: 'District 3' },
+  { id: 'district4', label: 'District 4' },
+  { id: 'district5', label: 'District 5' },
+  { id: 'district6', label: 'District 6' },
+  { id: 'lone', label: 'Lone District' },
+]
 
-  // Category data (example - add more filters as needed)
-  const categoryItems = [
-    { id: 'museum', label: 'Museum' },
-    { id: 'nature', label: 'Nature & Parks' },
-    { id: 'culture', label: 'Cultural Sites' },
-  ]
+// Category data (example - add more filters as needed)
+const categoryItems = [
+  { id: 'museum', label: 'Museum' },
+  { id: 'nature', label: 'Nature & Parks' },
+  { id: 'culture', label: 'Cultural Sites' },
+]
 
-  function shuffle<T>(arr: T[]) {
-    return [...arr].sort(() => Math.random() - 0.5);
-  }
+function shuffle<T>(arr: T[]) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
 
 const CreateWithAgamScreen = () => {
   const mode = useColorScheme()
@@ -50,20 +51,20 @@ const CreateWithAgamScreen = () => {
   const router = useRouter()
 
   function onGenerateClick() {
-    if(maxDistance.trim() !== '' && Number.isNaN(Number.parseFloat(maxDistance))) {
+    if (maxDistance.trim() !== '' && Number.isNaN(Number.parseFloat(maxDistance))) {
       alert("Invalid max distance!")
       return;
     }
-    if(selectedDistricts.length == 0 || selectedCategories.length == 0) {
-        alert("Cannot have empty categories or districts!")
-        return
+    if (selectedDistricts.length == 0 || selectedCategories.length == 0) {
+      alert("Cannot have empty categories or districts!")
+      return
     }
 
     const id = Date.now().toString()
     // Add your generation logic here
     addItinerary({
       id: id,
-      name: "Agam "+ Date.now(),
+      name: "Agam " + Date.now(),
       poiOrder: shuffle(historicalLandmarks).map(v => ({
         ...v,
         visited: false,
@@ -80,17 +81,17 @@ const CreateWithAgamScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1}}
+      style={{ flex: 1 }}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{flex: 1, padding: 8}}>
-          <ScrollView 
-            contentContainerStyle={{flexGrow: 1}}
+        <View style={{ flex: 1, padding: 8 }}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* District Filter */}
-            <FilterAccordion 
+            <FilterAccordion
               title="Filter by District"
               items={districtItems}
               selectedItems={selectedDistricts}
@@ -99,7 +100,7 @@ const CreateWithAgamScreen = () => {
             />
 
             {/* Category Filter */}
-            <FilterAccordion 
+            <FilterAccordion
               title="Filter by Category"
               items={categoryItems}
               selectedItems={selectedCategories}
@@ -110,15 +111,15 @@ const CreateWithAgamScreen = () => {
             {/* Max Distance Input */}
             <View style={{ marginVertical: 16 }}>
               <Text style={{
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: '600',
                 color: mode === 'dark' ? 'white' : 'black',
                 marginBottom: 8
               }}>
                 Maximum Travel Distance
               </Text>
-              
-              <TextInput 
+
+              <TextInput
                 placeholder='0km'
                 placeholderTextColor={mode === 'dark' ? '#999' : '#666'}
                 value={maxDistance}
@@ -134,7 +135,7 @@ const CreateWithAgamScreen = () => {
                 }}
                 keyboardType='numeric'
               />
-              
+
               <Text style={{
                 color: mode === 'dark' ? '#999' : '#666',
                 fontSize: 14,
@@ -160,12 +161,12 @@ const CreateWithAgamScreen = () => {
                   Selected Filters:
                 </Text>
                 {selectedDistricts.length > 0 && (
-                  <Text style={{color: mode === 'dark' ? '#ccc' : '#666'}}>
+                  <Text style={{ color: mode === 'dark' ? '#ccc' : '#666' }}>
                     Districts: {selectedDistricts.length} / {districtItems.length}
                   </Text>
                 )}
                 {selectedCategories.length > 0 && (
-                  <Text style={{color: mode === 'dark' ? '#ccc' : '#666'}}>
+                  <Text style={{ color: mode === 'dark' ? '#ccc' : '#666' }}>
                     Categories: {selectedCategories.length} / {categoryItems.length}
                   </Text>
                 )}
@@ -178,7 +179,7 @@ const CreateWithAgamScreen = () => {
             padding: 8,
             backgroundColor: 'transparent'
           }}>
-            <Pressable 
+            <Pressable
               onPress={onGenerateClick}
               style={{
                 backgroundColor: mode === 'dark' ? 'white' : 'black',

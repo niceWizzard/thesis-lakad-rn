@@ -1,4 +1,3 @@
-import { Text, View } from "@/src/components/Themed";
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import React from 'react';
@@ -6,9 +5,8 @@ import {
   Alert,
   Image,
   ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  useColorScheme
+  StyleSheet, Text, TouchableOpacity,
+  useColorScheme, View
 } from "react-native";
 
 const coverImage = require('@/assets/images/lakad-cover.png');
@@ -51,14 +49,14 @@ function MoreTab() {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
       {/* Header with Image */}
       <View style={styles.header}>
-        <Image 
+        <Image
           source={coverImage}
           style={styles.coverImage}
           resizeMode="cover"
@@ -75,8 +73,8 @@ function MoreTab() {
           <TouchableOpacity
             key={item.id}
             style={[
-              styles.menuItem, 
-              { 
+              styles.menuItem,
+              {
                 borderColor: isDark ? '#333' : '#e0e0e0',
                 backgroundColor: isDark ? '#1a1a1a' : '#f8f8f8',
               }
@@ -85,17 +83,17 @@ function MoreTab() {
             activeOpacity={0.7}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons 
-                name={item.icon} 
-                size={22} 
-                color={isDark ? '#fff' : '#000'} 
+              <Ionicons
+                name={item.icon}
+                size={22}
+                color={isDark ? '#fff' : '#000'}
               />
               <Text style={styles.menuItemText}>{item.title}</Text>
             </View>
-            <Ionicons 
-              name="chevron-forward" 
-              size={18} 
-              color={isDark ? '#666' : '#999'} 
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={isDark ? '#666' : '#999'}
             />
           </TouchableOpacity>
         ))}

@@ -1,17 +1,16 @@
 import { Ionicons } from '@expo/vector-icons'
 import React from 'react'
-import { FlatList, Keyboard, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native'
+import { FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 import { historicalLandmarks } from '../constants/Landmarks'
-import { Text, View } from './Themed'
 
 const SearchResultsBox = ({
-  searchString, 
-  onResultPress,
-  visible
-} : {
-  searchString: string, 
-  onResultPress: (id: number) => void
-  visible: boolean
+    searchString,
+    onResultPress,
+    visible
+}: {
+    searchString: string,
+    onResultPress: (id: number) => void
+    visible: boolean
 }) => {
     const colorScheme = useColorScheme();
 
@@ -21,7 +20,7 @@ const SearchResultsBox = ({
 
     const test = new RegExp(searchString.trim(), 'i')
     const results = historicalLandmarks.filter(v => test.test(v.name));
-    
+
     return (
         <View style={[
             styles.container,
@@ -36,12 +35,12 @@ const SearchResultsBox = ({
             ]}>
                 Search Results ({results.length})
             </Text>
-            <FlatList 
+            <FlatList
                 data={results}
                 keyExtractor={v => v.id.toString()}
                 keyboardShouldPersistTaps={'always'}
-                renderItem={({item: landmark}) => (
-                    <TouchableOpacity 
+                renderItem={({ item: landmark }) => (
+                    <TouchableOpacity
                         style={[
                             styles.resultItem,
                         ]}
@@ -50,10 +49,10 @@ const SearchResultsBox = ({
                             Keyboard.dismiss()
                         }}
                     >
-                        <Ionicons 
-                            name="location-outline" 
-                            size={16} 
-                            color={colorScheme === 'dark' ? '#999' : '#666'} 
+                        <Ionicons
+                            name="location-outline"
+                            size={16}
+                            color={colorScheme === 'dark' ? '#999' : '#666'}
                         />
                         <Text style={[
                             styles.resultText,

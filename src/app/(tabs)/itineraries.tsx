@@ -1,15 +1,17 @@
-import { Text, View } from '@/src/components/Themed';
 import { Itinerary } from '@/src/constants/Itineraries';
 import { useItineraryStore } from '@/src/stores/useItineraryStore';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+
 import {
   Alert,
   Dimensions,
   FlatList,
   Pressable,
   StyleSheet,
-  useColorScheme
+  Text,
+  useColorScheme,
+  View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -25,8 +27,8 @@ export default function ItinerariesScreen() {
       `Are you sure you want to delete "${itinerary.name}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: () => deleteItinerary(itinerary.id)
         }
@@ -52,10 +54,10 @@ export default function ItinerariesScreen() {
   if (itineraries.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons 
-          name="map-outline" 
-          size={80} 
-          color={mode === 'dark' ? '#666' : '#999'} 
+        <Ionicons
+          name="map-outline"
+          size={80}
+          color={mode === 'dark' ? '#666' : '#999'}
         />
         <Text style={[styles.emptyTitle, { color: mode === 'dark' ? '#fff' : '#000' }]}>
           No Itineraries Yet
@@ -63,7 +65,7 @@ export default function ItinerariesScreen() {
         <Text style={[styles.emptySubtitle, { color: mode === 'dark' ? '#999' : '#666' }]}>
           Create your first itinerary to get started
         </Text>
-        
+
         {/* Create Button */}
         <Pressable
           onPress={() => router.navigate('/itinerary/agam')}
@@ -85,14 +87,14 @@ export default function ItinerariesScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList 
+      <FlatList
         data={itineraries}
         keyExtractor={item => item.id}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         renderItem={({ item: itinerary }) => (
-          <Pressable 
+          <Pressable
             style={({ pressed }) => [
               styles.itineraryCard,
               {
@@ -111,17 +113,17 @@ export default function ItinerariesScreen() {
           >
             {/* Header */}
             <View style={[styles.cardHeader, {
-                backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',
+              backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',
             }]}>
-              <View style={[styles.titleContainer, 
-                {
-                  backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',
-                }
+              <View style={[styles.titleContainer,
+              {
+                backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',
+              }
               ]}>
-                <Ionicons 
-                  name="location" 
-                  size={20} 
-                  color={mode === 'dark' ? '#60a5fa' : '#3b82f6'} 
+                <Ionicons
+                  name="location"
+                  size={20}
+                  color={mode === 'dark' ? '#60a5fa' : '#3b82f6'}
                 />
                 <Text style={[
                   styles.itineraryName,
@@ -130,39 +132,40 @@ export default function ItinerariesScreen() {
                   {itinerary.name}
                 </Text>
               </View>
-              
+
               {/* More Options */}
               <Pressable
                 onPress={() => handleDeleteItinerary(itinerary)}
                 style={styles.moreButton}
               >
-                <Ionicons 
-                  name="ellipsis-horizontal" 
-                  size={16} 
-                  color={mode === 'dark' ? '#9ca3af' : '#6b7280'} 
+                <Ionicons
+                  name="ellipsis-horizontal"
+                  size={16}
+                  color={mode === 'dark' ? '#9ca3af' : '#6b7280'}
                 />
               </Pressable>
             </View>
 
             {/* Progress Bar */}
-            <View style={[styles.progressContainer, {backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',}]}>
+            <View style={[styles.progressContainer, { backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff', }]}>
               <View style={[
                 styles.progressBar,
                 { backgroundColor: mode === 'dark' ? '#374151' : '#f3f4f6' }
               ]}>
-                <View 
+                <View
                   style={[
                     styles.progressFill,
-                    { 
+                    {
                       width: `${calculateProgress(itinerary) * 100}%`,
                       backgroundColor: mode === 'dark' ? '#10b981' : '#059669'
                     }
-                  ]} 
+                  ]}
                 />
               </View>
               <Text style={[
                 styles.progressText,
-                { color: mode === 'dark' ? '#d1d5db' : '#6b7280', 
+                {
+                  color: mode === 'dark' ? '#d1d5db' : '#6b7280',
                   backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',
                 }
               ]}>
@@ -171,28 +174,28 @@ export default function ItinerariesScreen() {
             </View>
 
             {/* POI Preview */}
-            <View style={[styles.poiPreview, {backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',}]}>
+            <View style={[styles.poiPreview, { backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff', }]}>
               <Text style={[
                 styles.poiPreviewTitle,
                 { color: mode === 'dark' ? '#9ca3af' : '#6b7280' }
               ]}>
                 Points of Interest:
               </Text>
-              <View style={[styles.poiList, {backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',}]}>
+              <View style={[styles.poiList, { backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff', }]}>
                 {itinerary.poiOrder.slice(0, 3).map((poi, index) => (
-                  <View key={index} style={[styles.poiItem, {backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',}]}>
-                    <Ionicons 
-                      name={poi.visited ? "checkmark-circle" : "location-outline"} 
-                      size={14} 
-                      color={poi.visited 
-                        ? (mode === 'dark' ? '#10b981' : '#059669') 
+                  <View key={index} style={[styles.poiItem, { backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff', }]}>
+                    <Ionicons
+                      name={poi.visited ? "checkmark-circle" : "location-outline"}
+                      size={14}
+                      color={poi.visited
+                        ? (mode === 'dark' ? '#10b981' : '#059669')
                         : (mode === 'dark' ? '#6b7280' : '#9ca3af')
-                      } 
+                      }
                     />
-                    <Text 
+                    <Text
                       style={[
                         styles.poiName,
-                        { 
+                        {
                           color: mode === 'dark' ? '#e5e7eb' : '#4b5563',
                           textDecorationLine: poi.visited ? 'line-through' : 'none'
                         }
@@ -215,7 +218,7 @@ export default function ItinerariesScreen() {
             </View>
 
             {/* Action Buttons */}
-            <View style={[styles.actionButtons, {backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff',}]}>
+            <View style={[styles.actionButtons, { backgroundColor: mode === 'dark' ? '#1f2937' : '#ffffff', }]}>
               <Pressable
                 style={({ pressed }) => [
                   styles.actionButton,
@@ -231,10 +234,10 @@ export default function ItinerariesScreen() {
                   });
                 }}
               >
-                <Ionicons 
-                  name="play" 
-                  size={16} 
-                  color={mode === 'dark' ? '#60a5fa' : '#3b82f6'} 
+                <Ionicons
+                  name="play"
+                  size={16}
+                  color={mode === 'dark' ? '#60a5fa' : '#3b82f6'}
                 />
                 <Text style={[
                   styles.actionButtonText,
@@ -247,7 +250,7 @@ export default function ItinerariesScreen() {
           </Pressable>
         )}
       />
-      
+
       {/* Floating Action Button */}
       <Pressable
         onPress={() => router.navigate('/itinerary/agam')}

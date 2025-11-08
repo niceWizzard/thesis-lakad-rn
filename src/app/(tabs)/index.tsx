@@ -1,12 +1,11 @@
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
-import { Text, View } from '@/src/components/Themed';
 import { historicalLandmarks } from '@/src/constants/Landmarks';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } from '@rnmapbox/maps';
 import { getForegroundPermissionsAsync, requestForegroundPermissionsAsync } from 'expo-location';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { Animated, Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
@@ -20,7 +19,7 @@ const ExploreTab = () => {
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showResults, setShowResults] = useState(false); // Add this state
-    
+
     // Animation values
     const slideAnim = useRef(new Animated.Value(0)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -30,8 +29,8 @@ const ExploreTab = () => {
             // Check if permission is already granted
             let { status } = await getForegroundPermissionsAsync();
             console.log("CHECKING!: ", status);
-        if (status !== 'granted') 
-            await requestForegroundPermissionsAsync();
+            if (status !== 'granted')
+                await requestForegroundPermissionsAsync();
         } catch (error) {
             console.error(error);
         }
@@ -106,7 +105,7 @@ const ExploreTab = () => {
             setSelectedIndex(index);
             const landmark = historicalLandmarks[index];
             centerMapOnCoord([landmark.longitude, landmark.latitude], 16);
-            
+
             // Close search results and clear search
             setShowResults(false);
             setIsSearchFocused(false);
@@ -139,14 +138,14 @@ const ExploreTab = () => {
 
     return (
         <View style={styles.page}>
-            <MapView 
+            <MapView
                 style={styles.map}
                 compassEnabled
                 compassPosition={{ top: 96, right: 8 }}
                 scaleBarPosition={{ bottom: 24, left: 8 }}
                 ref={map}
             >
-                <UserLocation 
+                <UserLocation
                     onUpdate={(location) => {
                         setUserLocation(location);
                     }}
@@ -174,7 +173,7 @@ const ExploreTab = () => {
                                     pressed && styles.markerButtonPressed
                                 ]}
                             >
-                                <Ionicons 
+                                <Ionicons
                                     name='location-sharp'
                                     size={selectedIndex === index ? 36 : 28}
                                     color={selectedIndex === index ? '#ff4444' : '#4CAF50'}
@@ -193,13 +192,13 @@ const ExploreTab = () => {
 
             {/* Overlay when bottom sheet is open */}
             {selectedIndex !== null && (
-                <Animated.View 
+                <Animated.View
                     style={[
                         styles.overlay,
                         { opacity: overlayOpacity }
                     ]}
                 >
-                    <Pressable 
+                    <Pressable
                         style={styles.overlayPressable}
                         onPress={handleCloseBottomSheet}
                     />
@@ -207,7 +206,7 @@ const ExploreTab = () => {
             )}
 
             {/* Bottom Sheet */}
-            <Animated.View 
+            <Animated.View
                 style={[
                     styles.bottomSheet,
                     {
@@ -216,12 +215,12 @@ const ExploreTab = () => {
                 ]}
             >
                 <View style={styles.bottomSheetHandle} />
-                
+
                 <View style={styles.bottomSheetHeader}>
                     <Text style={styles.bottomSheetTitle}>
                         {selectedIndex !== null ? historicalLandmarks[selectedIndex].name : ''}
                     </Text>
-                    <Pressable 
+                    <Pressable
                         onPress={handleCloseBottomSheet}
                         style={styles.closeButton}
                     >
@@ -240,7 +239,7 @@ const ExploreTab = () => {
                             </View>
                         </View>
 
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={styles.addButton}
                             onPress={() => {
                                 // Add to itinerary logic here
@@ -255,7 +254,7 @@ const ExploreTab = () => {
             </Animated.View>
 
             {/* Search Box */}
-            <ExploreSearchBox 
+            <ExploreSearchBox
                 onSearch={setSearchString}
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
@@ -270,7 +269,7 @@ const ExploreTab = () => {
             />
 
             {/* Locate Button */}
-            <Pressable 
+            <Pressable
                 onPress={handleLocatePress}
                 style={({ pressed }) => [
                     styles.locateButton,
