@@ -5,10 +5,9 @@ import { Icon } from '@/components/ui/icon'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
-import { Ionicons } from '@expo/vector-icons'
 import { Camera, MapView, MarkerView } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
-import { ArrowDownUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
+import { ArrowDownUp, Box, Check, CheckCircle, MapPin, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useRef, useState } from 'react'
 import {
   FlatList,
@@ -77,9 +76,8 @@ const ItineraryView = () => {
                   })
                 }}
               >
-                <View style={styles.marker}>
-                  <Ionicons name="location" size={20} color="white" />
-                  <Text style={styles.markerNumber}>{index + 1}</Text>
+                <View className='bg-[#007AFF] p-2 rounded-full' >
+                  <Icon as={MapPin} size='lg' color='white' />
                 </View>
               </Pressable>
               <Text style={styles.markerText}>{poi.name}</Text>
