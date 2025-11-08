@@ -1,15 +1,12 @@
+import { Box } from '@/components/ui/box';
+import { Button, ButtonText } from '@/components/ui/button';
+import { Checkbox, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from '@/components/ui/checkbox';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-
-const { width } = Dimensions.get('window');
+import { ScrollView, StyleSheet } from 'react-native';
 
 const interests = [
   { id: 'churches', label: 'Churches' },
@@ -22,10 +19,10 @@ const interests = [
 
 const OnboardingScreen = () => {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const router = useRouter()
+  const router = useRouter();
 
   const toggleInterest = (interestId: string) => {
-    setSelectedInterests(prev => 
+    setSelectedInterests(prev =>
       prev.includes(interestId)
         ? prev.filter(id => id !== interestId)
         : [...prev, interestId]
@@ -33,200 +30,76 @@ const OnboardingScreen = () => {
   };
 
   const handleDone = () => {
-    router.back();
+    router.replace('/(tabs)');
+    AsyncStorage.setItem('haveOnboarded', 'true');
   };
 
   const isDoneDisabled = selectedInterests.length === 0;
 
   return (
-    <View style={styles.container}>
-      <ScrollView 
+    <VStack className="flex-1">
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Tell us what you're interested in!</Text>
-          <Text style={styles.subtitle}>You can select more than one</Text>
-        </View>
+        <Box className="items-center mb-10 px-6 pt-10">
+          <Text className="font-bold text-center mb-2 leading-8">
+            Tell us what you're interested in!
+          </Text>
+          <Text className="text-center leading-6" >
+            You can select more than one
+          </Text>
+        </Box>
 
-        {/* Interests Horizontal Row */}
-        <View style={styles.interestsRow}>
-          {interests.map((interest) => (
-            <TouchableOpacity
-              key={interest.id}
-              style={[
-                styles.interestButton,
-                selectedInterests.includes(interest.id) && styles.interestButtonSelected,
-              ]}
-              onPress={() => toggleInterest(interest.id)}
-            >
-              <View style={styles.checkbox}>
-                <View
-                  style={[
-                    styles.checkboxInner,
-                    selectedInterests.includes(interest.id) && styles.checkboxInnerSelected,
-                  ]}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.interestText,
-                  selectedInterests.includes(interest.id) && styles.interestTextSelected,
-                ]}
+        {/* Interests Grid */}
+        <Box className="px-6">
+          <Box className="flex-row flex-wrap justify-start gap-3">
+            {interests.map((interest) => (
+              <Checkbox
+                key={interest.id}
+                value={interest.id}
+                isChecked={selectedInterests.includes(interest.id)}
+                onChange={() => toggleInterest(interest.id)}
+                className={`
+                  flex-row items-center 
+                   border border-gray-200 
+                  rounded-xl py-3 px-4 mb-2
+                `}
               >
-                {interest.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <CheckboxIndicator className="w-5 h-5 border-2 border-gray-300 rounded mr-2">
+                  <CheckboxIcon className="text-blue-500" />
+                </CheckboxIndicator>
+                <CheckboxLabel size='md'>
+                  {interest.label}
+                </CheckboxLabel>
+              </Checkbox>
+            ))}
+          </Box>
+        </Box>
       </ScrollView>
 
       {/* Footer Buttons */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.doneButton,
-            isDoneDisabled && styles.doneButtonDisabled,
-          ]}
+      <Box className="flex-row justify-end items-center px-6 py-5 border-t border-gray-200 ">
+        <Button
           onPress={handleDone}
-          disabled={isDoneDisabled}
+          isDisabled={isDoneDisabled}
+          action='primary'
         >
-          <Text style={[
-            styles.doneButtonText,
-            isDoneDisabled && styles.doneButtonTextDisabled,
-          ]}>
+          <ButtonText size='md'>
             Save Changes
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          </ButtonText>
+        </Button>
+      </Box>
+    </VStack>
   );
 };
 
+// Minimal styles needed for scroll view
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
     paddingBottom: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 32,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  interestsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 12,
-  },
-  interestButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    flexShrink: 1,
-    minWidth: 0, // Allow items to shrink properly
-  },
-  interestButtonSelected: {
-    backgroundColor: '#E7F3FF',
-    borderColor: '#007AFF',
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#CED4DA',
-    marginRight: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    backgroundColor: 'transparent',
-  },
-  checkboxInnerSelected: {
-    backgroundColor: '#007AFF',
-  },
-  interestText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#495057',
-    flexShrink: 1, // Allow text to wrap
-  },
-  interestTextSelected: {
-    color: '#007AFF',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F3F4',
-    backgroundColor: '#FFFFFF',
-  },
-  skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  skipButtonDisabled: {
-    opacity: 0.5,
-  },
-  skipButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#007AFF',
-  },
-  skipButtonTextDisabled: {
-    color: '#999999',
-  },
-  doneButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  doneButtonDisabled: {
-    backgroundColor: '#E9ECEF',
-  },
-  doneButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  doneButtonTextDisabled: {
-    color: '#ADB5BD',
   },
 });
 
