@@ -126,7 +126,7 @@ export default function ItinerariesScreen() {
           ),
         }}
       />
-      <Box >
+      <Box className='h-full'>
         <FlatList
           data={itineraries.filter(v => {
             if (searchString == null)
