@@ -1,3 +1,10 @@
+import { Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@/components/ui/actionsheet';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { Fab, FabIcon } from '@/components/ui/fab';
+import { HStack } from '@/components/ui/hstack';
+import { Icon } from '@/components/ui/icon';
+import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
@@ -5,8 +12,9 @@ import { historicalLandmarks } from '@/src/constants/Landmarks';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } from '@rnmapbox/maps';
 import { getForegroundPermissionsAsync, requestForegroundPermissionsAsync } from 'expo-location';
+import { Locate, MapIcon, PlusCircle, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Dimensions, Pressable, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
@@ -127,16 +135,6 @@ const ExploreTab = () => {
         }, 200);
     };
 
-    const bottomSheetTranslateY = slideAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [300, 0]
-    });
-
-    const overlayOpacity = fadeAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 0.5]
-    });
-
     return (
         <VStack style={styles.page}>
             <MapView
@@ -166,7 +164,7 @@ const ExploreTab = () => {
                         key={`landmark-${landmark.id}`}
                         coordinate={[landmark.longitude, landmark.latitude]}
                     >
-                        <View style={styles.markerContainer}>
+                        <Box style={styles.markerContainer}>
                             <Pressable
                                 onPress={() => handleMarkerPress(index)}
                                 style={({ pressed }) => [
@@ -180,80 +178,55 @@ const ExploreTab = () => {
                                     color={selectedIndex === index ? '#ff4444' : '#4CAF50'}
                                 />
                             </Pressable>
-                            <View style={[
+                            <Box style={[
                                 styles.markerLabel,
                                 selectedIndex === index && styles.markerLabelSelected
                             ]}>
                                 <Text style={styles.markerLabelText}>{landmark.name}</Text>
-                            </View>
-                        </View>
+                            </Box>
+                        </Box>
                     </MarkerView>
                 ))}
             </MapView>
-
-            {/* Overlay when bottom sheet is open */}
-            {selectedIndex !== null && (
-                <Animated.View
-                    style={[
-                        styles.overlay,
-                        { opacity: overlayOpacity }
-                    ]}
-                >
-                    <Pressable
-                        style={styles.overlayPressable}
-                        onPress={handleCloseBottomSheet}
-                    />
-                </Animated.View>
-            )}
-
-            {/* Bottom Sheet */}
-            <Animated.View
-                style={[
-                    styles.bottomSheet,
-                    {
-                        transform: [{ translateY: bottomSheetTranslateY }]
-                    }
-                ]}
-            >
-                <View style={styles.bottomSheetHandle} />
-
-                <View style={styles.bottomSheetHeader}>
-                    <Text style={styles.bottomSheetTitle}>
-                        {selectedIndex !== null ? historicalLandmarks[selectedIndex].name : ''}
-                    </Text>
-                    <Pressable
-                        onPress={handleCloseBottomSheet}
-                        style={styles.closeButton}
-                    >
-                        <Ionicons name='close' size={24} color="#666" />
-                    </Pressable>
-                </View>
-
-                {selectedIndex !== null && (
-                    <View style={styles.bottomSheetContent}>
-                        <View style={styles.landmarkDetails}>
-                            <View style={styles.detailItem}>
-                                <Ionicons name="location-outline" size={16} color="#666" />
-                                <Text style={styles.detailText}>
-                                    {historicalLandmarks[selectedIndex].latitude.toFixed(4)}, {historicalLandmarks[selectedIndex].longitude.toFixed(4)}
-                                </Text>
-                            </View>
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.addButton}
-                            onPress={() => {
-                                // Add to itinerary logic here
-                                console.log('Add to itinerary:', historicalLandmarks[selectedIndex].name);
-                            }}
+            <Actionsheet isOpen={selectedIndex != null} onClose={handleCloseBottomSheet} snapPoints={[36]} >
+                <ActionsheetBackdrop />
+                <ActionsheetContent>
+                    <ActionsheetDragIndicatorWrapper>
+                        <ActionsheetDragIndicator />
+                    </ActionsheetDragIndicatorWrapper>
+                    <Box className='w-full flex-row justify-between' >
+                        <Text size='xl' >
+                            {selectedIndex !== null ? historicalLandmarks[selectedIndex].name : ''}
+                        </Text>
+                        <Button
+                            onPress={handleCloseBottomSheet}
+                            style={styles.closeButton}
                         >
-                            <Ionicons name="add-circle-outline" size={20} color="white" />
-                            <Text style={styles.addButtonText}>Add To Itinerary</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </Animated.View>
-
+                            <ButtonIcon as={X} />
+                        </Button>
+                    </Box>
+                    {
+                        selectedIndex != null && (
+                            <Box className='w-full gap-4 '>
+                                <HStack space='md' className='items-center'>
+                                    <Icon as={MapIcon} />
+                                    <Text size='lg'>
+                                        {historicalLandmarks[selectedIndex].latitude.toFixed(4)}, {historicalLandmarks[selectedIndex].longitude.toFixed(4)}
+                                    </Text>
+                                </HStack>
+                                <Button
+                                    onPress={() => {
+                                        console.log('Add to itinerary:', historicalLandmarks[selectedIndex].name);
+                                    }}
+                                >
+                                    <ButtonIcon as={PlusCircle} />
+                                    <ButtonText>Add to Itinerary </ButtonText>
+                                </Button>
+                            </Box>
+                        )
+                    }
+                </ActionsheetContent>
+            </Actionsheet>
             {/* Search Box */}
             <ExploreSearchBox
                 onSearch={setSearchString}
@@ -270,16 +243,12 @@ const ExploreTab = () => {
             />
 
             {/* Locate Button */}
-            <Pressable
+            <Fab
                 onPress={handleLocatePress}
-                style={({ pressed }) => [
-                    styles.locateButton,
-                    pressed && styles.locateButtonPressed
-                ]}
-                className='absolute bottom-6 right-4 bg-white p-3 rounded-xl shadow'
+                size='xl'
             >
-                <Ionicons name='locate' size={24} color="#2563eb" />
-            </Pressable>
+                <FabIcon as={Locate} size='xl' />
+            </Fab>
         </VStack>
     );
 };

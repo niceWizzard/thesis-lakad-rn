@@ -1,6 +1,7 @@
-import { Ionicons } from '@expo/vector-icons'
+import { Box } from '@/components/ui/box'
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
+import { Search } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { Pressable, StyleSheet, TextInput, useColorScheme, View } from 'react-native'
 
 const ExploreSearchBox = ({
   onSearch,
@@ -14,8 +15,6 @@ const ExploreSearchBox = ({
   value?: string // Add this
 }) => {
   const [internalValue, setInternalValue] = useState('')
-  const colorScheme = useColorScheme()
-
   // Use the external value if provided, otherwise use internal state
   const displayValue = value !== undefined ? value : internalValue;
 
@@ -40,73 +39,29 @@ const ExploreSearchBox = ({
   };
 
   return (
-    <View style={[
-      styles.container,
-      {
-        backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.95)',
-        borderColor: colorScheme === 'dark' ? '#333' : '#ddd',
-      }
-    ]}>
-      <Ionicons
-        name='search'
-        size={20}
-        color="#666"
-        style={styles.searchIcon}
-      />
-      <TextInput
-        placeholder='Search for places...'
-        placeholderTextColor="#666"
-        value={displayValue}
-        style={[
-          styles.input,
-          {
-            color: colorScheme === 'dark' ? 'white' : 'black',
-          }
-        ]}
-        onChangeText={handleChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        returnKeyType="search"
-      />
-      {displayValue.length > 0 && (
-        <Pressable onPress={handleClear} style={styles.clearButton}>
-          <Ionicons name="close-circle" size={18} color="#999" />
-        </Pressable>
-      )}
-    </View>
+    <Box
+      className='absolute top-8 left-4 right-4 '
+    >
+      <Input
+        className='w-full bg-background-0 px-4'
+        variant='rounded'
+        size='2xl'
+      >
+        <InputField
+          value={displayValue}
+          returnKeyType="search"
+          placeholder='Search for places...'
+          onChangeText={handleChange}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+        <InputSlot>
+          <InputIcon as={Search} />
+        </InputSlot>
+      </Input>
+    </Box>
   )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    top: 24,
-    left: 16,
-    right: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    zIndex: 10,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  searchIcon: {
-    marginLeft: 12,
-    marginRight: 8,
-  },
-  clearButton: {
-    padding: 4,
-    marginRight: 8,
-  }
-})
 
 export default ExploreSearchBox

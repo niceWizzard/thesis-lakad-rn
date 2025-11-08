@@ -1,6 +1,9 @@
-import { Ionicons } from '@expo/vector-icons'
+import { Icon } from '@/components/ui/icon'
+import { Text } from '@/components/ui/text'
+import { VStack } from '@/components/ui/vstack'
+import { MapPin } from 'lucide-react-native'
 import React from 'react'
-import { FlatList, Keyboard, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { FlatList, Keyboard, StyleSheet, TouchableOpacity } from 'react-native'
 import { historicalLandmarks } from '../constants/Landmarks'
 
 const SearchResultsBox = ({
@@ -12,8 +15,6 @@ const SearchResultsBox = ({
     onResultPress: (id: number) => void
     visible: boolean
 }) => {
-    const colorScheme = useColorScheme();
-
     if (!visible || !searchString.trim()) {
         return null;
     }
@@ -22,16 +23,11 @@ const SearchResultsBox = ({
     const results = historicalLandmarks.filter(v => test.test(v.name));
 
     return (
-        <View style={[
-            styles.container,
-            {
-                backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.95)',
-                borderColor: colorScheme === 'dark' ? '#333' : '#ddd',
-            }
-        ]}>
+        <VStack
+            className='absolute top-24 bg-background-0 left-4 right-4 rounded-md p-4'
+        >
             <Text style={[
                 styles.resultsTitle,
-                { color: colorScheme === 'dark' ? '#ccc' : '#666' }
             ]}>
                 Search Results ({results.length})
             </Text>
@@ -49,14 +45,9 @@ const SearchResultsBox = ({
                             Keyboard.dismiss()
                         }}
                     >
-                        <Ionicons
-                            name="location-outline"
-                            size={16}
-                            color={colorScheme === 'dark' ? '#999' : '#666'}
-                        />
+                        <Icon as={MapPin} />
                         <Text style={[
                             styles.resultText,
-                            { color: colorScheme === 'dark' ? 'white' : 'black' }
                         ]}>
                             {landmark.name}
                         </Text>
@@ -65,7 +56,7 @@ const SearchResultsBox = ({
                 showsVerticalScrollIndicator={false}
                 style={styles.list}
             />
-        </View>
+        </VStack>
     )
 }
 
