@@ -13,10 +13,7 @@ function TabBarIcon(props: {
 export default function TabLayout() {
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-      }}>
+    <Tabs>
       <Tabs.Screen
         name="index"
         options={{
