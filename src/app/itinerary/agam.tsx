@@ -1,19 +1,21 @@
-import FilterAccordion from '@/src/components/FilterAccordion'
+import { Accordion, AccordionContent, AccordionHeader, AccordionIcon, AccordionItem, AccordionTitleText, AccordionTrigger } from '@/components/ui/accordion'
+import { Box } from '@/components/ui/box'
+import { Button, ButtonText } from '@/components/ui/button'
+import { Checkbox, CheckboxGroup, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from '@/components/ui/checkbox'
+import { Input, InputField } from '@/components/ui/input'
+import { Text } from '@/components/ui/text'
+import { VStack } from '@/components/ui/vstack'
 import { historicalLandmarks } from '@/src/constants/Landmarks'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
 import { useRouter } from 'expo-router'
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react-native'
 import React, { useState } from 'react'
 import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
-  Text,
-  TextInput,
   TouchableWithoutFeedback,
-  useColorScheme,
-  View
 } from 'react-native'
 
 // District data
@@ -39,8 +41,6 @@ function shuffle<T>(arr: T[]) {
 }
 
 const CreateWithAgamScreen = () => {
-  const mode = useColorScheme()
-
   const [maxDistance, setMaxDistance] = useState('')
   const [selectedDistricts, setSelectedDistricts] = useState<string[]>(
     districtItems.map(v => v.id)
@@ -83,121 +83,150 @@ const CreateWithAgamScreen = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1, padding: 8 }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} >
+        <Box className='p-4 w-full h-full'>
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerClassName='flex-1 gap-4'
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
             {/* District Filter */}
-            <FilterAccordion
-              title="Filter by District"
-              items={districtItems}
-              selectedItems={selectedDistricts}
-              onSelectionChange={setSelectedDistricts}
-              multiple={true}
-            />
-
-            {/* Category Filter */}
-            <FilterAccordion
-              title="Filter by Category"
-              items={categoryItems}
-              selectedItems={selectedCategories}
-              onSelectionChange={setSelectedCategories}
-              multiple={true}
-            />
+            <Accordion variant='filled' className='bg-transparent gap-4'>
+              <AccordionItem value='a' className='rounded-lg'>
+                <AccordionHeader>
+                  <AccordionTrigger>
+                    {({ isExpanded }: { isExpanded: boolean }) => {
+                      return (
+                        <>
+                          <AccordionTitleText size='lg'>
+                            Included District
+                          </AccordionTitleText>
+                          {isExpanded ? (
+                            <AccordionIcon as={ChevronUpIcon} className="ml-3" />
+                          ) : (
+                            <AccordionIcon as={ChevronDownIcon} className="ml-3" />
+                          )}
+                        </>
+                      );
+                    }}
+                  </AccordionTrigger>
+                </AccordionHeader>
+                <AccordionContent>
+                  <CheckboxGroup
+                    value={selectedDistricts}
+                    onChange={(keys) => {
+                      setSelectedDistricts(keys)
+                    }}
+                  >
+                    <VStack>
+                      {
+                        districtItems.map(district => (
+                          <Checkbox value={district.id} size='lg'>
+                            <CheckboxIndicator>
+                              <CheckboxIcon as={CheckIcon} />
+                            </CheckboxIndicator>
+                            <CheckboxLabel>{district.label}</CheckboxLabel>
+                          </Checkbox>
+                        ))
+                      }
+                    </VStack>
+                  </CheckboxGroup>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value='b' className='rounded-lg'>
+                <AccordionHeader>
+                  <AccordionTrigger>
+                    {({ isExpanded }: { isExpanded: boolean }) => {
+                      return (
+                        <>
+                          <AccordionTitleText size='lg'>
+                            Included Category
+                          </AccordionTitleText>
+                          {isExpanded ? (
+                            <AccordionIcon as={ChevronUpIcon} className="ml-3" />
+                          ) : (
+                            <AccordionIcon as={ChevronDownIcon} className="ml-3" />
+                          )}
+                        </>
+                      );
+                    }}
+                  </AccordionTrigger>
+                </AccordionHeader>
+                <AccordionContent>
+                  <CheckboxGroup
+                    value={selectedCategories}
+                    onChange={(keys) => {
+                      setSelectedCategories(keys)
+                    }}
+                  >
+                    <VStack space='sm'>
+                      {
+                        categoryItems.map(category => (
+                          <Checkbox value={category.id} size='lg'>
+                            <CheckboxIndicator>
+                              <CheckboxIcon as={CheckIcon} />
+                            </CheckboxIndicator>
+                            <CheckboxLabel>{category.label}</CheckboxLabel>
+                          </Checkbox>
+                        ))
+                      }
+                    </VStack>
+                  </CheckboxGroup>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
             {/* Max Distance Input */}
-            <View style={{ marginVertical: 16 }}>
-              <Text style={{
-                fontSize: 18,
-                fontWeight: '600',
-                color: mode === 'dark' ? 'white' : 'black',
-                marginBottom: 8
-              }}>
+            <VStack space='sm'>
+              <Text>
                 Maximum Travel Distance
               </Text>
+              <Input >
 
-              <TextInput
-                placeholder='0km'
-                placeholderTextColor={mode === 'dark' ? '#999' : '#666'}
-                value={maxDistance}
-                onChangeText={setMaxDistance}
-                style={{
-                  borderWidth: 1,
-                  borderColor: mode === 'dark' ? '#444' : '#ddd',
-                  borderRadius: 8,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  color: mode === 'dark' ? 'white' : 'black',
-                  backgroundColor: mode === 'dark' ? '#1a1a1a' : 'white',
-                }}
-                keyboardType='numeric'
-              />
-
-              <Text style={{
-                color: mode === 'dark' ? '#999' : '#666',
-                fontSize: 14,
-                marginTop: 4
-              }}>
+                <InputField
+                  placeholder='0km'
+                  value={maxDistance}
+                  onChangeText={setMaxDistance}
+                  keyboardType='numeric'
+                />
+              </Input>
+              <Text size='xs'>
                 Input distance to which the itinerary distance cannot exceed.
               </Text>
-            </View>
+            </VStack>
 
             {/* Selected Filters Summary */}
             {(selectedDistricts.length > 0 || selectedCategories.length > 0) && (
-              <View style={{
-                backgroundColor: mode === 'dark' ? '#2a2a2a' : '#f0f0f0',
-                padding: 12,
-                borderRadius: 8,
-                marginVertical: 8
-              }}>
-                <Text style={{
-                  fontWeight: '600',
-                  color: mode === 'dark' ? 'white' : 'black',
-                  marginBottom: 4
-                }}>
+              <Box className='p-4 bg-background-100 rounded-md'>
+                <Text className='font-medium'>
                   Selected Filters:
                 </Text>
                 {selectedDistricts.length > 0 && (
-                  <Text style={{ color: mode === 'dark' ? '#ccc' : '#666' }}>
+                  <Text size='sm'>
                     Districts: {selectedDistricts.length} / {districtItems.length}
                   </Text>
                 )}
                 {selectedCategories.length > 0 && (
-                  <Text style={{ color: mode === 'dark' ? '#ccc' : '#666' }}>
+                  <Text size='sm'>
                     Categories: {selectedCategories.length} / {categoryItems.length}
                   </Text>
                 )}
-              </View>
+              </Box>
             )}
           </ScrollView>
 
           {/* Fixed button at bottom */}
-          <View style={{
-            padding: 8,
-            backgroundColor: 'transparent'
-          }}>
-            <Pressable
+          <Box >
+            <Button
               onPress={onGenerateClick}
-              style={{
-                backgroundColor: mode === 'dark' ? 'white' : 'black',
-                padding: 16,
-                borderRadius: 8,
-                alignItems: 'center',
-              }}
+              size='lg'
             >
-              <Text style={{
-                color: mode === 'dark' ? 'black' : 'white',
-                fontWeight: 'bold',
-                fontSize: 16
-              }}>
+              <ButtonText>
                 Generate
-              </Text>
-            </Pressable>
-          </View>
-        </View>
+              </ButtonText>
+            </Button>
+          </Box>
+        </Box>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   )
