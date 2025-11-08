@@ -1,7 +1,7 @@
 import { historicalLandmarks } from "./Landmarks";
 
 export interface POI {
-    name : string;
+    name: string;
     longitude: number
     latitude: number
     visited: boolean;
@@ -14,7 +14,7 @@ export interface Itinerary {
 }
 
 
-export const DEFAULT_ITINERARIES : Itinerary[] = [
+export const DEFAULT_ITINERARIES: Itinerary[] = [
     {
         id: 'Malolos1',
         name: 'Test 1',
@@ -63,7 +63,7 @@ export const DEFAULT_ITINERARIES : Itinerary[] = [
             },
         ]
     },
-     {
+    {
         id: 'Malolos3',
         name: 'Long Itinerary',
         poiOrder: historicalLandmarks.map(v => ({
@@ -73,4 +73,31 @@ export const DEFAULT_ITINERARIES : Itinerary[] = [
             visited: false,
         }))
     },
+    {
+        id: 'Malolos4',
+        name: 'Ver Long Itinerary',
+        poiOrder: [
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+            ...historicalLandmarks,
+
+        ].map((v, i) => ({
+            latitude: v.latitude + 0.0001 * i,
+            longitude: v.longitude - 0.0001 * i,
+            name: v.name + ' ' + i,
+            visited: false,
+        }))
+    }
 ]

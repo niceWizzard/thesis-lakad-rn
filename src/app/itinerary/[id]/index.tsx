@@ -5,16 +5,16 @@ import { Icon } from '@/components/ui/icon'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
-import { Camera, MapView, MarkerView } from '@rnmapbox/maps'
+import { Callout, Camera, MapView, PointAnnotation } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
-import { ArrowDownUp, Box, Check, CheckCircle, MapPin, Menu, Navigation, PlusCircle } from 'lucide-react-native'
+import { ArrowDownUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useRef, useState } from 'react'
 import {
   FlatList,
   Pressable,
   StyleSheet,
   ToastAndroid,
-  View,
+  View
 } from 'react-native'
 
 const ItineraryView = () => {
@@ -60,31 +60,28 @@ const ItineraryView = () => {
           minZoomLevel={10}
         />
         {itinerary.poiOrder.map((poi, index) => (
-          <MarkerView
-            key={`poi-${poi.latitude}-${poi.longitude}`}
+          <PointAnnotation
+            id={`POI-${poi.latitude}-${poi.longitude}`}
+            key={`POI-${poi.latitude}-${poi.longitude}`}
             coordinate={[poi.longitude, poi.latitude]}
+            title={poi.name}
+
+            onSelected={(feature: any) => {
+              console.log('onSelected:', feature.id, feature.geometry.coordinates)
+              camera.current?.setCamera({
+                zoomLevel: 20,
+                centerCoordinate: [poi.longitude, poi.latitude - 0.0001],
+                animationDuration: 500,
+              })
+              if (!isSheetVisible)
+                setSheetVisible(true)
+            }
+            }
           >
-            <View style={styles.markerContainer}>
-              <Pressable
-                onPress={() => {
-                  if (!isSheetVisible)
-                    setSheetVisible(true)
-                  camera.current?.setCamera({
-                    animationDuration: 500,
-                    centerCoordinate: [poi.longitude, poi.latitude - 0.00010],
-                    zoomLevel: 20,
-                  })
-                }}
-              >
-                <View className='p-2 rounded-full' style={{
-                  backgroundColor: poi.visited ? 'green' : '#007AFF'
-                }} >
-                  <Icon as={MapPin} size='lg' color='white' />
-                </View>
-              </Pressable>
-              <Text style={styles.markerText}>{poi.name}</Text>
+            <View>
             </View>
-          </MarkerView>
+            <Callout title={poi.name} />
+          </PointAnnotation>
         ))}
       </MapView>
       {/* Bottom Sheet */}
@@ -130,12 +127,12 @@ const ItineraryView = () => {
                 renderItem={({ item }) =>
                 (
                   <Pressable className='p-2'>
-                    <HStack space='sm' className='w-full items-center'>
-                      <HStack space='sm' className='flex-grow items-center'>
+                    <HStack space='md' className='w-full items-center'>
+                      <HStack space='sm' className='flex-1 items-center' style={{ flexShrink: 1 }}>
                         <Icon as={Menu} />
                         <Text style={[item.visited && { textDecorationLine: 'line-through' }]}>{item.name}</Text>
                       </HStack>
-                      <HStack className='flex-shrink' space='md' >
+                      <HStack className='justify-end' space='md' >
                         <Button
                           variant='link'
                           onPress={() => {
