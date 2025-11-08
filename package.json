@@ -27,6 +27,7 @@
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "expo-web-browser": "~15.0.9",
+    "lucide-react-native": "^0.510.0",
     "nativewind": "^4.2.1",
     "react": "19.1.0",
     "react-aria": "^3.44.0",

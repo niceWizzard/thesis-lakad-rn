@@ -1,17 +1,16 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Mapbox from '@rnmapbox/maps';
 
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
+import ThemingProviders from '../provider/ThemingProviders';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -38,6 +37,7 @@ export default function RootLayout() {
   const [initialRouteDetermined, setInitialRouteDetermined] = useState(false);
   const router = useRouter();
   const segments = useSegments();
+
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -84,13 +84,11 @@ export default function RootLayout() {
 
   if (!loaded || !isReady) {
     return (
-
-      <GluestackUIProvider mode="dark">
+      <ThemingProviders>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
-      </GluestackUIProvider>
-
+      </ThemingProviders>
     );
   }
 
@@ -98,38 +96,35 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
 
   return (
-    <GluestackUIProvider mode="dark">
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(onboarding)/index" />
-          <Stack.Screen name="(more)/preferences"
-            options={{
-              title: 'Preferences',
-              headerShown: true,
-            }}
-          />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen
-            name="itinerary/[id]/index"
-            options={{
-              title: "Itinerary",
-              headerShown: true,
-              animation: 'slide_from_right',
-            }}
-          />
-          <Stack.Screen
-            name='itinerary/agam'
-            options={{
-              title: '',
-              headerShown: true,
-            }}
-          />
-        </Stack>
-      </ThemeProvider>
-    </GluestackUIProvider>
+    <ThemingProviders>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(onboarding)/index" />
+        <Stack.Screen name="(more)/preferences"
+          options={{
+            title: 'Preferences',
+            headerShown: true,
+          }}
+        />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="itinerary/[id]/index"
+          options={{
+            title: "Itinerary",
+            headerShown: true,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name='itinerary/agam'
+          options={{
+            title: '',
+            headerShown: true,
+          }}
+        />
+      </Stack>
+    </ThemingProviders>
   );
 }

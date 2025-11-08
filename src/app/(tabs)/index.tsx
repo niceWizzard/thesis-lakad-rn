@@ -1,3 +1,4 @@
+import { VStack } from '@/components/ui/vstack';
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { historicalLandmarks } from '@/src/constants/Landmarks';
@@ -137,7 +138,7 @@ const ExploreTab = () => {
     });
 
     return (
-        <View style={styles.page}>
+        <VStack style={styles.page}>
             <MapView
                 style={styles.map}
                 compassEnabled
@@ -275,10 +276,11 @@ const ExploreTab = () => {
                     styles.locateButton,
                     pressed && styles.locateButtonPressed
                 ]}
+                className='absolute bottom-6 right-4 bg-white p-3 rounded-xl shadow'
             >
                 <Ionicons name='locate' size={24} color="#2563eb" />
             </Pressable>
-        </View>
+        </VStack>
     );
 };
 
