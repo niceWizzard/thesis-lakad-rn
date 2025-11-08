@@ -1,50 +1,44 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Box } from '@/components/ui/box';
+import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
 import React from 'react';
 import {
   Alert,
   Image,
   ScrollView,
-  StyleSheet, Text, TouchableOpacity,
-  useColorScheme, View
+  StyleSheet,
 } from "react-native";
+
+import { Forward, Info, Option, Settings } from 'lucide-react-native';
 
 const coverImage = require('@/assets/images/lakad-cover.png');
 
-type MenuItem = {
-  id: string;
-  title: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  onPress: () => void;
-};
-
 function MoreTab() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const router = useRouter()
 
-  const menuItems: MenuItem[] = [
+  const menuItems = [
     {
       id: '1',
       title: 'Settings',
-      icon: 'settings-outline',
+      icon: Settings,
       onPress: () => Alert.alert('Settings', 'Settings screen coming soon!'),
     },
     {
       id: '2',
       title: 'Preferences',
-      icon: 'options-outline',
+      icon: Option,
       onPress: () => router.navigate('/(more)/preferences'),
     },
     {
       id: '3',
       title: 'About',
-      icon: 'information-circle-outline',
+      icon: Info,
       onPress: () => Alert.alert('About', 'Lakad App v1.0.0'),
     },
-  ];
+  ] as const;
 
-  const handleItemPress = (item: MenuItem) => {
+  const handleItemPress = (item: typeof menuItems[number]) => {
     item.onPress();
   };
 
@@ -55,56 +49,49 @@ function MoreTab() {
       showsVerticalScrollIndicator={false}
     >
       {/* Header with Image */}
-      <View style={styles.header}>
+      <Box style={styles.header}>
         <Image
           source={coverImage}
           style={styles.coverImage}
           resizeMode="cover"
         />
         <Text style={styles.appTitle}>Lakad</Text>
-        <Text style={[styles.appSubtitle, { color: isDark ? '#ccc' : '#666' }]}>
+        <Text style={[styles.appSubtitle]}>
           Your walking companion
         </Text>
-      </View>
+      </Box>
 
       {/* Menu Items */}
-      <View style={styles.menuContainer}>
+      <Box style={styles.menuContainer}>
         {menuItems.map((item) => (
-          <TouchableOpacity
+          <Button
             key={item.id}
-            style={[
-              styles.menuItem,
-              {
-                borderColor: isDark ? '#333' : '#e0e0e0',
-                backgroundColor: isDark ? '#1a1a1a' : '#f8f8f8',
-              }
-            ]}
             onPress={() => handleItemPress(item)}
-            activeOpacity={0.7}
+            className='flex flex-row justify-between'
+            size='lg'
+            action='secondary'
           >
-            <View style={styles.menuItemLeft}>
-              <Ionicons
-                name={item.icon}
-                size={22}
-                color={isDark ? '#fff' : '#000'}
-              />
-              <Text style={styles.menuItemText}>{item.title}</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={isDark ? '#666' : '#999'}
+            <ButtonIcon
+              size="md"
+              as={item.icon}
             />
-          </TouchableOpacity>
+            <ButtonText style={styles.menuItemLeft}>
+              {item.title}
+            </ButtonText>
+            <ButtonIcon
+              size="md"
+              as={Forward}
+            />
+          </Button>
         ))}
-      </View>
+      </Box>
 
       {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: isDark ? '#888' : '#666' }]}>
+      <Box style={styles.footer}>
+        <Text style={[styles.footerText]}>
           Version 1.0.0
         </Text>
-      </View>
+      </Box>
     </ScrollView>
   );
 }
