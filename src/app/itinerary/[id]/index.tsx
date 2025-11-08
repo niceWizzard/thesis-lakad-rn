@@ -1,19 +1,22 @@
-import BottomSheet from '@/src/components/ModalBottomSheet'
+import { Actionsheet, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@/components/ui/actionsheet'
+import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
+import { HStack } from '@/components/ui/hstack'
+import { Icon } from '@/components/ui/icon'
+import { Text } from '@/components/ui/text'
+import { VStack } from '@/components/ui/vstack'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
 import { Ionicons } from '@expo/vector-icons'
 import { Camera, MapView, MarkerView } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
+import { ArrowDownUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useRef, useState } from 'react'
 import {
   FlatList,
   Pressable,
   StyleSheet,
-  Text,
   ToastAndroid,
-  TouchableOpacity,
-  View
+  View,
 } from 'react-native'
-import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 const ItineraryView = () => {
   const { id } = useLocalSearchParams()
@@ -25,71 +28,81 @@ const ItineraryView = () => {
 
   if (!itinerary) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Box className='justify-center items-center w-full h-full'>
         <Text>Invalid itinerary id</Text>
-      </View>
+      </Box>
     )
   }
 
   // Handle reordering of POIs
   const handleReorder = ({ data }: { data: typeof itinerary.poiOrder }) => {
     if (itinerary) {
-      setItineraryPoiOrder(data,itinerary.id)
+      setItineraryPoiOrder(data, itinerary.id)
     }
   }
 
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        {/* Map View */}
-        <MapView 
-          style={styles.map}
-          compassEnabled
-        >
-          <Camera
+    <VStack className='flex-1'>
+      {/* Map View */}
+      <MapView
+        style={{ width: "100%", height: '100%' }}
+        compassEnabled
+      >
+        <Camera
           ref={camera}
-            centerCoordinate={[itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude]}
-            defaultSettings={{
-              centerCoordinate: [itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude],
-              zoomLevel: 15,
-              animationDuration: 250,
-            }}
-            zoomLevel={17}
-            minZoomLevel={10}
-          />
-          {itinerary.poiOrder.map((poi, index) => (
-            <MarkerView
-              key={`poi-${poi.latitude}-${poi.longitude}`}
-              coordinate={[poi.longitude, poi.latitude]}
-            >
-              <View style={styles.markerContainer}>
-                <Pressable>
-                  <View style={styles.marker}>
-                    <Ionicons name="location" size={20} color="white" />
-                    <Text style={styles.markerNumber}>{index + 1}</Text>
-                  </View>
-                </Pressable>
-                <Text style={styles.markerText}>{poi.name}</Text>
-              </View>
-            </MarkerView>
-          ))}
-        </MapView>
-
-        {/* Bottom Sheet */}
-        <BottomSheet
-          isVisible={isSheetVisible}
-          onClose={() => setSheetVisible(false)}
-          height="50%"
-          enableSwipeToClose={false}
-          isHideable={false}
-          showBackdrop={false}
-        >
-          <View style={styles.sheetContent}>
+          centerCoordinate={[itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude]}
+          defaultSettings={{
+            centerCoordinate: [itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude],
+            zoomLevel: 15,
+            animationDuration: 250,
+          }}
+          zoomLevel={17}
+          minZoomLevel={10}
+        />
+        {itinerary.poiOrder.map((poi, index) => (
+          <MarkerView
+            key={`poi-${poi.latitude}-${poi.longitude}`}
+            coordinate={[poi.longitude, poi.latitude]}
+          >
+            <View style={styles.markerContainer}>
+              <Pressable
+                onPress={() => {
+                  if (!isSheetVisible)
+                    setSheetVisible(true)
+                  camera.current?.setCamera({
+                    animationDuration: 500,
+                    centerCoordinate: [poi.longitude, poi.latitude - 0.00010],
+                    zoomLevel: 20,
+                  })
+                }}
+              >
+                <View style={styles.marker}>
+                  <Ionicons name="location" size={20} color="white" />
+                  <Text style={styles.markerNumber}>{index + 1}</Text>
+                </View>
+              </Pressable>
+              <Text style={styles.markerText}>{poi.name}</Text>
+            </View>
+          </MarkerView>
+        ))}
+      </MapView>
+      {/* Bottom Sheet */}
+      <Actionsheet
+        key={isSheetVisible ? 'sheet-open' : 'sheet-closed'}
+        isOpen={isSheetVisible}
+        onClose={() => setSheetVisible(false)}
+        snapPoints={[45]}
+      >
+        <ActionsheetContent  >
+          <ActionsheetDragIndicatorWrapper>
+            <ActionsheetDragIndicator />
+          </ActionsheetDragIndicatorWrapper>
+          <VStack className=' w-full' space='sm'>
             {/* Header */}
-            <View style={styles.header}>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                <Text style={styles.itineraryName}>
+            <VStack className='w-full' space='md'>
+              <HStack className='w-full justify-between' >
+                <Text size='2xl' className='font-semibold'>
                   {itinerary.name}
                 </Text>
                 <Pressable
@@ -97,99 +110,85 @@ const ItineraryView = () => {
                     ToastAndroid.show('Add POI functionality coming soon!', ToastAndroid.SHORT)
                   }}
                 >
-                  <Ionicons 
-                    name="add-circle" 
-                    size={32} 
-                    color="#666"
+                  <Icon
+                    as={PlusCircle}
+                    size='xl'
                   />
                 </Pressable>
-              </View>
-              <Text style={styles.poiCount}>
+              </HStack>
+              <Text size='sm'>
                 {itinerary.poiOrder.length} stops
               </Text>
-            </View>
-
+            </VStack>
             {/* POI List */}
-            <View style={styles.poiListContainer}>
-              <Text style={styles.sectionTitle}>Your Itinerary</Text>
-              
+            <VStack space='sm' className='w-full'>
               <FlatList
-                data={ itinerary.poiOrder}
+                data={itinerary.poiOrder}
+                className='max-h-64'
                 keyboardDismissMode='interactive'
-                keyExtractor={(item) => `POI-${item.latitude}-${item.longitude}`}
-                              renderItem={ ({item}) =>
-                                (
-                    <Pressable
-                      style={(isActive) => [
-                        styles.poiItem,
-                        isActive && styles.poiItemActive
-                      ]}
-                    >
-                      <View style={styles.poiItemContent}>
-                        <View style={styles.poiItemLeft}>
-                          <View style={styles.dragHandle}>
-                            <Ionicons name="reorder-three" size={24} color="#666" />
-                          </View>
-                          <View style={styles.poiInfo}>
-                            <Text style={styles.poiName}>{item.name}</Text>
-                          </View>
-                        </View>
-                        <View style={styles.poiActions}>
-                          <TouchableOpacity style={styles.actionButton}
-                            onPress={() => {
-                              camera?.current?.setCamera({
-                                zoomLevel: 20,
-                                centerCoordinate: [item.longitude, item.latitude],
-                              })
-                            }}
-                          >
-                            <Ionicons name="navigate" size={20} color="#007AFF" />
-                          </TouchableOpacity>
-                          <TouchableOpacity style={styles.actionButton}
-                          >
-                            {
-                              <Ionicons name={item.visited ? 'checkmark' : 'checkbox-outline'} size={20} color="#666" />
-                            }
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </Pressable>
-                  )
+                keyExtractor={(item) => `ItineraryView-POI-${item.latitude}-${item.longitude}`}
+                renderItem={({ item }) =>
+                (
+                  <Pressable className='p-2'>
+                    <HStack space='sm' className='w-full items-center'>
+                      <HStack space='sm' className='flex-grow items-center'>
+                        <Icon as={Menu} />
+                        <Text>{item.name}</Text>
+                      </HStack>
+                      <HStack className='flex-shrink' space='md' >
+                        <Button
+                          variant='link'
+                          onPress={() => {
+                            camera?.current?.setCamera({
+                              zoomLevel: 20,
+                              centerCoordinate: [item.longitude, item.latitude - 0.0001],
+                              animationDuration: 500,
+                            })
+                          }}
+                        >
+                          <ButtonIcon as={Navigation} />
+                        </Button>
+                        <Button
+                          variant='link'
+                        >
+                          {
+                            <ButtonIcon
+                              as={item.visited ? Check : CheckCircle}
+                            />
+                          }
+                        </Button>
+                      </HStack>
+                    </HStack>
+                  </Pressable>
+                )
                 }
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
               />
-            </View>
-
-            <View
-              style={{gap: 8, flexDirection: 'row'}}
+            </VStack>
+            <HStack
+              space='sm'
+              className='w-full justify-center'
             >
-                {/* Optimize Button */}
-              <TouchableOpacity style={styles.optimizeButton}>
-                <Ionicons name="swap-vertical" size={20} color="white" />
-                <Text style={styles.optimizeButtonText}>Optimize Route</Text>
-              </TouchableOpacity>
+              {/* Optimize Button */}
+              <Button>
+                <ButtonIcon as={ArrowDownUp} />
+                <ButtonText>Optimize Route</ButtonText>
+              </Button>
 
-              <TouchableOpacity style={styles.optimizeButton}>
-                <Ionicons name="navigate" size={20} color="white" />
-                <Text style={styles.optimizeButtonText}>Navigate Now</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </BottomSheet>
-      </View>
-    </GestureHandlerRootView>
+              <Button >
+                <ButtonIcon as={Navigation} />
+                <ButtonText >Navigate Now</ButtonText>
+              </Button>
+            </HStack>
+          </VStack>
+        </ActionsheetContent>
+      </Actionsheet>
+    </VStack>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    width: '100%',
-    height: '70%',
-  },
   markerContainer: {
     alignItems: 'center',
     backgroundColor: 'transparent',
