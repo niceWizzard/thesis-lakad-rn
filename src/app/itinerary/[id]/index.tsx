@@ -76,7 +76,9 @@ const ItineraryView = () => {
                   })
                 }}
               >
-                <View className='bg-[#007AFF] p-2 rounded-full' >
+                <View className='p-2 rounded-full' style={{
+                  backgroundColor: poi.visited ? 'green' : '#007AFF'
+                }} >
                   <Icon as={MapPin} size='lg' color='white' />
                 </View>
               </Pressable>
@@ -131,7 +133,7 @@ const ItineraryView = () => {
                     <HStack space='sm' className='w-full items-center'>
                       <HStack space='sm' className='flex-grow items-center'>
                         <Icon as={Menu} />
-                        <Text>{item.name}</Text>
+                        <Text style={[item.visited && { textDecorationLine: 'line-through' }]}>{item.name}</Text>
                       </HStack>
                       <HStack className='flex-shrink' space='md' >
                         <Button
@@ -148,6 +150,21 @@ const ItineraryView = () => {
                         </Button>
                         <Button
                           variant='link'
+                          onPress={() => {
+                            console.log("CLICKEEE")
+                            setItineraryPoiOrder(
+                              itinerary.poiOrder.map(v => {
+                                if (v.longitude !== item.longitude && v.latitude !== item.latitude) {
+                                  return v
+                                }
+                                return {
+                                  ...v,
+                                  visited: !v.visited,
+                                }
+                              }),
+                              itinerary.id
+                            )
+                          }}
                         >
                           {
                             <ButtonIcon
