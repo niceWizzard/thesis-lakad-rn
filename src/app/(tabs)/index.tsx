@@ -12,9 +12,9 @@ import { historicalLandmarks } from '@/src/constants/Landmarks';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } from '@rnmapbox/maps';
 import { getForegroundPermissionsAsync, requestForegroundPermissionsAsync } from 'expo-location';
-import { Locate, MapIcon, PlusCircle, X } from 'lucide-react-native';
+import { Locate, MapIcon, PlusCircle, Star, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Pressable, StyleSheet } from 'react-native';
+import { Animated, Dimensions, Image, Pressable, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
@@ -188,9 +188,9 @@ const ExploreTab = () => {
                     </MarkerView>
                 ))}
             </MapView>
-            <Actionsheet isOpen={selectedIndex != null} onClose={handleCloseBottomSheet} snapPoints={[36]} >
+            <Actionsheet isOpen={selectedIndex != null} onClose={handleCloseBottomSheet} snapPoints={[45]} >
                 <ActionsheetBackdrop />
-                <ActionsheetContent>
+                <ActionsheetContent >
                     <ActionsheetDragIndicatorWrapper>
                         <ActionsheetDragIndicator />
                     </ActionsheetDragIndicatorWrapper>
@@ -208,12 +208,29 @@ const ExploreTab = () => {
                     {
                         selectedIndex != null && (
                             <Box className='w-full gap-4 '>
-                                <HStack space='md' className='items-center'>
-                                    <Icon as={MapIcon} />
-                                    <Text size='lg'>
-                                        {historicalLandmarks[selectedIndex].latitude.toFixed(4)}, {historicalLandmarks[selectedIndex].longitude.toFixed(4)}
-                                    </Text>
-                                </HStack>
+                                <VStack>
+                                    <HStack space='md' className='items-center'>
+                                        <Icon as={Star} />
+                                        <Text size='lg'>
+                                            5/5
+                                        </Text>
+                                    </HStack>
+                                    <HStack space='md' className='items-center'>
+                                        <Icon as={MapIcon} />
+                                        <Text size='lg'>
+                                            {historicalLandmarks[selectedIndex].latitude.toFixed(4)}, {historicalLandmarks[selectedIndex].longitude.toFixed(4)}
+                                        </Text>
+                                    </HStack>
+                                </VStack>
+                                <Image
+                                    source={{
+                                        uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg"
+                                    }}
+                                    width={240}
+                                    height={240}
+
+                                    className='w-full '
+                                />
                                 <Button
                                     onPress={() => {
                                         console.log('Add to itinerary:', historicalLandmarks[selectedIndex].name);
