@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
 import { Itinerary } from '@/src/constants/Itineraries'
 import { ItineraryStore, useItineraryStore } from '@/src/stores/useItineraryStore'
+import { fetchDirections } from '@/src/utils/fetchDirections'
 import { Camera, Images, LineLayer, Location, MapView, ShapeSource, SymbolLayer, UserLocation } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
 import { ArrowDownUp, ArrowUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
@@ -25,7 +26,6 @@ enum Mode {
   Navigating,
 }
 
-const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
 
 
 const ItineraryView = () => {
@@ -68,33 +68,26 @@ const ItineraryView = () => {
     }
   }
 
-  const fetchRoute = async () => {
-    const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox/driving'
-    const coordinates = [
-      [
-        userLocation?.coords.longitude ?? 120.8092,
-        userLocation?.coords.latitude ?? 14.8605,
-      ],
-      [itinerary.poiOrder[toGoIndex].longitude, itinerary.poiOrder[toGoIndex].latitude],
-    ].map(v => `${v[0]},${v[1]}`).join(';')
-    const url = `${BASE_URl}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`
-
-    const res = await fetch(url)
-    const data = await res.json()
-    console.log("WOW", data.routes[0].legs)
-    return data
-  }
-
   const handleNavigationButtonClick = async () => {
     setNavigationRoute(null)
-    const data = await fetchRoute()
+    const data = await fetchDirections({
+      waypoints: [
+        [
+          userLocation?.coords.longitude ?? 120.8092,
+          userLocation?.coords.latitude ?? 14.8605,
+        ],
+        [itinerary.poiOrder[toGoIndex].longitude, itinerary.poiOrder[toGoIndex].latitude]
+      ],
+      alternatives: false,
+    })
     setNavigationLegs(data.routes[0].legs)
     setNavigationRoute({
       type: 'FeatureCollection',
-      features: data.routes.map((route: any, index: number) => ({
+      features: data.routes.map((route, index: number) => ({
         type: 'Feature',
         id: `route-${index}`,
-        geometry: route.geometry
+        geometry: route.geometry,
+        properties: {},
       }))
     })
     setIsViewingModeSheetVisible(false)
@@ -256,18 +249,21 @@ const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNa
 
 
   useEffect(() => {
-    const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox/driving'
-    const coordinates = itinerary.poiOrder.slice(0, Math.min(25, itinerary.poiOrder.length)).map(v => `${v.longitude},${v.latitude}`).join(';');
+    const coordinates: [number, number][] = itinerary.poiOrder
+      .slice(0, Math.min(25, itinerary.poiOrder.length))
+      .map(v => [v.longitude, v.latitude]);
+
     (async () => {
-      const url = `${BASE_URl}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`
-      const response = await fetch(url)
-      const data = await response.json()
+      const data = await fetchDirections({
+        waypoints: coordinates
+      })
       setNavigationRoute({
         type: 'FeatureCollection',
         features: data.routes.map((route: any, index: number) => ({
           type: 'Feature',
           id: `route-${index}`,
-          geometry: route.geometry
+          geometry: route.geometry,
+          properties: {},
         }))
       })
     })()
