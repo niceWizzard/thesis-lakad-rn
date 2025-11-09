@@ -10,7 +10,7 @@ import { ItineraryStore, useItineraryStore } from '@/src/stores/useItineraryStor
 import { fetchDirections } from '@/src/utils/fetchDirections'
 import { Camera, Images, LineLayer, Location, MapView, ShapeSource, SymbolLayer, UserLocation } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
-import { ArrowDownUp, ArrowUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
+import { ArrowDownUp, ArrowUp, Box, Check, CheckCircle, Locate, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import {
   FlatList,
@@ -455,7 +455,7 @@ const ViewingModeActionSheet = ({ itinerary,
   )
 }
 
-const NavigatingModeActionSheet = ({ userLocation, isSheetVisible, setSheetVisible, legs, onExitNavigationMode }: {
+const NavigatingModeActionSheet = ({ userLocation, isSheetVisible, setCamera, setSheetVisible, legs, onExitNavigationMode }: {
   isSheetVisible: boolean,
   setSheetVisible: (v: boolean) => void,
   mode: Mode,
@@ -496,12 +496,25 @@ const NavigatingModeActionSheet = ({ userLocation, isSheetVisible, setSheetVisib
       </Actionsheet>
       {
         !isSheetVisible && (
-          <Fab size='lg' onPress={() => setSheetVisible(true)} >
+          <Fab size='lg' onPress={() => setSheetVisible(true)} placement='bottom left'>
             <FabIcon as={ArrowUp} size='xl' />
           </Fab>
         )
       }
-
+      <Fab size='lg' style={{
+        marginBottom: isSheetVisible ? "50%" : 0,
+      }} onPress={() => {
+        setCamera({
+          zoomLevel: 18,
+          centerCoordinate: [
+            userLocation?.coords?.longitude ?? 120.8092,
+            userLocation?.coords?.latitude ?? 14.8605 - 0.005
+          ],
+          animationDuration: 250,
+        })
+      }} >
+        <FabIcon as={Locate} size='xl' />
+      </Fab>
     </>
   )
 }

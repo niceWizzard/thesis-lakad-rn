@@ -7,6 +7,7 @@ interface MapboxManeuver {
     type: string
     instruction: string
     location: [number, number]
+    distance: number
 }
 
 interface MapboxStep {
@@ -17,6 +18,7 @@ interface MapboxStep {
     weight: number
     mode: "driving" | "walking" | "cycling"
     geometry: GeoJSON.Geometry
+    maneuver: MapboxManeuver
 }
 
 interface MapboxLeg {
@@ -27,7 +29,7 @@ interface MapboxLeg {
     steps: MapboxStep[]
 }
 
-interface MapboxRoute {
+export interface MapboxRoute {
     weight_name: string
     weight: number
     duration: number
