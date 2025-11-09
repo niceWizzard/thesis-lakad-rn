@@ -5,17 +5,18 @@ import { Icon } from '@/components/ui/icon'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
 import { useItineraryStore } from '@/src/stores/useItineraryStore'
-import { Callout, Camera, MapView, PointAnnotation } from '@rnmapbox/maps'
+import { Camera, Images, LineLayer, MapView, ShapeSource, SymbolLayer } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
 import { ArrowDownUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
   FlatList,
   Pressable,
   StyleSheet,
-  ToastAndroid,
-  View
+  ToastAndroid
 } from 'react-native'
+
+const poiIcon = require('@/assets/images/red_marker.png')
 
 const ItineraryView = () => {
   const { id } = useLocalSearchParams()
@@ -24,6 +25,30 @@ const ItineraryView = () => {
   const camera = useRef<Camera>(null)
 
   const itinerary = itineraries.find(v => v.id == id)
+  const [navigationRoute, setNavigationRoute] = useState<GeoJSON.FeatureCollection | null>(null)
+
+
+  useEffect(() => {
+    if (!itinerary)
+      return
+    const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox/driving'
+    const coordinates = itinerary.poiOrder.slice(0, Math.min(25, itinerary.poiOrder.length)).map(v => `${v.longitude},${v.latitude}`).join(';')
+    const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
+    (async () => {
+      const url = `${BASE_URl}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`
+      const response = await fetch(url)
+      const data = await response.json()
+      setNavigationRoute({
+        type: 'FeatureCollection',
+        features: data.routes.map((route: any, index: number) => ({
+          type: 'Feature',
+          id: `route-${index}`,
+          geometry: route.geometry
+        }))
+      })
+    })()
+  }, [itinerary])
+
 
   if (!itinerary) {
     return (
@@ -59,30 +84,66 @@ const ItineraryView = () => {
           zoomLevel={17}
           minZoomLevel={10}
         />
-        {itinerary.poiOrder.map((poi, index) => (
-          <PointAnnotation
-            id={`POI-${poi.latitude}-${poi.longitude}`}
-            key={`POI-${poi.latitude}-${poi.longitude}`}
-            coordinate={[poi.longitude, poi.latitude]}
-            title={poi.name}
+        {
+          navigationRoute && (
+            <ShapeSource id='navigation-1' shape={navigationRoute}>
+              <LineLayer id='line-1' style={{
+                lineColor: '#007AFF',
+                lineWidth: 4,
+                lineCap: 'round',
+                lineJoin: 'round',
+              }}
+              />
+            </ShapeSource>
+          )
+        }
+        <ShapeSource
+          id="poi-source"
+          shape={{
+            type: 'FeatureCollection',
+            features: itinerary.poiOrder.map((poi, index) => ({
+              type: 'Feature',
+              id: `poi-${index}`,
+              geometry: {
+                type: 'Point',
+                coordinates: [poi.longitude, poi.latitude],
+              },
+              properties: {
+                name: poi.name,
+                visited: poi.visited ? 1 : 0,
+              },
+            })),
+          }}
 
-            onSelected={(feature: any) => {
-              console.log('onSelected:', feature.id, feature.geometry.coordinates)
-              camera.current?.setCamera({
-                zoomLevel: 20,
-                centerCoordinate: [poi.longitude, poi.latitude - 0.0001],
-                animationDuration: 500,
-              })
-              if (!isSheetVisible)
-                setSheetVisible(true)
-            }
-            }
-          >
-            <View>
-            </View>
-            <Callout title={poi.name} />
-          </PointAnnotation>
-        ))}
+          onPress={(e) => {
+            const feature = e.features[0] as any;
+            const coords = feature.geometry.coordinates;
+            camera.current?.setCamera({
+              zoomLevel: 20,
+              centerCoordinate: [coords[0], coords[1] - 0.0001],
+              animationDuration: 500,
+            });
+
+            if (!isSheetVisible)
+              setSheetVisible(true);
+          }}
+        >
+          <SymbolLayer
+            id="poi-symbols"
+            aboveLayerID='line-1'
+            style={{
+              iconImage: 'icon',
+              iconAllowOverlap: true,
+              iconSize: .4,
+              textField: ['get', 'name'],
+              textSize: 12,
+              textAnchor: 'top',
+              textOffset: [0, 1.2],
+
+            }}
+          />
+          <Images images={{ icon: poiIcon }} />
+        </ShapeSource>
       </MapView>
       {/* Bottom Sheet */}
       <Actionsheet
@@ -148,7 +209,6 @@ const ItineraryView = () => {
                         <Button
                           variant='link'
                           onPress={() => {
-                            console.log("CLICKEEE")
                             setItineraryPoiOrder(
                               itinerary.poiOrder.map(v => {
                                 if (v.longitude !== item.longitude && v.latitude !== item.latitude) {
