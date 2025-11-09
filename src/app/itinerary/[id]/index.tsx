@@ -1,4 +1,5 @@
 import { Actionsheet, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@/components/ui/actionsheet'
+import { Box } from '@/components/ui/box'
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Fab, FabIcon } from '@/components/ui/fab'
 import { HStack } from '@/components/ui/hstack'
@@ -7,14 +8,15 @@ import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
 import { Itinerary } from '@/src/constants/Itineraries'
 import { ItineraryStore, useItineraryStore } from '@/src/stores/useItineraryStore'
-import { fetchDirections } from '@/src/utils/fetchDirections'
+import { fetchDirections, MapboxRoute } from '@/src/utils/fetchDirections'
 import { Camera, Images, LineLayer, Location, MapView, ShapeSource, SymbolLayer, UserLocation } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
-import { ArrowDownUp, ArrowUp, Box, Check, CheckCircle, Locate, Menu, Navigation, PlusCircle } from 'lucide-react-native'
+import { ArrowDownUp, ArrowUp, Check, CheckCircle, Locate, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import {
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   ToastAndroid
 } from 'react-native'
@@ -37,8 +39,7 @@ const ItineraryView = () => {
   const [isViewingModeSheetVisible, setIsViewingModeSheetVisible] = useState(true)
   const [isNavigatingModeSheetVisible, setIsNavigatingModeSheetVisible] = useState(false);
   const [userLocation, setUserLocation] = useState<Location>();
-  const [navigationRoute, setNavigationRoute] = useState<GeoJSON.FeatureCollection | null>(null)
-  const [navigationLegs, setNavigationLegs] = useState<{ [key: string]: any } | undefined>()
+  const [navigationRoute, setNavigationRoute] = useState<MapboxRoute | null>(null)
 
   const [toGoIndex, setToGoIndex] = useState(0)
 
@@ -80,16 +81,7 @@ const ItineraryView = () => {
       ],
       alternatives: false,
     })
-    setNavigationLegs(data.routes[0].legs)
-    setNavigationRoute({
-      type: 'FeatureCollection',
-      features: data.routes.map((route, index: number) => ({
-        type: 'Feature',
-        id: `route-${index}`,
-        geometry: route.geometry,
-        properties: {},
-      }))
-    })
+    setNavigationRoute(data.routes[0])
     setIsViewingModeSheetVisible(false)
     setIsNavigatingModeSheetVisible(true)
     setMode(Mode.Navigating)
@@ -121,7 +113,17 @@ const ItineraryView = () => {
         />
         {
           navigationRoute && (
-            <ShapeSource id='navigation-1' shape={navigationRoute}>
+            <ShapeSource id='navigation-1' shape={{
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  id: `route-1`,
+                  geometry: navigationRoute.geometry,
+                  properties: {},
+                }
+              ]
+            }}>
               <LineLayer id='line-1' style={{
                 lineColor: '#007AFF',
                 lineWidth: [
@@ -212,11 +214,11 @@ const ItineraryView = () => {
             setCamera={(config) => {
               camera.current?.setCamera(config)
             }}
+            route={navigationRoute!}
             isSheetVisible={isNavigatingModeSheetVisible}
             setSheetVisible={setIsNavigatingModeSheetVisible}
             mode={mode}
             userLocation={userLocation}
-            legs={navigationLegs}
             onExitNavigationMode={() => {
               setIsNavigatingModeSheetVisible(false)
               setIsViewingModeSheetVisible(true)
@@ -242,7 +244,7 @@ const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNa
     setCamera: Camera['setCamera'],
     isSheetVisible: boolean,
     setSheetVisible: (v: boolean) => void,
-    setNavigationRoute: (navigation: GeoJSON.FeatureCollection) => void,
+    setNavigationRoute: (navigation: MapboxRoute) => void,
   }) => {
 
 
@@ -257,15 +259,7 @@ const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNa
       const data = await fetchDirections({
         waypoints: coordinates
       })
-      setNavigationRoute({
-        type: 'FeatureCollection',
-        features: data.routes.map((route: any, index: number) => ({
-          type: 'Feature',
-          id: `route-${index}`,
-          geometry: route.geometry,
-          properties: {},
-        }))
-      })
+      setNavigationRoute(data.routes[0])
     })()
   }, [itinerary])
   return (
@@ -455,19 +449,15 @@ const ViewingModeActionSheet = ({ itinerary,
   )
 }
 
-const NavigatingModeActionSheet = ({ userLocation, isSheetVisible, setCamera, setSheetVisible, legs, onExitNavigationMode }: {
+const NavigatingModeActionSheet = ({ userLocation, route, isSheetVisible, setCamera, setSheetVisible, onExitNavigationMode }: {
   isSheetVisible: boolean,
   setSheetVisible: (v: boolean) => void,
   mode: Mode,
   onExitNavigationMode: () => void,
   setCamera: Camera['setCamera'],
   userLocation: Location | undefined,
-  legs: any,
+  route: MapboxRoute,
 }) => {
-
-  useEffect(() => {
-    console.log("LEGGS!", legs[0].steps)
-  })
 
   return (
     <>
@@ -482,14 +472,21 @@ const NavigatingModeActionSheet = ({ userLocation, isSheetVisible, setCamera, se
             <ActionsheetDragIndicator />
           </ActionsheetDragIndicatorWrapper>
           <VStack className=' w-full' space='sm'>
-            <Text>Navigating Mode</Text>
-            <Text>
+            <HStack>
+              <Text>Distance: {route.distance}m</Text>
+            </HStack>
+            <Text>Steps</Text>
+            <ScrollView className='max-h-64'>
               {
-                legs && (
-                  legs[0].steps[0].maneuver.instruction
-                )
+                route.legs[0].steps.map(v => v.maneuver).map((v, index) => (
+                  <Box className='bg-background-200 my-2 px-2 py-3 rounded-md' key={`step-${v.location}-${v.instruction}`}>
+                    <Text >
+                      {index + 1}. {v.instruction}
+                    </Text>
+                  </Box>
+                ))
               }
-            </Text>
+            </ScrollView>
             <Button onPress={onExitNavigationMode}><ButtonText>Back</ButtonText></Button>
           </VStack>
         </ActionsheetContent>
