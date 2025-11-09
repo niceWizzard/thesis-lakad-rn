@@ -1,13 +1,15 @@
 import { Actionsheet, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@/components/ui/actionsheet'
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
+import { Fab, FabIcon } from '@/components/ui/fab'
 import { HStack } from '@/components/ui/hstack'
 import { Icon } from '@/components/ui/icon'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
-import { useItineraryStore } from '@/src/stores/useItineraryStore'
-import { Camera, Images, LineLayer, MapView, ShapeSource, SymbolLayer } from '@rnmapbox/maps'
+import { Itinerary } from '@/src/constants/Itineraries'
+import { ItineraryStore, useItineraryStore } from '@/src/stores/useItineraryStore'
+import { Camera, Images, LineLayer, Location, MapView, ShapeSource, SymbolLayer, UserLocation } from '@rnmapbox/maps'
 import { useLocalSearchParams } from 'expo-router'
-import { ArrowDownUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
+import { ArrowDownUp, ArrowUp, Box, Check, CheckCircle, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import {
   FlatList,
@@ -18,37 +20,38 @@ import {
 
 const poiIcon = require('@/assets/images/red_marker.png')
 
+enum Mode {
+  Viewing,
+  Navigating,
+}
+
+const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
+
+
 const ItineraryView = () => {
   const { id } = useLocalSearchParams()
   const { itineraries, setItineraryPoiOrder } = useItineraryStore()
-  const [isSheetVisible, setSheetVisible] = useState(true)
   const camera = useRef<Camera>(null)
-
   const itinerary = itineraries.find(v => v.id == id)
+  const [mode, setMode] = useState<Mode>(Mode.Viewing)
+  const [isViewingModeSheetVisible, setIsViewingModeSheetVisible] = useState(true)
+  const [isNavigatingModeSheetVisible, setIsNavigatingModeSheetVisible] = useState(false);
+  const [userLocation, setUserLocation] = useState<Location>();
   const [navigationRoute, setNavigationRoute] = useState<GeoJSON.FeatureCollection | null>(null)
+  const [navigationLegs, setNavigationLegs] = useState<{ [key: string]: any } | undefined>()
 
+  const [toGoIndex, setToGoIndex] = useState(0)
 
   useEffect(() => {
-    if (!itinerary)
-      return
-    const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox/driving'
-    const coordinates = itinerary.poiOrder.slice(0, Math.min(25, itinerary.poiOrder.length)).map(v => `${v.longitude},${v.latitude}`).join(';')
-    const accessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
-    (async () => {
-      const url = `${BASE_URl}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`
-      const response = await fetch(url)
-      const data = await response.json()
-      setNavigationRoute({
-        type: 'FeatureCollection',
-        features: data.routes.map((route: any, index: number) => ({
-          type: 'Feature',
-          id: `route-${index}`,
-          geometry: route.geometry
-        }))
+    if (mode === Mode.Navigating) {
+      camera.current?.setCamera({
+        zoomLevel: 20,
+        centerCoordinate: userLocation !== undefined ? [userLocation.coords.longitude, userLocation.coords.latitude - 0.0001] : [120.8092, 14.8605],
+        animationDuration: 500,
+        pitch: 50,
       })
-    })()
-  }, [itinerary])
-
+    }
+  }, [mode])
 
   if (!itinerary) {
     return (
@@ -65,6 +68,40 @@ const ItineraryView = () => {
     }
   }
 
+  const fetchRoute = async () => {
+    const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox/driving'
+    const coordinates = [
+      [
+        userLocation?.coords.longitude ?? 120.8092,
+        userLocation?.coords.latitude ?? 14.8605,
+      ],
+      [itinerary.poiOrder[toGoIndex].longitude, itinerary.poiOrder[toGoIndex].latitude],
+    ].map(v => `${v[0]},${v[1]}`).join(';')
+    const url = `${BASE_URl}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`
+
+    const res = await fetch(url)
+    const data = await res.json()
+    console.log("WOW", data.routes[0].legs)
+    return data
+  }
+
+  const handleNavigationButtonClick = async () => {
+    setNavigationRoute(null)
+    const data = await fetchRoute()
+    setNavigationLegs(data.routes[0].legs)
+    setNavigationRoute({
+      type: 'FeatureCollection',
+      features: data.routes.map((route: any, index: number) => ({
+        type: 'Feature',
+        id: `route-${index}`,
+        geometry: route.geometry
+      }))
+    })
+    setIsViewingModeSheetVisible(false)
+    setIsNavigatingModeSheetVisible(true)
+    setMode(Mode.Navigating)
+  }
+
 
   return (
     <VStack className='flex-1'>
@@ -73,6 +110,11 @@ const ItineraryView = () => {
         style={{ width: "100%", height: '100%' }}
         compassEnabled
       >
+        <UserLocation
+          onUpdate={(location) => {
+            setUserLocation(location);
+          }}
+        />
         <Camera
           ref={camera}
           centerCoordinate={[itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude]}
@@ -89,7 +131,14 @@ const ItineraryView = () => {
             <ShapeSource id='navigation-1' shape={navigationRoute}>
               <LineLayer id='line-1' style={{
                 lineColor: '#007AFF',
-                lineWidth: 4,
+                lineWidth: [
+                  'interpolate',
+                  ['linear'],
+                  ['zoom'],
+                  10, 2,   // zoom level 10 → 2 px
+                  15, 6,   // zoom level 15 → 6 px
+                  20, 15   // zoom level 20 → 10 px
+                ],
                 lineCap: 'round',
                 lineJoin: 'round',
               }}
@@ -97,55 +146,198 @@ const ItineraryView = () => {
             </ShapeSource>
           )
         }
-        <ShapeSource
-          id="poi-source"
-          shape={{
-            type: 'FeatureCollection',
-            features: itinerary.poiOrder.map((poi, index) => ({
-              type: 'Feature',
-              id: `poi-${index}`,
-              geometry: {
-                type: 'Point',
-                coordinates: [poi.longitude, poi.latitude],
-              },
-              properties: {
-                name: poi.name,
-                visited: poi.visited ? 1 : 0,
-              },
-            })),
-          }}
+        {
+          mode === Mode.Navigating && (
+            <ShapeSource
+              id="poi-source"
+              shape={{
+                type: 'FeatureCollection',
+                features: [itinerary.poiOrder[toGoIndex]].map((poi, index) => ({
+                  type: 'Feature',
+                  id: `poi-${index}`,
+                  geometry: {
+                    type: 'Point',
+                    coordinates: [poi.longitude, poi.latitude],
+                  },
+                  properties: {
+                    name: poi.name,
+                    visited: poi.visited ? 1 : 0,
+                  },
+                })),
+              }}
+            >
+              <SymbolLayer
+                id="poi-symbols"
+                aboveLayerID='line-1'
+                style={{
+                  iconImage: 'icon',
+                  iconAllowOverlap: true,
+                  iconSize: .4,
+                  textField: ['get', 'name'],
+                  textSize: 12,
+                  textAnchor: 'top',
+                  textOffset: [0, 1.2],
 
-          onPress={(e) => {
-            const feature = e.features[0] as any;
-            const coords = feature.geometry.coordinates;
-            camera.current?.setCamera({
-              zoomLevel: 20,
-              centerCoordinate: [coords[0], coords[1] - 0.0001],
-              animationDuration: 500,
-            });
-
-            if (!isSheetVisible)
-              setSheetVisible(true);
-          }}
-        >
-          <SymbolLayer
-            id="poi-symbols"
-            aboveLayerID='line-1'
-            style={{
-              iconImage: 'icon',
-              iconAllowOverlap: true,
-              iconSize: .4,
-              textField: ['get', 'name'],
-              textSize: 12,
-              textAnchor: 'top',
-              textOffset: [0, 1.2],
-
-            }}
-          />
-          <Images images={{ icon: poiIcon }} />
-        </ShapeSource>
+                }}
+              />
+              <Images images={{ icon: poiIcon }} />
+            </ShapeSource>
+          )
+        }
+        {
+          mode === Mode.Viewing && (
+            <ViewingModeMapViews
+              itinerary={itinerary}
+              setCamera={(config) => {
+                camera.current?.setCamera(config)
+              }}
+              setSheetVisible={setIsViewingModeSheetVisible}
+              isSheetVisible={isViewingModeSheetVisible}
+              setNavigationRoute={setNavigationRoute}
+            />
+          )
+        }
       </MapView>
       {/* Bottom Sheet */}
+      {
+        mode === Mode.Viewing && (
+          <ViewingModeActionSheet
+            onNavigateButtonClick={handleNavigationButtonClick}
+            itinerary={itinerary}
+            isSheetVisible={isViewingModeSheetVisible}
+            setSheetVisible={setIsViewingModeSheetVisible}
+            setCamera={(config) => {
+              camera.current?.setCamera(config)
+            }}
+            setItineraryPoiOrder={setItineraryPoiOrder}
+          />
+        )
+      }
+      {
+        mode === Mode.Navigating && (
+          <NavigatingModeActionSheet
+            setCamera={(config) => {
+              camera.current?.setCamera(config)
+            }}
+            isSheetVisible={isNavigatingModeSheetVisible}
+            setSheetVisible={setIsNavigatingModeSheetVisible}
+            mode={mode}
+            userLocation={userLocation}
+            legs={navigationLegs}
+            onExitNavigationMode={() => {
+              setIsNavigatingModeSheetVisible(false)
+              setIsViewingModeSheetVisible(true)
+              camera.current!.setCamera({
+                zoomLevel: 15,
+                centerCoordinate: [itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude - 0.001],
+                animationDuration: 500,
+                pitch: 0,
+              })
+              setMode(Mode.Viewing)
+            }}
+          />
+        )
+      }
+    </VStack>
+  )
+}
+
+
+const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNavigationRoute,
+  setCamera }: {
+    itinerary: Itinerary,
+    setCamera: Camera['setCamera'],
+    isSheetVisible: boolean,
+    setSheetVisible: (v: boolean) => void,
+    setNavigationRoute: (navigation: GeoJSON.FeatureCollection) => void,
+  }) => {
+
+
+
+
+  useEffect(() => {
+    const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox/driving'
+    const coordinates = itinerary.poiOrder.slice(0, Math.min(25, itinerary.poiOrder.length)).map(v => `${v.longitude},${v.latitude}`).join(';');
+    (async () => {
+      const url = `${BASE_URl}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${accessToken}`
+      const response = await fetch(url)
+      const data = await response.json()
+      setNavigationRoute({
+        type: 'FeatureCollection',
+        features: data.routes.map((route: any, index: number) => ({
+          type: 'Feature',
+          id: `route-${index}`,
+          geometry: route.geometry
+        }))
+      })
+    })()
+  }, [itinerary])
+  return (
+    <>
+
+      <ShapeSource
+        id="poi-source"
+        shape={{
+          type: 'FeatureCollection',
+          features: itinerary.poiOrder.map((poi, index) => ({
+            type: 'Feature',
+            id: `poi-${index}`,
+            geometry: {
+              type: 'Point',
+              coordinates: [poi.longitude, poi.latitude],
+            },
+            properties: {
+              name: poi.name,
+              visited: poi.visited ? 1 : 0,
+            },
+          })),
+        }}
+
+        onPress={(e) => {
+          const feature = e.features[0] as any;
+          const coords = feature.geometry.coordinates;
+          setCamera({
+            zoomLevel: 20,
+            centerCoordinate: [coords[0], coords[1] - 0.0001],
+            animationDuration: 500,
+          });
+
+          if (!isSheetVisible)
+            setSheetVisible(true);
+        }}
+      >
+        <SymbolLayer
+          id="poi-symbols"
+          aboveLayerID='line-1'
+          style={{
+            iconImage: 'icon',
+            iconAllowOverlap: true,
+            iconSize: .4,
+            textField: ['get', 'name'],
+            textSize: 12,
+            textAnchor: 'top',
+            textOffset: [0, 1.2],
+
+          }}
+        />
+        <Images images={{ icon: poiIcon }} />
+      </ShapeSource>
+    </>
+  )
+}
+
+const ViewingModeActionSheet = ({ itinerary,
+  isSheetVisible, setSheetVisible,
+  onNavigateButtonClick,
+  setCamera, setItineraryPoiOrder }: {
+    setCamera: Camera['setCamera'],
+    itinerary: Itinerary, isSheetVisible: boolean,
+    setSheetVisible: (v: boolean) => void,
+    setItineraryPoiOrder: ItineraryStore['setItineraryPoiOrder'],
+    onNavigateButtonClick: () => void,
+  }) => {
+  return (
+    <>
       <Actionsheet
         key={isSheetVisible ? 'sheet-open' : 'sheet-closed'}
         isOpen={isSheetVisible}
@@ -197,7 +389,7 @@ const ItineraryView = () => {
                         <Button
                           variant='link'
                           onPress={() => {
-                            camera?.current?.setCamera({
+                            setCamera({
                               zoomLevel: 20,
                               centerCoordinate: [item.longitude, item.latitude - 0.0001],
                               animationDuration: 500,
@@ -248,7 +440,7 @@ const ItineraryView = () => {
                 <ButtonText>Optimize Route</ButtonText>
               </Button>
 
-              <Button >
+              <Button onPress={onNavigateButtonClick} >
                 <ButtonIcon as={Navigation} />
                 <ButtonText >Navigate Now</ButtonText>
               </Button>
@@ -256,7 +448,65 @@ const ItineraryView = () => {
           </VStack>
         </ActionsheetContent>
       </Actionsheet>
-    </VStack>
+      {
+        !isSheetVisible && (
+          <Fab size='lg' onPress={() => setSheetVisible(true)} >
+            <FabIcon as={ArrowUp} size='xl' />
+          </Fab>
+        )
+      }
+    </>
+  )
+}
+
+const NavigatingModeActionSheet = ({ userLocation, isSheetVisible, setSheetVisible, legs, onExitNavigationMode }: {
+  isSheetVisible: boolean,
+  setSheetVisible: (v: boolean) => void,
+  mode: Mode,
+  onExitNavigationMode: () => void,
+  setCamera: Camera['setCamera'],
+  userLocation: Location | undefined,
+  legs: any,
+}) => {
+
+  useEffect(() => {
+    console.log("LEGGS!", legs[0].steps)
+  })
+
+  return (
+    <>
+      <Actionsheet
+        key={isSheetVisible ? 'sheet-open' : 'sheet-closed'}
+        isOpen={isSheetVisible}
+        onClose={() => setSheetVisible(false)}
+        snapPoints={[45]}
+      >
+        <ActionsheetContent  >
+          <ActionsheetDragIndicatorWrapper>
+            <ActionsheetDragIndicator />
+          </ActionsheetDragIndicatorWrapper>
+          <VStack className=' w-full' space='sm'>
+            <Text>Navigating Mode</Text>
+            <Text>
+              {
+                legs && (
+                  legs[0].steps[0].maneuver.instruction
+                )
+              }
+            </Text>
+            <Button onPress={onExitNavigationMode}><ButtonText>Back</ButtonText></Button>
+          </VStack>
+        </ActionsheetContent>
+      </Actionsheet>
+      {
+        !isSheetVisible && (
+          <Fab size='lg' onPress={() => setSheetVisible(true)} >
+            <FabIcon as={ArrowUp} size='xl' />
+          </Fab>
+        )
+      }
+
+    </>
   )
 }
 

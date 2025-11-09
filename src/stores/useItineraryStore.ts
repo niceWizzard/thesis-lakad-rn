@@ -1,14 +1,14 @@
 import { create } from "zustand";
 import { DEFAULT_ITINERARIES, Itinerary, POI } from "../constants/Itineraries";
 
-
-export const useItineraryStore = create<{
+export interface ItineraryStore {
     itineraries: Itinerary[],
     addItinerary: (a: Itinerary) => void,
     addPoiToItinerary: (poi: POI, itineraryId: string) => void,
     setItineraryPoiOrder: (poiOrder: POI[], itineraryId: string) => void,
     deleteItinerary: (id: string) => void,
-}>((set, get) => ({
+}
+export const useItineraryStore = create<ItineraryStore>((set, get) => ({
     itineraries: [...DEFAULT_ITINERARIES],
     addItinerary: (itinerary) => {
         set(v => ({
