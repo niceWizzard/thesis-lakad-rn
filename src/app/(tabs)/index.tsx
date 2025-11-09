@@ -12,11 +12,17 @@ import { historicalLandmarks } from '@/src/constants/Landmarks';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } from '@rnmapbox/maps';
 import { getForegroundPermissionsAsync, requestForegroundPermissionsAsync } from 'expo-location';
-import { Locate, MapIcon, PlusCircle, Star, X } from 'lucide-react-native';
+import { FileStack, Locate, MapIcon, PlusCircle, Star, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, Pressable, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
+
+const MAP_STYLES = {
+    standard: "mapbox://styles/mapbox/standard",
+    satellite: "mapbox://styles/mapbox/standard-satellite",
+}
+
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 const TARGET_ZOOM = 15;
 
@@ -28,6 +34,7 @@ const ExploreTab = () => {
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [showResults, setShowResults] = useState(false); // Add this state
+    const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard)
 
     // Animation values
     const slideAnim = useRef(new Animated.Value(0)).current;
@@ -142,6 +149,7 @@ const ExploreTab = () => {
                 compassEnabled
                 compassPosition={{ top: 96, right: 8 }}
                 scaleBarPosition={{ bottom: 24, left: 8 }}
+                styleURL={mapStyle}
                 ref={map}
             >
                 <UserLocation
@@ -258,13 +266,24 @@ const ExploreTab = () => {
                 onResultPress={handleSearchResultPress}
                 visible={showResults}
             />
-
             {/* Locate Button */}
             <Fab
                 onPress={handleLocatePress}
                 size='xl'
             >
                 <FabIcon as={Locate} size='xl' />
+            </Fab>
+            <Fab
+                onPress={() => {
+                    setMapStyle(
+                        mapStyle === MAP_STYLES.standard ? MAP_STYLES.satellite : MAP_STYLES.standard
+                    )
+                }}
+                size='md'
+                placement='top right'
+                className='mt-40'
+            >
+                <FabIcon as={FileStack} size='lg' />
             </Fab>
         </VStack>
     );
