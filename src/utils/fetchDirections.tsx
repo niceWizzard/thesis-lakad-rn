@@ -8,6 +8,8 @@ interface MapboxManeuver {
     instruction: string
     location: [number, number]
     distance: number
+    bearing_after: number
+    bearing_before: number
 }
 
 interface MapboxStep {

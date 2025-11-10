@@ -42,16 +42,6 @@ const ItineraryView = () => {
 
   const [toGoIndex, setToGoIndex] = useState(0)
 
-  useEffect(() => {
-    if (mode === Mode.Navigating) {
-      camera.current?.setCamera({
-        zoomLevel: 20,
-        centerCoordinate: userLocation !== undefined ? [userLocation.coords.longitude, userLocation.coords.latitude - 0.0001] : [120.8092, 14.8605],
-        animationDuration: 500,
-        pitch: 50,
-      })
-    }
-  }, [mode])
 
   if (!itinerary) {
     return (
@@ -81,6 +71,15 @@ const ItineraryView = () => {
       alternatives: false,
     })
     setNavigationRoute(data.routes[0])
+
+    camera.current?.setCamera({
+      zoomLevel: 20,
+      centerCoordinate: userLocation !== undefined ? [userLocation.coords.longitude, userLocation.coords.latitude + 0.0002] : [120.8092, 14.8605],
+      animationDuration: 500,
+      pitch: 50,
+      heading: data.routes[0].legs[0].steps[0].maneuver.bearing_after,
+    })
+
     setMode(Mode.Navigating)
   }
 
