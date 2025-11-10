@@ -38,7 +38,7 @@ const ItineraryView = () => {
   const [mode, setMode] = useState<Mode>(Mode.Viewing)
   const [isSheetVisible, setIsSheetVisible] = useState(true)
   const [userLocation, setUserLocation] = useState<Location>();
-  const [navigationRoute, setNavigationRoute] = useState<MapboxRoute | null>(null)
+  const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([])
 
   const [toGoIndex, setToGoIndex] = useState(0)
 
@@ -59,7 +59,7 @@ const ItineraryView = () => {
   }
 
   const handleNavigationButtonClick = async () => {
-    setNavigationRoute(null)
+    setNavigationRoute([])
     const data = await fetchDirections({
       waypoints: [
         [
@@ -68,9 +68,8 @@ const ItineraryView = () => {
         ],
         [itinerary.poiOrder[toGoIndex].longitude, itinerary.poiOrder[toGoIndex].latitude]
       ],
-      alternatives: false,
     })
-    setNavigationRoute(data.routes[0])
+    setNavigationRoute(data.routes)
 
     camera.current?.setCamera({
       zoomLevel: 20,
@@ -108,20 +107,23 @@ const ItineraryView = () => {
           minZoomLevel={10}
         />
         {
-          navigationRoute && (
-            <ShapeSource id='navigation-1' shape={{
-              type: 'FeatureCollection',
-              features: [
-                {
-                  type: 'Feature',
-                  id: `route-1`,
-                  geometry: navigationRoute.geometry,
-                  properties: {},
-                }
-              ]
-            }}>
-              <LineLayer id='line-1' style={{
-                lineColor: '#007AFF',
+          navigationRoute.toReversed().map((route, index) => (
+            <ShapeSource
+              key={`route-${index}`}
+              id={`navigation-${index}`}
+              shape={{
+                type: 'FeatureCollection',
+                features: [
+                  {
+                    type: 'Feature',
+                    id: `route-1`,
+                    geometry: route.geometry,
+                    properties: {},
+                  }
+                ]
+              }}>
+              <LineLayer id={`line-${index}`} style={{
+                lineColor: (index === navigationRoute.length - 1) ? '#007AFF' : '#abdded',
                 lineWidth: [
                   'interpolate',
                   ['linear'],
@@ -135,7 +137,7 @@ const ItineraryView = () => {
               }}
               />
             </ShapeSource>
-          )
+          ))
         }
         {
           mode === Mode.Navigating && (
@@ -223,7 +225,7 @@ const ItineraryView = () => {
                     setCamera={(config) => {
                       camera.current?.setCamera(config)
                     }}
-                    route={navigationRoute!}
+                    routes={navigationRoute}
                     setSheetVisible={setIsSheetVisible}
                     mode={mode}
                     userLocation={userLocation}
@@ -311,7 +313,7 @@ const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNa
     setCamera: Camera['setCamera'],
     isSheetVisible: boolean,
     setSheetVisible: (v: boolean) => void,
-    setNavigationRoute: (navigation: MapboxRoute) => void,
+    setNavigationRoute: (navigations: MapboxRoute[]) => void,
   }) => {
 
 
@@ -326,7 +328,7 @@ const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNa
       const data = await fetchDirections({
         waypoints: coordinates
       })
-      setNavigationRoute(data.routes[0])
+      setNavigationRoute(data.routes)
     })()
   }, [itinerary])
   return (
@@ -478,25 +480,25 @@ const ViewingModeActionSheet = ({ itinerary,
   )
 }
 
-const NavigatingModeActionSheet = ({ userLocation, route, setCamera, setSheetVisible, onExitNavigationMode }: {
+const NavigatingModeActionSheet = ({ userLocation, routes, setCamera, setSheetVisible, onExitNavigationMode }: {
   setSheetVisible: (v: boolean) => void,
   mode: Mode,
   onExitNavigationMode: () => void,
   setCamera: Camera['setCamera'],
   userLocation: Location | undefined,
-  route: MapboxRoute,
+  routes: MapboxRoute[],
 }) => {
 
   return (
     <>
       <VStack className=' w-full' space='sm'>
         <HStack>
-          <Text>Distance: {route.distance}m</Text>
+          <Text>Distance: {routes[0].distance}m</Text>
         </HStack>
         <Text>Steps</Text>
         <ScrollView className='max-h-64'>
           {
-            route.legs[0].steps.map(v => v.maneuver).map((v, index) => (
+            routes[0].legs[0].steps.map(v => v.maneuver).map((v, index) => (
               <Box className='bg-background-200 my-2 px-2 py-3 rounded-md' key={`step-${v.location}-${v.instruction}`}>
                 <Text >
                   {index + 1}. {v.instruction}
