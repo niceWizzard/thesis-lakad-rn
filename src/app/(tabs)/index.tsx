@@ -14,7 +14,7 @@ import { Camera, Location, LocationPuck, MapView, MarkerView, UserLocation } fro
 import { getForegroundPermissionsAsync, requestForegroundPermissionsAsync } from 'expo-location';
 import { FileStack, Locate, MapIcon, PlusCircle, Star, X } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, Pressable, StyleSheet } from 'react-native';
+import { Animated, Dimensions, Image, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -213,43 +213,45 @@ const ExploreTab = () => {
                             <ButtonIcon as={X} />
                         </Button>
                     </Box>
-                    {
-                        selectedIndex != null && (
-                            <Box className='w-full gap-4 '>
-                                <VStack>
-                                    <HStack space='md' className='items-center'>
-                                        <Icon as={Star} />
-                                        <Text size='lg'>
-                                            5/5
-                                        </Text>
-                                    </HStack>
-                                    <HStack space='md' className='items-center'>
-                                        <Icon as={MapIcon} />
-                                        <Text size='lg'>
-                                            {historicalLandmarks[selectedIndex].latitude.toFixed(4)}, {historicalLandmarks[selectedIndex].longitude.toFixed(4)}
-                                        </Text>
-                                    </HStack>
-                                </VStack>
-                                <Image
-                                    source={{
-                                        uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg"
-                                    }}
-                                    width={240}
-                                    height={240}
+                    <ScrollView className='w-full'>
+                        {
+                            selectedIndex != null && (
+                                <Box className='w-full gap-4 '>
+                                    <VStack>
+                                        <HStack space='md' className='items-center'>
+                                            <Icon as={Star} />
+                                            <Text size='lg'>
+                                                5/5
+                                            </Text>
+                                        </HStack>
+                                        <HStack space='md' className='items-center'>
+                                            <Icon as={MapIcon} />
+                                            <Text size='lg'>
+                                                {historicalLandmarks[selectedIndex].latitude.toFixed(4)}, {historicalLandmarks[selectedIndex].longitude.toFixed(4)}
+                                            </Text>
+                                        </HStack>
+                                    </VStack>
+                                    <Image
+                                        source={{
+                                            uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg"
+                                        }}
+                                        width={124}
+                                        height={124}
 
-                                    className='w-full '
-                                />
-                                <Button
-                                    onPress={() => {
-                                        console.log('Add to itinerary:', historicalLandmarks[selectedIndex].name);
-                                    }}
-                                >
-                                    <ButtonIcon as={PlusCircle} />
-                                    <ButtonText>Add to Itinerary </ButtonText>
-                                </Button>
-                            </Box>
-                        )
-                    }
+                                        className='w-full '
+                                    />
+                                    <Button
+                                        onPress={() => {
+                                            console.log('Add to itinerary:', historicalLandmarks[selectedIndex].name);
+                                        }}
+                                    >
+                                        <ButtonIcon as={PlusCircle} />
+                                        <ButtonText>Add to Itinerary </ButtonText>
+                                    </Button>
+                                </Box>
+                            )
+                        }
+                    </ScrollView>
                 </ActionsheetContent>
             </Actionsheet>
             {/* Search Box */}
