@@ -244,47 +244,48 @@ const ItineraryView = () => {
         )
       }
 
-      {
-        mode === Mode.Viewing && (
-          <VStack
-            space='sm'
-            className='w-full justify-center items-center absolute bottom-0 pb-safe px-2  '
-            style={{
-              marginBottom: isSheetVisible ? '48%' : 0,
-            }}
-          >
-            <HStack className=' w-full justify-between '>
-              {
-                !isSheetVisible && (
 
-                  <>
+      <VStack
+        space='sm'
+        className='w-full justify-center items-center absolute bottom-0 pb-safe px-2  '
+        style={{
+          marginBottom: isSheetVisible ? '48%' : 0,
+        }}
+      >
+        <HStack className=' w-full justify-between '>
+          {
+            !isSheetVisible && (
 
-                    <Button
-                      className='w-16 h-16 rounded-full'
-                      onPress={() => setIsSheetVisible(true)}>
-                      <ButtonIcon as={ArrowUp} size='2xl' />
-                    </Button>
-                  </>
+              <>
 
-                )
-              }
-              <View className='flex-1'>
                 <Button
-                  className='w-16 h-16 rounded-full self-end'
-                  onPress={() => {
-                    camera.current?.setCamera({
-                      zoomLevel: 18,
-                      centerCoordinate: [
-                        userLocation?.coords?.longitude ?? 120.8092,
-                        userLocation?.coords?.latitude ?? 14.8605 - 0.005
-                      ],
-                      animationDuration: 250,
-                    })
-                  }} >
-                  <ButtonIcon as={Locate} size='2xl' />
+                  className='w-16 h-16 rounded-full'
+                  onPress={() => setIsSheetVisible(true)}>
+                  <ButtonIcon as={ArrowUp} size='2xl' />
                 </Button>
-              </View>
-            </HStack>
+              </>
+
+            )
+          }
+          <View className='flex-1'>
+            <Button
+              className='w-16 h-16 rounded-full self-end'
+              onPress={() => {
+                camera.current?.setCamera({
+                  zoomLevel: 18,
+                  centerCoordinate: [
+                    userLocation?.coords?.longitude ?? 120.8092,
+                    userLocation?.coords?.latitude ?? 14.8605 - 0.005
+                  ],
+                  animationDuration: 250,
+                })
+              }} >
+              <ButtonIcon as={Locate} size='2xl' />
+            </Button>
+          </View>
+        </HStack>
+        {
+          mode === Mode.Viewing && (
             <HStack space='md'>
               {/* Optimize Button */}
               <Button action='secondary'>
@@ -296,10 +297,9 @@ const ItineraryView = () => {
                 <ButtonIcon as={Navigation} />
                 <ButtonText >Navigate Now</ButtonText>
               </Button>
-            </HStack>
-          </VStack>
-        )
-      }
+            </HStack>)
+        }
+      </VStack>
     </VStack>
   )
 }
