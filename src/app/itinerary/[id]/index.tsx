@@ -36,8 +36,7 @@ const ItineraryView = () => {
   const camera = useRef<Camera>(null)
   const itinerary = itineraries.find(v => v.id == id)
   const [mode, setMode] = useState<Mode>(Mode.Viewing)
-  const [isViewingModeSheetVisible, setIsViewingModeSheetVisible] = useState(true)
-  const [isNavigatingModeSheetVisible, setIsNavigatingModeSheetVisible] = useState(false);
+  const [isSheetVisible, setIsSheetVisible] = useState(true)
   const [userLocation, setUserLocation] = useState<Location>();
   const [navigationRoute, setNavigationRoute] = useState<MapboxRoute | null>(null)
 
@@ -82,8 +81,6 @@ const ItineraryView = () => {
       alternatives: false,
     })
     setNavigationRoute(data.routes[0])
-    setIsViewingModeSheetVisible(false)
-    setIsNavigatingModeSheetVisible(true)
     setMode(Mode.Navigating)
   }
 
@@ -186,8 +183,8 @@ const ItineraryView = () => {
               setCamera={(config) => {
                 camera.current?.setCamera(config)
               }}
-              setSheetVisible={setIsViewingModeSheetVisible}
-              isSheetVisible={isViewingModeSheetVisible}
+              setSheetVisible={setIsSheetVisible}
+              isSheetVisible={isSheetVisible}
               setNavigationRoute={setNavigationRoute}
             />
           )
@@ -195,44 +192,84 @@ const ItineraryView = () => {
       </MapView>
       {/* Bottom Sheet */}
       {
-        mode === Mode.Viewing && (
-          <ViewingModeActionSheet
-            onNavigateButtonClick={handleNavigationButtonClick}
-            itinerary={itinerary}
-            isSheetVisible={isViewingModeSheetVisible}
-            setSheetVisible={setIsViewingModeSheetVisible}
-            setCamera={(config) => {
-              camera.current?.setCamera(config)
-            }}
-            setItineraryPoiOrder={setItineraryPoiOrder}
-          />
+        isSheetVisible && (
+          <Actionsheet
+            key={isSheetVisible ? 'sheet-open' : 'sheet-closed'}
+            isOpen={isSheetVisible}
+            onClose={() => setIsSheetVisible(false)}
+            snapPoints={[45]}
+          >
+            <ActionsheetContent  >
+              <ActionsheetDragIndicatorWrapper>
+                <ActionsheetDragIndicator />
+              </ActionsheetDragIndicatorWrapper>
+              {
+                mode === Mode.Viewing && (<>
+
+                  <ViewingModeActionSheet
+                    onNavigateButtonClick={handleNavigationButtonClick}
+                    itinerary={itinerary}
+                    setSheetVisible={setIsSheetVisible}
+                    setCamera={(config) => {
+                      camera.current?.setCamera(config)
+                    }}
+                    setItineraryPoiOrder={setItineraryPoiOrder}
+                  />
+                </>
+                )
+              }
+              {
+                mode === Mode.Navigating && (
+                  <NavigatingModeActionSheet
+                    setCamera={(config) => {
+                      camera.current?.setCamera(config)
+                    }}
+                    route={navigationRoute!}
+                    setSheetVisible={setIsSheetVisible}
+                    mode={mode}
+                    userLocation={userLocation}
+                    onExitNavigationMode={() => {
+                      camera.current!.setCamera({
+                        zoomLevel: 15,
+                        centerCoordinate: [itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude - 0.001],
+                        animationDuration: 500,
+                        pitch: 0,
+                      })
+                      setMode(Mode.Viewing)
+                    }}
+                  />
+                )
+              }
+            </ActionsheetContent>
+          </Actionsheet>
         )
       }
       {
-        mode === Mode.Navigating && (
-          <NavigatingModeActionSheet
-            setCamera={(config) => {
-              camera.current?.setCamera(config)
-            }}
-            route={navigationRoute!}
-            isSheetVisible={isNavigatingModeSheetVisible}
-            setSheetVisible={setIsNavigatingModeSheetVisible}
-            mode={mode}
-            userLocation={userLocation}
-            onExitNavigationMode={() => {
-              setIsNavigatingModeSheetVisible(false)
-              setIsViewingModeSheetVisible(true)
-              camera.current!.setCamera({
-                zoomLevel: 15,
-                centerCoordinate: [itinerary.poiOrder[0].longitude, itinerary.poiOrder[0].latitude - 0.001],
-                animationDuration: 500,
-                pitch: 0,
-              })
-              setMode(Mode.Viewing)
-            }}
-          />
+        !isSheetVisible && (
+
+          <>
+
+            <Fab size='lg' onPress={() => setIsSheetVisible(true)} placement='bottom left'>
+              <FabIcon as={ArrowUp} size='xl' />
+            </Fab>
+          </>
+
         )
       }
+      <Fab size='lg' style={{
+        marginBottom: isSheetVisible ? "50%" : 0,
+      }} onPress={() => {
+        camera.current?.setCamera({
+          zoomLevel: 18,
+          centerCoordinate: [
+            userLocation?.coords?.longitude ?? 120.8092,
+            userLocation?.coords?.latitude ?? 14.8605 - 0.005
+          ],
+          animationDuration: 250,
+        })
+      }} >
+        <FabIcon as={Locate} size='xl' />
+      </Fab>
     </VStack>
   )
 }
@@ -317,140 +354,120 @@ const ViewingModeMapViews = ({ itinerary, setSheetVisible, isSheetVisible, setNa
 }
 
 const ViewingModeActionSheet = ({ itinerary,
-  isSheetVisible, setSheetVisible,
+  setSheetVisible,
   onNavigateButtonClick,
   setCamera, setItineraryPoiOrder }: {
     setCamera: Camera['setCamera'],
-    itinerary: Itinerary, isSheetVisible: boolean,
+    itinerary: Itinerary,
     setSheetVisible: (v: boolean) => void,
     setItineraryPoiOrder: ItineraryStore['setItineraryPoiOrder'],
     onNavigateButtonClick: () => void,
   }) => {
   return (
     <>
-      <Actionsheet
-        key={isSheetVisible ? 'sheet-open' : 'sheet-closed'}
-        isOpen={isSheetVisible}
-        onClose={() => setSheetVisible(false)}
-        snapPoints={[45]}
-      >
-        <ActionsheetContent  >
-          <ActionsheetDragIndicatorWrapper>
-            <ActionsheetDragIndicator />
-          </ActionsheetDragIndicatorWrapper>
-          <VStack className=' w-full' space='sm'>
-            {/* Header */}
-            <VStack className='w-full' space='md'>
-              <HStack className='w-full justify-between' >
-                <Text size='2xl' className='font-semibold'>
-                  {itinerary.name}
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    ToastAndroid.show('Add POI functionality coming soon!', ToastAndroid.SHORT)
-                  }}
-                >
-                  <Icon
-                    as={PlusCircle}
-                    size='xl'
-                  />
-                </Pressable>
-              </HStack>
-              <Text size='sm'>
-                {itinerary.poiOrder.length} stops
-              </Text>
-            </VStack>
-            {/* POI List */}
-            <VStack space='sm' className='w-full'>
-              <FlatList
-                data={itinerary.poiOrder}
-                className='max-h-64'
-                keyboardDismissMode='interactive'
-                keyExtractor={(item) => `ItineraryView-POI-${item.latitude}-${item.longitude}`}
-                renderItem={({ item }) =>
-                (
-                  <Pressable className='p-2'>
-                    <HStack space='md' className='w-full items-center'>
-                      <HStack space='sm' className='flex-1 items-center' style={{ flexShrink: 1 }}>
-                        <Icon as={Menu} />
-                        <Text style={[item.visited && { textDecorationLine: 'line-through' }]}>{item.name}</Text>
-                      </HStack>
-                      <HStack className='justify-end' space='md' >
-                        <Button
-                          variant='link'
-                          onPress={() => {
-                            setCamera({
-                              zoomLevel: 20,
-                              centerCoordinate: [item.longitude, item.latitude - 0.0001],
-                              animationDuration: 500,
-                            })
-                          }}
-                        >
-                          <ButtonIcon as={Navigation} />
-                        </Button>
-                        <Button
-                          variant='link'
-                          onPress={() => {
-                            setItineraryPoiOrder(
-                              itinerary.poiOrder.map(v => {
-                                if (v.longitude !== item.longitude && v.latitude !== item.latitude) {
-                                  return v
-                                }
-                                return {
-                                  ...v,
-                                  visited: !v.visited,
-                                }
-                              }),
-                              itinerary.id
-                            )
-                          }}
-                        >
-                          {
-                            <ButtonIcon
-                              as={item.visited ? Check : CheckCircle}
-                            />
-                          }
-                        </Button>
-                      </HStack>
-                    </HStack>
-                  </Pressable>
-                )
-                }
-                contentContainerStyle={styles.listContent}
-                showsVerticalScrollIndicator={false}
-              />
-            </VStack>
-            <HStack
-              space='sm'
-              className='w-full justify-center'
+      <VStack className=' w-full' space='sm'>
+        {/* Header */}
+        <VStack className='w-full' space='md'>
+          <HStack className='w-full justify-between' >
+            <Text size='2xl' className='font-semibold'>
+              {itinerary.name}
+            </Text>
+            <Pressable
+              onPress={() => {
+                ToastAndroid.show('Add POI functionality coming soon!', ToastAndroid.SHORT)
+              }}
             >
-              {/* Optimize Button */}
-              <Button>
-                <ButtonIcon as={ArrowDownUp} />
-                <ButtonText>Optimize Route</ButtonText>
-              </Button>
+              <Icon
+                as={PlusCircle}
+                size='xl'
+              />
+            </Pressable>
+          </HStack>
+          <Text size='sm'>
+            {itinerary.poiOrder.length} stops
+          </Text>
+        </VStack>
+        {/* POI List */}
+        <VStack space='sm' className='w-full'>
+          <FlatList
+            data={itinerary.poiOrder}
+            className='max-h-64'
+            keyboardDismissMode='interactive'
+            keyExtractor={(item) => `ItineraryView-POI-${item.latitude}-${item.longitude}`}
+            renderItem={({ item }) =>
+            (
+              <Pressable className='p-2'>
+                <HStack space='md' className='w-full items-center'>
+                  <HStack space='sm' className='flex-1 items-center' style={{ flexShrink: 1 }}>
+                    <Icon as={Menu} />
+                    <Text style={[item.visited && { textDecorationLine: 'line-through' }]}>{item.name}</Text>
+                  </HStack>
+                  <HStack className='justify-end' space='md' >
+                    <Button
+                      variant='link'
+                      onPress={() => {
+                        setCamera({
+                          zoomLevel: 20,
+                          centerCoordinate: [item.longitude, item.latitude - 0.0001],
+                          animationDuration: 500,
+                        })
+                      }}
+                    >
+                      <ButtonIcon as={Navigation} />
+                    </Button>
+                    <Button
+                      variant='link'
+                      onPress={() => {
+                        setItineraryPoiOrder(
+                          itinerary.poiOrder.map(v => {
+                            if (v.longitude !== item.longitude && v.latitude !== item.latitude) {
+                              return v
+                            }
+                            return {
+                              ...v,
+                              visited: !v.visited,
+                            }
+                          }),
+                          itinerary.id
+                        )
+                      }}
+                    >
+                      {
+                        <ButtonIcon
+                          as={item.visited ? Check : CheckCircle}
+                        />
+                      }
+                    </Button>
+                  </HStack>
+                </HStack>
+              </Pressable>
+            )
+            }
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        </VStack>
+        <HStack
+          space='sm'
+          className='w-full justify-center'
+        >
+          {/* Optimize Button */}
+          <Button>
+            <ButtonIcon as={ArrowDownUp} />
+            <ButtonText>Optimize Route</ButtonText>
+          </Button>
 
-              <Button onPress={onNavigateButtonClick} >
-                <ButtonIcon as={Navigation} />
-                <ButtonText >Navigate Now</ButtonText>
-              </Button>
-            </HStack>
-          </VStack>
-        </ActionsheetContent>
-      </Actionsheet>
-      {
-        !isSheetVisible && (
-          <Fab size='lg' onPress={() => setSheetVisible(true)} >
-            <FabIcon as={ArrowUp} size='xl' />
-          </Fab>
-        )
-      }
+          <Button onPress={onNavigateButtonClick} >
+            <ButtonIcon as={Navigation} />
+            <ButtonText >Navigate Now</ButtonText>
+          </Button>
+        </HStack>
+      </VStack>
     </>
   )
 }
 
-const NavigatingModeActionSheet = ({ userLocation, route, isSheetVisible, setCamera, setSheetVisible, onExitNavigationMode }: {
-  isSheetVisible: boolean,
+const NavigatingModeActionSheet = ({ userLocation, route, setCamera, setSheetVisible, onExitNavigationMode }: {
   setSheetVisible: (v: boolean) => void,
   mode: Mode,
   onExitNavigationMode: () => void,
@@ -461,57 +478,24 @@ const NavigatingModeActionSheet = ({ userLocation, route, isSheetVisible, setCam
 
   return (
     <>
-      <Actionsheet
-        key={isSheetVisible ? 'sheet-open' : 'sheet-closed'}
-        isOpen={isSheetVisible}
-        onClose={() => setSheetVisible(false)}
-        snapPoints={[45]}
-      >
-        <ActionsheetContent  >
-          <ActionsheetDragIndicatorWrapper>
-            <ActionsheetDragIndicator />
-          </ActionsheetDragIndicatorWrapper>
-          <VStack className=' w-full' space='sm'>
-            <HStack>
-              <Text>Distance: {route.distance}m</Text>
-            </HStack>
-            <Text>Steps</Text>
-            <ScrollView className='max-h-64'>
-              {
-                route.legs[0].steps.map(v => v.maneuver).map((v, index) => (
-                  <Box className='bg-background-200 my-2 px-2 py-3 rounded-md' key={`step-${v.location}-${v.instruction}`}>
-                    <Text >
-                      {index + 1}. {v.instruction}
-                    </Text>
-                  </Box>
-                ))
-              }
-            </ScrollView>
-            <Button onPress={onExitNavigationMode}><ButtonText>Back</ButtonText></Button>
-          </VStack>
-        </ActionsheetContent>
-      </Actionsheet>
-      {
-        !isSheetVisible && (
-          <Fab size='lg' onPress={() => setSheetVisible(true)} placement='bottom left'>
-            <FabIcon as={ArrowUp} size='xl' />
-          </Fab>
-        )
-      }
-      <Fab size='lg' style={{
-        marginBottom: isSheetVisible ? "50%" : 0,
-      }} onPress={() => {
-        setCamera({
-          zoomLevel: 18,
-          centerCoordinate: [
-            userLocation?.coords?.longitude ?? 120.8092,
-            userLocation?.coords?.latitude ?? 14.8605 - 0.005
-          ],
-          animationDuration: 250,
-        })
-      }} >
-        <FabIcon as={Locate} size='xl' />
-      </Fab>
+      <VStack className=' w-full' space='sm'>
+        <HStack>
+          <Text>Distance: {route.distance}m</Text>
+        </HStack>
+        <Text>Steps</Text>
+        <ScrollView className='max-h-64'>
+          {
+            route.legs[0].steps.map(v => v.maneuver).map((v, index) => (
+              <Box className='bg-background-200 my-2 px-2 py-3 rounded-md' key={`step-${v.location}-${v.instruction}`}>
+                <Text >
+                  {index + 1}. {v.instruction}
+                </Text>
+              </Box>
+            ))
+          }
+        </ScrollView>
+        <Button onPress={onExitNavigationMode}><ButtonText>Back</ButtonText></Button>
+      </VStack>
     </>
   )
 }
