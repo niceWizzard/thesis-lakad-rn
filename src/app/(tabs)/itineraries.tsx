@@ -10,7 +10,7 @@ import { VStack } from '@/components/ui/vstack';
 import { Itinerary } from '@/src/constants/Itineraries';
 import { useItineraryStore } from '@/src/stores/useItineraryStore';
 import { Stack, useRouter } from 'expo-router';
-import { CheckCircle, Ellipsis, MapPin, Play, Search, Wand, X } from 'lucide-react-native';
+import { CheckCircle, Ellipsis, MapPin, Play, Plus, Search, Wand, X } from 'lucide-react-native';
 import { useState } from 'react';
 
 import {
@@ -222,6 +222,12 @@ export default function ItinerariesScreen() {
         />
 
         {/* Floating Action Button */}
+        <Fab
+          size='xl'
+          className='mb-20'
+        >
+          <FabIcon as={Plus} />
+        </Fab>
         <Fab
           onPress={() => router.navigate('/itinerary/agam')}
           size='xl'
