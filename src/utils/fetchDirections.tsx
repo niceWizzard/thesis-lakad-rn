@@ -59,11 +59,13 @@ export const fetchDirections = async ({
     steps = true,
     accessToken = ACCESS_TOKEN,
     alternatives = true,
+    overview = 'full',
 }: {
     waypoints: [number, number][],
     steps?: boolean,
     alternatives?: boolean,
     accessToken?: string,
+    overview?: 'full' | 'simplified' | 'false',
 }): Promise<MapboxResponse> => {
     const coordinates = waypoints.map(v => v.join(',')).join(';');
     const url = new URL(BASE_URl + "/" + coordinates)
@@ -71,6 +73,7 @@ export const fetchDirections = async ({
     url.searchParams.set('steps', steps.toString())
     url.searchParams.set('alternatives', alternatives.toString())
     url.searchParams.set('access_token', accessToken)
+    url.searchParams.set('overview', overview)
     try {
         const response = await fetch(url.toString())
         const data: MapboxResponse = await response.json()
