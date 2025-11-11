@@ -13,6 +13,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { ArrowDownUp, ArrowUp, Check, CheckCircle, Locate, Menu, Navigation, PlusCircle } from 'lucide-react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import {
+  Dimensions,
   FlatList,
   Pressable,
   ScrollView,
@@ -28,7 +29,7 @@ enum Mode {
   Navigating,
 }
 
-
+const height = Dimensions.get('window').height
 
 const ItineraryView = () => {
   const { id } = useLocalSearchParams()
@@ -249,9 +250,9 @@ const ItineraryView = () => {
 
       <VStack
         space='sm'
-        className='w-full justify-center items-center absolute bottom-0 pb-safe px-2  '
+        className='w-full  absolute bottom-0 pb-6 px-2  justify-center items-center'
         style={{
-          marginBottom: isSheetVisible ? '48%' : 0,
+          marginBottom: isSheetVisible ? height * .45 : 0,
         }}
       >
         <HStack className=' w-full justify-between '>
