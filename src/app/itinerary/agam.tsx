@@ -121,7 +121,7 @@ const CreateWithAgamScreen = () => {
                     <VStack>
                       {
                         districtItems.map(district => (
-                          <Checkbox value={district.id} size='lg'>
+                          <Checkbox key={`district-${district.id}`} value={district.id} size='lg'>
                             <CheckboxIndicator>
                               <CheckboxIcon as={CheckIcon} />
                             </CheckboxIndicator>
@@ -162,7 +162,7 @@ const CreateWithAgamScreen = () => {
                     <VStack space='sm'>
                       {
                         categoryItems.map(category => (
-                          <Checkbox value={category.id} size='lg'>
+                          <Checkbox key={`category-${category.id}`} value={category.id} size='lg'>
                             <CheckboxIndicator>
                               <CheckboxIcon as={CheckIcon} />
                             </CheckboxIndicator>
