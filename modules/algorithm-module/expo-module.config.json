@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["AlgorithmModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.algorithmmodule.AlgorithmModule"]
+  }
+}
