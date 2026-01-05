@@ -5,6 +5,13 @@ import DefaultProviders from "../providers/DefaultProviders";
 
 export default function RootLayout() {
   return <DefaultProviders>
-    <Stack />
+    <Stack>
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+        }}
+      />
+    </Stack>
   </DefaultProviders>
 }
