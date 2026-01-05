@@ -1,13 +1,10 @@
-import SplashScreenProvider from "@/src/providers/SplashScreenProvider";
 import { Stack } from "expo-router";
 
-import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import '@/global.css';
+import DefaultProviders from "../providers/DefaultProviders";
 
 export default function RootLayout() {
-  return <GluestackUIProvider>
-    <SplashScreenProvider>
-      <Stack />
-    </SplashScreenProvider>
-  </GluestackUIProvider>
+  return <DefaultProviders>
+    <Stack />
+  </DefaultProviders>
 }
