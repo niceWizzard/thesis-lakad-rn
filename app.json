@@ -1,38 +1,38 @@
 {
   "expo": {
-    "name": "thesis-lakad-rn",
-    "slug": "thesis-lakad-rn",
+    "name": "Lakad",
+    "slug": "thesis-lakad",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/lakad-icon.png",
     "scheme": "thesislakadrn",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ritsard23.thesislakadrn"
+      "bundleIdentifier": "com.bulakero.lakad"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/lakad-icon-foreground.png",
+        "backgroundImage": "./assets/images/lakad-icon-background.png",
+        "monochromeImage": "./assets/images/lakad-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ritsard23.thesislakadrn"
+      "package": "com.bulakero.lakad"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/lakad-icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/lakad-icon-foreground.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
