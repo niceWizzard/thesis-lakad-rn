@@ -1,22 +1,38 @@
 'use client';
 import { vars } from 'nativewind';
 
+
+
+
+{
+
+
+
+
+
+
+
+
+
+
+}
 export const config = {
   light: vars({
-    '--color-primary-0': '179 179 179',
-    '--color-primary-50': '153 153 153',
-    '--color-primary-100': '128 128 128',
-    '--color-primary-200': '115 115 115',
-    '--color-primary-300': '102 102 102',
-    '--color-primary-400': '82 82 82',
-    '--color-primary-500': '51 51 51',
-    '--color-primary-600': '41 41 41',
-    '--color-primary-700': '31 31 31',
-    '--color-primary-800': '13 13 13',
-    '--color-primary-900': '10 10 10',
-    '--color-primary-950': '8 8 8',
+    /* Primary - Emerald Green */
+    '--color-primary-0': '236 253 245',
+    '--color-primary-50': '#f1fde1',
+    '--color-primary-100': '#dbf6b9',
+    '--color-primary-200': '#c5f18e',
+    '--color-primary-300': '#afeb62',
+    '--color-primary-400': '#98e537',
+    '--color-primary-500': '#7fcc20',
+    '--color-primary-600': '#639e17',
+    '--color-primary-700': '#46710e',
+    '--color-primary-800': '#294406',
+    '--color-primary-900': '#0b1800',
+    '--color-primary-950': '1 25 19',
 
-    /* Secondary  */
+    /* Secondary - Neutral Grays */
     '--color-secondary-0': '253 253 253',
     '--color-secondary-50': '251 251 251',
     '--color-secondary-100': '246 246 246',
@@ -30,21 +46,21 @@ export const config = {
     '--color-secondary-900': '165 164 164',
     '--color-secondary-950': '157 157 157',
 
-    /* Tertiary */
-    '--color-tertiary-0': '255 250 245',
-    '--color-tertiary-50': '255 242 229',
-    '--color-tertiary-100': '255 233 213',
-    '--color-tertiary-200': '254 209 170',
-    '--color-tertiary-300': '253 180 116',
-    '--color-tertiary-400': '251 157 75',
-    '--color-tertiary-500': '231 129 40',
-    '--color-tertiary-600': '215 117 31',
-    '--color-tertiary-700': '180 98 26',
-    '--color-tertiary-800': '130 73 23',
-    '--color-tertiary-900': '108 61 19',
-    '--color-tertiary-950': '84 49 18',
+    /* Tertiary - Indigo/Blue (Complements Green) */
+    '--color-tertiary-0': '238 242 255',
+    '--color-tertiary-50': '224 231 255',
+    '--color-tertiary-100': '199 210 254',
+    '--color-tertiary-200': '165 180 252',
+    '--color-tertiary-300': '129 140 248',
+    '--color-tertiary-400': '99 102 241',
+    '--color-tertiary-500': '79 70 229',
+    '--color-tertiary-600': '67 56 202',
+    '--color-tertiary-700': '55 48 163',
+    '--color-tertiary-800': '49 46 129',
+    '--color-tertiary-900': '30 27 75',
+    '--color-tertiary-950': '15 12 41',
 
-    /* Error */
+    /* Error - Red */
     '--color-error-0': '254 233 233',
     '--color-error-50': '254 226 226',
     '--color-error-100': '254 202 202',
@@ -58,21 +74,21 @@ export const config = {
     '--color-error-900': '127 29 29',
     '--color-error-950': '83 19 19',
 
-    /* Success */
-    '--color-success-0': '228 255 244',
-    '--color-success-50': '202 255 232',
-    '--color-success-100': '162 241 192',
-    '--color-success-200': '132 211 162',
-    '--color-success-300': '102 181 132',
-    '--color-success-400': '72 151 102',
-    '--color-success-500': '52 131 82',
-    '--color-success-600': '42 121 72',
-    '--color-success-700': '32 111 62',
-    '--color-success-800': '22 101 52',
-    '--color-success-900': '20 83 45',
-    '--color-success-950': '27 50 36',
+    /* Success - Forest Green (Distinct from Primary) */
+    '--color-success-0': '240 253 244',
+    '--color-success-50': '220 252 231',
+    '--color-success-100': '187 247 208',
+    '--color-success-200': '134 239 172',
+    '--color-success-300': '74 222 128',
+    '--color-success-400': '34 197 94',
+    '--color-success-500': '22 163 74',
+    '--color-success-600': '21 128 61',
+    '--color-success-700': '21 101 52',
+    '--color-success-800': '20 83 45',
+    '--color-success-900': '20 71 45',
+    '--color-success-950': '5 46 22',
 
-    /* Warning */
+    /* Warning - Amber */
     '--color-warning-0': '255 249 245',
     '--color-warning-50': '255 244 236',
     '--color-warning-100': '255 231 213',
@@ -86,7 +102,7 @@ export const config = {
     '--color-warning-900': '108 56 19',
     '--color-warning-950': '84 45 18',
 
-    /* Info */
+    /* Info - Sky Blue */
     '--color-info-0': '236 248 254',
     '--color-info-50': '199 235 252',
     '--color-info-100': '162 221 250',
@@ -149,26 +165,28 @@ export const config = {
     '--color-background-muted': '247 248 247',
     '--color-background-info': '235 248 254',
 
-    /* Focus Ring Indicator  */
-    '--color-indicator-primary': '55 55 55',
+    /* Focus Ring Indicator */
+    '--color-indicator-primary': '5 150 105',
     '--color-indicator-info': '83 153 236',
     '--color-indicator-error': '185 28 28',
   }),
-  dark: vars({
-    '--color-primary-0': '166 166 166',
-    '--color-primary-50': '175 175 175',
-    '--color-primary-100': '186 186 186',
-    '--color-primary-200': '197 197 197',
-    '--color-primary-300': '212 212 212',
-    '--color-primary-400': '221 221 221',
-    '--color-primary-500': '230 230 230',
-    '--color-primary-600': '240 240 240',
-    '--color-primary-700': '250 250 250',
-    '--color-primary-800': '253 253 253',
-    '--color-primary-900': '254 249 249',
-    '--color-primary-950': '253 252 252',
 
-    /* Secondary  */
+  dark: vars({
+    /* Primary - Vibrant Emerald for Dark Contrast */
+    '--color-primary-0': '1 25 19',
+    '--color-primary-50': '2 44 34',
+    '--color-primary-100': '6 78 59',
+    '--color-primary-200': '6 95 70',
+    '--color-primary-300': '4 120 87',
+    '--color-primary-400': '5 150 105',
+    '--color-primary-500': '16 185 129', // Brighter Primary for dark mode
+    '--color-primary-600': '52 211 153',
+    '--color-primary-700': '110 231 183',
+    '--color-primary-800': '167 243 208',
+    '--color-primary-900': '209 250 229',
+    '--color-primary-950': '236 253 245',
+
+    /* Secondary */
     '--color-secondary-0': '20 20 20',
     '--color-secondary-50': '23 23 23',
     '--color-secondary-100': '31 31 31',
@@ -183,18 +201,18 @@ export const config = {
     '--color-secondary-950': '164 164 164',
 
     /* Tertiary */
-    '--color-tertiary-0': '84 49 18',
-    '--color-tertiary-50': '108 61 19',
-    '--color-tertiary-100': '130 73 23',
-    '--color-tertiary-200': '180 98 26',
-    '--color-tertiary-300': '215 117 31',
-    '--color-tertiary-400': '231 129 40',
-    '--color-tertiary-500': '251 157 75',
-    '--color-tertiary-600': '253 180 116',
-    '--color-tertiary-700': '254 209 170',
-    '--color-tertiary-800': '255 233 213',
-    '--color-tertiary-900': '255 242 229',
-    '--color-tertiary-950': '255 250 245',
+    '--color-tertiary-0': '15 12 41',
+    '--color-tertiary-50': '30 27 75',
+    '--color-tertiary-100': '49 46 129',
+    '--color-tertiary-200': '55 48 163',
+    '--color-tertiary-300': '67 56 202',
+    '--color-tertiary-400': '79 70 229',
+    '--color-tertiary-500': '99 102 241',
+    '--color-tertiary-600': '129 140 248',
+    '--color-tertiary-700': '165 180 252',
+    '--color-tertiary-800': '199 210 254',
+    '--color-tertiary-900': '224 231 255',
+    '--color-tertiary-950': '238 242 255',
 
     /* Error */
     '--color-error-0': '83 19 19',
@@ -211,18 +229,18 @@ export const config = {
     '--color-error-950': '254 233 233',
 
     /* Success */
-    '--color-success-0': '27 50 36',
-    '--color-success-50': '20 83 45',
-    '--color-success-100': '22 101 52',
-    '--color-success-200': '32 111 62',
-    '--color-success-300': '42 121 72',
-    '--color-success-400': '52 131 82',
-    '--color-success-500': '72 151 102',
-    '--color-success-600': '102 181 132',
-    '--color-success-700': '132 211 162',
-    '--color-success-800': '162 241 192',
-    '--color-success-900': '202 255 232',
-    '--color-success-950': '228 255 244',
+    '--color-success-0': '5 46 22',
+    '--color-success-50': '20 71 45',
+    '--color-success-100': '20 83 45',
+    '--color-success-200': '21 101 52',
+    '--color-success-300': '21 128 61',
+    '--color-success-400': '22 163 74',
+    '--color-success-500': '34 197 94',
+    '--color-success-600': '74 222 128',
+    '--color-success-700': '134 239 172',
+    '--color-success-800': '187 247 208',
+    '--color-success-900': '220 252 231',
+    '--color-success-950': '240 253 244',
 
     /* Warning */
     '--color-warning-0': '84 45 18',
@@ -301,8 +319,8 @@ export const config = {
     '--color-background-muted': '51 51 51',
     '--color-background-info': '26 40 46',
 
-    /* Focus Ring Indicator  */
-    '--color-indicator-primary': '247 247 247',
+    /* Focus Ring Indicator */
+    '--color-indicator-primary': '16 185 129',
     '--color-indicator-info': '161 199 245',
     '--color-indicator-error': '232 70 69',
   }),
