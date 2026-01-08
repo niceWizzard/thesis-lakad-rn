@@ -2,10 +2,10 @@ import { useAuthStore } from '@/src/stores/useAuth'
 import { supabase } from '@/src/utils/supabase'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Linking from 'expo-linking'
-import { Stack, useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import { useRouter } from 'expo-router'
+import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
+import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableWithoutFeedback, View } from 'react-native'
 import * as z from 'zod'
 
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
@@ -32,11 +32,12 @@ type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>
 const ResetPasswordHandler = () => {
     const router = useRouter()
     const [verifying, setVerifying] = useState(true)
-    const [fromDeepLink, setFromDeepLink] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
     const linkUrl = Linking.useLinkingURL()
     const { session } = useAuthStore()
+
+    const confirmPasswordRef = useRef<TextInput>(null);
 
     const { control, handleSubmit, formState: { errors, dirtyFields } } = useForm<ResetPasswordSchema>({
         resolver: zodResolver(resetPasswordSchema),
@@ -64,9 +65,6 @@ const ResetPasswordHandler = () => {
                     setError("The reset link is missing required security tokens.")
                     return
                 }
-
-                setFromDeepLink(true)
-
                 const { error: sessionError } = await supabase.auth.setSession({
                     access_token,
                     refresh_token
@@ -80,7 +78,6 @@ const ResetPasswordHandler = () => {
                 setVerifying(false)
             }
         }
-
         handleDeepLink()
     }, [linkUrl])
 
@@ -133,11 +130,6 @@ const ResetPasswordHandler = () => {
     // --- Form State ---
     return (
         <>
-            <Stack.Screen
-                options={{
-                    headerShown: true
-                }}
-            />
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="bg-background-0"
                 // flex-1 does not work with keyboard avoid
@@ -170,6 +162,11 @@ const ResetPasswordHandler = () => {
                                                         onBlur={onBlur}
                                                         onChangeText={onChange}
                                                         value={value}
+                                                        submitBehavior='submit'
+                                                        returnKeyType='next'
+                                                        onSubmitEditing={() => {
+                                                            confirmPasswordRef.current?.focus()
+                                                        }}
                                                     />
                                                 </Input>
                                             )}
@@ -189,10 +186,12 @@ const ResetPasswordHandler = () => {
                                                 <Input variant="outline" size="lg" isInvalid={!!errors.confirmPassword && dirtyFields.confirmPassword}>
                                                     <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
                                                     <InputField
+                                                        ref={confirmPasswordRef as any}
                                                         placeholder="Repeat new password"
                                                         type="password"
                                                         onBlur={onBlur}
                                                         onChangeText={onChange}
+                                                        onSubmitEditing={handleSubmit(onReset)}
                                                         value={value}
                                                     />
                                                 </Input>
