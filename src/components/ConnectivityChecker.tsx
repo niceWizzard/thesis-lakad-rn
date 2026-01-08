@@ -3,8 +3,8 @@ import * as Network from 'expo-network';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const ConnectivityChecker = () => {
+// components/ConnectivityChecker.tsx
+const ConnectivityStatusBar = () => {
     const [networkState, setNetworkState] = useState<Network.NetworkState | null>(null);
     const insets = useSafeAreaInsets();
 
@@ -14,20 +14,19 @@ const ConnectivityChecker = () => {
         return () => networkListener.remove();
     }, []);
 
-    // If internet is reachable, we don't want to render anything (0 height)
-    if (networkState?.isInternetReachable !== false)
-        return <View style={{
-            paddingTop: insets.top,
-        }} className='bg-background-0'>
-
-        </View>;
+    if (networkState?.isInternetReachable !== false) return null;
 
     return (
         <View
             style={{
+                position: 'absolute', // Float above everything
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 9999,        // Highest priority
                 paddingTop: insets.top,
                 paddingBottom: 8,
-                width: '100%',
+                elevation: 10,       // Required for Android stacking
                 justifyContent: 'center',
                 alignItems: 'center',
             }}
@@ -39,5 +38,4 @@ const ConnectivityChecker = () => {
         </View>
     );
 }
-
-export default ConnectivityChecker;
+export default ConnectivityStatusBar;

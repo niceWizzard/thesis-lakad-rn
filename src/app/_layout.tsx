@@ -3,7 +3,7 @@ import { Stack, useRouter } from "expo-router";
 import '@/global.css';
 import * as Linking from 'expo-linking';
 import { useEffect } from "react";
-import ConnectivityChecker from "../components/ConnectivityChecker";
+import ConnectivityStatusBar from "../components/ConnectivityChecker";
 import DefaultProviders from "../providers/DefaultProviders";
 import { useAuthStore } from "../stores/useAuth";
 import { supabase } from "../utils/supabase";
@@ -60,8 +60,8 @@ export default function RootLayout() {
 
   return <DefaultProviders>
     <Stack screenOptions={{
-      header: ({ route }) => <ConnectivityChecker />,
-    }}>
+      headerShown: false,
+    }} >
       <Stack.Screen
         name="(tabs)"
         options={{
@@ -73,5 +73,6 @@ export default function RootLayout() {
         }}
       />
     </Stack>
+    <ConnectivityStatusBar />
   </DefaultProviders>
 }
