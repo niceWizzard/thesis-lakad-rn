@@ -157,8 +157,8 @@ function MoreTab() {
                     className="rounded-2xl  h-14"
                     onPress={handleSignoutPress}
                 >
-                    <ButtonText className="text-typography-600 font-bold">Sign Out</ButtonText>
-                    <ButtonIcon as={LogOut} size="md" className="ml-2 text-typography-600" />
+                    <ButtonText className="font-bold">Sign Out</ButtonText>
+                    <ButtonIcon as={LogOut} size="md" className="ml-2" />
                 </Button>
 
                 <View className="items-center mt-8">
