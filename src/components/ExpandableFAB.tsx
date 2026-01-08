@@ -3,14 +3,25 @@ import { Box } from '@/components/ui/box';
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import { Heading } from '@/components/ui/heading';
 import { Icon } from '@/components/ui/icon';
+import { useRouter } from 'expo-router';
 import { Plus, Wand2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 
 
 const ExpandableFab = () => {
     const [showMenu, setShowMenu] = useState(false);
+    const router = useRouter();
 
     const handleClose = () => setShowMenu(false);
+
+    const handleManual = () => {
+
+    }
+
+    const handleSmartGenerate = () => {
+        handleClose()
+        router.navigate('/itinerary/agam')
+    }
 
     return (
         <>
@@ -34,12 +45,12 @@ const ExpandableFab = () => {
                     <Box>
                         <Heading>Create an Itinerary</Heading>
                     </Box>
-                    <ActionsheetItem onPress={handleClose}>
+                    <ActionsheetItem onPress={handleManual}>
                         <Icon as={Plus} />
                         <ActionsheetItemText>Create manually</ActionsheetItemText>
                     </ActionsheetItem>
 
-                    <ActionsheetItem onPress={handleClose}>
+                    <ActionsheetItem onPress={handleSmartGenerate}>
                         <Icon as={Wand2} />
                         <ActionsheetItemText>Smart Generate</ActionsheetItemText>
                     </ActionsheetItem>
