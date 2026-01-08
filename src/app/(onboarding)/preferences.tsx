@@ -3,6 +3,7 @@ import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
 import { StorageKey } from '@/src/constants/Key'
 import { mmkvStorage } from '@/src/utils/mmkv'
+import { getCategoryPreferences, setCategoryPreferences } from '@/src/utils/preferencesManager'
 import { Stack, useRouter } from 'expo-router'
 import {
     Camera,
@@ -14,7 +15,7 @@ import {
     ShoppingBag,
     Utensils
 } from 'lucide-react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -33,6 +34,12 @@ const OnboardingPreferences = () => {
     const router = useRouter()
     const [selected, setSelected] = useState<string[]>([])
 
+    useEffect(() => {
+        setSelected(
+            getCategoryPreferences()
+        )
+    }, [])
+
     const toggleCategory = (id: string) => {
         if (selected.includes(id)) {
             setSelected(selected.filter((item) => item !== id))
@@ -44,7 +51,11 @@ const OnboardingPreferences = () => {
     const handleDonePress = () => {
         // You could also save the 'selected' array to MMKV or Supabase here
         mmkvStorage.set(StorageKey.HaveOnboarded, true)
-        router.replace("/(auth)/signin")
+        setCategoryPreferences(selected)
+        if (router.canGoBack())
+            router.back()
+        else
+            router.replace("/(auth)/signin")
     }
 
     return (
@@ -118,7 +129,7 @@ const OnboardingPreferences = () => {
                         <ButtonText className="font-bold">
                             {selected.length < 3
                                 ? `Select ${3 - selected.length} more`
-                                : 'Get Started'}
+                                : router.canGoBack() ? "Save" : 'Get Started'}
                         </ButtonText>
                     </Button>
                 </View>
