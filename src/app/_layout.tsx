@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 
 import '@/global.css';
+import ConnectivityChecker from "../components/ConnectivityChecker";
 import DefaultProviders from "../providers/DefaultProviders";
 
 export const unstable_settings = {
@@ -9,17 +10,17 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   return <DefaultProviders>
-    <Stack>
+    <Stack screenOptions={{
+      header: ({ route }) => <ConnectivityChecker />,
+    }}>
       <Stack.Screen
         name="(tabs)"
         options={{
-          headerShown: false,
         }}
       />
       <Stack.Screen
         name="(onboarding)"
         options={{
-          headerShown: false,
         }}
       />
     </Stack>
