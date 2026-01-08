@@ -3,7 +3,7 @@ import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
 import { StorageKey } from '@/src/constants/Key'
 import { mmkvStorage } from '@/src/utils/mmkv'
-import { useRouter } from 'expo-router'
+import { Stack, useRouter } from 'expo-router'
 import {
     Camera,
     Check,
@@ -15,7 +15,8 @@ import {
     Utensils
 } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native'
+import { ScrollView, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 // 1. Define the categories
 const CATEGORIES = [
@@ -47,75 +48,82 @@ const OnboardingPreferences = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-background-0">
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-8">
+        <>
+            <Stack.Screen
+                options={{
+                    headerShown: router.canGoBack()
+                }}
+            />
+            <SafeAreaView className="flex-1 bg-background-0">
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-8">
 
-                {/* Header */}
-                <View className="mb-8">
-                    <Heading size="3xl" className="text-typography-900 mb-2">Personalize</Heading>
-                    <Text size="lg" className="text-typography-600">
-                        Select at least 3 categories that interest you to help us tailor your itineraries.
-                    </Text>
-                </View>
+                    {/* Header */}
+                    <View className="mb-8">
+                        <Heading size="3xl" className="text-typography-900 mb-2">Personalize</Heading>
+                        <Text size="lg" className="text-typography-600">
+                            Select at least 3 categories that interest you to help us tailor your itineraries.
+                        </Text>
+                    </View>
 
-                {/* Grid of Categories */}
-                <View className="flex-row flex-wrap justify-between gap-y-4">
-                    {CATEGORIES.map((item) => {
-                        const isSelected = selected.includes(item.id)
+                    {/* Grid of Categories */}
+                    <View className="flex-row flex-wrap justify-between gap-y-4">
+                        {CATEGORIES.map((item) => {
+                            const isSelected = selected.includes(item.id)
 
-                        return (
-                            <TouchableOpacity
-                                key={item.id}
-                                activeOpacity={0.8}
-                                onPress={() => toggleCategory(item.id)}
-                                style={{ width: '48%' }} // Two columns
-                                className={`
+                            return (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    activeOpacity={0.8}
+                                    onPress={() => toggleCategory(item.id)}
+                                    style={{ width: '48%' }} // Two columns
+                                    className={`
                                     p-5 rounded-3xl border-2 items-center justify-center relative
                                     ${isSelected
-                                        ? 'border-primary-600 bg-primary-0'
-                                        : 'border-outline-100 bg-background-50'}
+                                            ? 'border-primary-600 bg-primary-0'
+                                            : 'border-outline-100 bg-background-50'}
                                 `}
-                            >
-                                {/* Selection Indicator (Checkmark) */}
-                                {isSelected && (
-                                    <View className="absolute top-3 right-3 bg-primary-600 rounded-full p-0.5">
-                                        <Check size={12} color="white" strokeWidth={4} />
+                                >
+                                    {/* Selection Indicator (Checkmark) */}
+                                    {isSelected && (
+                                        <View className="absolute top-3 right-3 bg-primary-600 rounded-full p-0.5">
+                                            <Check size={12} color="white" strokeWidth={4} />
+                                        </View>
+                                    )}
+
+                                    <View className={`${item.color} p-4 rounded-2xl mb-3`}>
+                                        <item.icon size={28} className={item.text} />
                                     </View>
-                                )}
 
-                                <View className={`${item.color} p-4 rounded-2xl mb-3`}>
-                                    <item.icon size={28} className={item.text} />
-                                </View>
+                                    <Text size="md" className={`font-bold ${isSelected ? 'text-primary-600' : 'text-typography-700'}`}>
+                                        {item.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </View>
 
-                                <Text size="md" className={`font-bold ${isSelected ? 'text-primary-600' : 'text-typography-700'}`}>
-                                    {item.label}
-                                </Text>
-                            </TouchableOpacity>
-                        )
-                    })}
+                    {/* Bottom Spacer for Scroll */}
+                    <View className="h-20" />
+                </ScrollView>
+
+                {/* Sticky Footer Button */}
+                <View className="absolute bottom-0 left-0 right-0 p-6 bg-background-0 border-t border-outline-50">
+                    <Button
+                        size="lg"
+                        className="rounded-2xl h-14"
+                        onPress={handleDonePress}
+                        isDisabled={selected.length < 3}
+                        action={selected.length < 3 ? 'secondary' : 'primary'}
+                    >
+                        <ButtonText className="font-bold">
+                            {selected.length < 3
+                                ? `Select ${3 - selected.length} more`
+                                : 'Get Started'}
+                        </ButtonText>
+                    </Button>
                 </View>
-
-                {/* Bottom Spacer for Scroll */}
-                <View className="h-20" />
-            </ScrollView>
-
-            {/* Sticky Footer Button */}
-            <View className="absolute bottom-0 left-0 right-0 p-6 bg-background-0 border-t border-outline-50">
-                <Button
-                    size="lg"
-                    className="rounded-2xl h-14"
-                    onPress={handleDonePress}
-                    isDisabled={selected.length < 3}
-                    action={selected.length < 3 ? 'secondary' : 'primary'}
-                >
-                    <ButtonText className="font-bold">
-                        {selected.length < 3
-                            ? `Select ${3 - selected.length} more`
-                            : 'Get Started'}
-                    </ButtonText>
-                </Button>
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
+        </>
     )
 }
 

@@ -14,6 +14,7 @@ const OnboardingLayout = () => {
                 name='preferences'
                 options={{
                     headerShown: false,
+                    headerTitle: ''
                 }}
             />
         </Stack>
