@@ -7,6 +7,7 @@ import React from 'react';
 import { Alert, Image, ScrollView, TouchableOpacity, View } from "react-native";
 
 import { Icon } from '@/components/ui/icon';
+import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { supabase } from '@/src/utils/supabase';
 import {
@@ -25,6 +26,7 @@ const coverImage = require('@/assets/images/lakad-cover.png');
 function MoreTab() {
     const router = useRouter();
     const { session } = useAuthStore();
+    const toast = useToast();
 
     const menuItems = [
         {
@@ -54,8 +56,35 @@ function MoreTab() {
     ] as const;
 
     const handleSignoutPress = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (!error) router.replace('/(auth)/signin');
+        try {
+            const { error } = await supabase.auth.signOut();
+
+            if (error) {
+                // Handle the error directly here instead of throwing
+                showErrorToast(error.message);
+                return;
+            }
+
+            router.replace('/(auth)/signin');
+        } catch (e) {
+            showErrorToast((e as Error).message);
+        }
+    };
+
+    // Abstract this to keep handleSignoutPress clean
+    const showErrorToast = (message: string) => {
+        toast.show({
+            placement: "bottom",
+            render: ({ id }) => {
+                return (
+                    // Ensure Toast has a unique key
+                    <Toast nativeID={"toast-" + id} action="error" variant="solid">
+                        <ToastTitle>Sign Out Failed</ToastTitle>
+                        <ToastDescription>{message}</ToastDescription>
+                    </Toast>
+                );
+            }
+        });
     };
 
     return (
