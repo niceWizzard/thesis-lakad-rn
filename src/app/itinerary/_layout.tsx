@@ -3,7 +3,20 @@ import React from 'react'
 
 const ItineraryLayout = () => {
     return (
-        <Stack />
+        <Stack>
+            <Stack.Screen
+                name='agam'
+                options={{
+                    headerTitle: ''
+                }}
+            />
+            <Stack.Screen
+                name='[id]/index'
+                options={{
+                    headerTitle: ''
+                }}
+            />
+        </Stack>
     )
 }
 

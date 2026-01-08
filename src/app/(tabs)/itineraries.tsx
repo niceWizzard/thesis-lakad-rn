@@ -45,6 +45,13 @@ export default function ItinerariesScreen() {
         return (completed / itinerary.poiOrder.length) * 100;
     };
 
+    const handleContinuePress = (id: string) => {
+        router.push({
+            pathname: '/itinerary/[id]',
+            params: { id: itineraries[0].id }
+        })
+    }
+
     const filteredItineraries = itineraries.filter(v =>
         v.name.toLowerCase().includes(searchString.toLowerCase())
     );
@@ -136,9 +143,11 @@ export default function ItinerariesScreen() {
                                         ))}
                                     </VStack>
 
-                                    <Button size="lg" className="rounded-2xl bg-primary-600">
+                                    <Button size="lg" className="rounded-2xl bg-primary-600"
+                                        onPress={() => handleContinuePress(itinerary.id)}
+                                    >
                                         <ButtonIcon as={Play} className="mr-2" />
-                                        <ButtonText className="font-bold">Continue Journey</ButtonText>
+                                        <ButtonText className="font-bold">Continue</ButtonText>
                                     </Button>
                                 </View>
                             </Pressable>
