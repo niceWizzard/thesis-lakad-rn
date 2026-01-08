@@ -2,14 +2,15 @@ import { Stack, useRouter } from 'expo-router';
 import {
     CheckCircle2,
     EllipsisVertical,
-    MapPin, Play, Plus, Search, Wand, X
+    MapPin, Play,
+    Search,
+    X
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Alert, FlatList, Pressable, View } from 'react-native';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { Fab, FabIcon } from '@/components/ui/fab';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
@@ -18,6 +19,7 @@ import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import ExpandableFab from '@/src/components/ExpandableFAB';
 import { Itinerary } from '@/src/constants/itineraries';
 import { useItineraryStore } from '@/src/stores/useItineraryStore';
 
@@ -145,14 +147,7 @@ export default function ItinerariesScreen() {
                 />
 
                 {/* FABs */}
-                <VStack className="absolute bottom-8 right-6 gap-4">
-                    <Fab size="lg" className="bg-secondary-500 shadow-soft-3 relative bottom-0 right-0">
-                        <FabIcon as={Wand} />
-                    </Fab>
-                    <Fab size="lg" className="bg-primary-600 shadow-soft-3 relative bottom-0 right-0">
-                        <FabIcon as={Plus} />
-                    </Fab>
-                </VStack>
+                <ExpandableFab />
             </Box>
         </>
     );
