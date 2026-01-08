@@ -45,7 +45,7 @@ function MoreTab() {
             id: '3',
             title: 'Change Password',
             icon: Key,
-            onPress: () => router.navigate('/reset-password'),
+            onPress: () => router.navigate('/change-password'),
         },
         {
             id: '4',
