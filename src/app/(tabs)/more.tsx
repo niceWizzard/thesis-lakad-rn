@@ -10,6 +10,7 @@ import {
     StyleSheet,
 } from "react-native";
 
+import { useAuthStore } from '@/src/stores/useAuth';
 import { supabase } from '@/src/utils/supabase';
 import { Forward, Info, Option, Settings } from 'lucide-react-native';
 
@@ -17,6 +18,8 @@ const coverImage = require('@/assets/images/lakad-cover.png');
 
 function MoreTab() {
     const router = useRouter()
+
+    const { session } = useAuthStore()
 
     const menuItems = [
         {
@@ -67,6 +70,14 @@ function MoreTab() {
                     Your walking companion
                 </Text>
             </Box>
+            {
+                session ? (
+                    <Box>
+                        <Text>{session.user.email ?? "NO EMAIL"}</Text>
+                    </Box>
+                ) : <Text>No session</Text>
+            }
+
 
             {/* Menu Items */}
             <Box style={styles.menuContainer}>

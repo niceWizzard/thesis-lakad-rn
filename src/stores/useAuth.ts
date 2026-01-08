@@ -1,10 +1,10 @@
-import { AuthSession } from "@supabase/supabase-js";
+import { Session } from "@supabase/supabase-js";
 import { create } from "zustand";
 
 
 interface AuthStore {
-    session?: AuthSession
-    setAuth(userId: AuthSession): void
+    session?: Session | null
+    setAuth(userId: Session): void
 }
 
 

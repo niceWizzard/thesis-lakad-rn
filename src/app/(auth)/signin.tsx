@@ -52,6 +52,14 @@ const SigninPage = () => {
                     </Input>
                 </View>
 
+                <Button variant='link'
+                    onPress={() => {
+                        router.navigate('/(auth)/forgot')
+                    }}
+                >
+                    <ButtonText className='text-end'>Forgot password?</ButtonText>
+                </Button>
+
                 <Button action='primary'
                     onPress={onSubmit}
                 >

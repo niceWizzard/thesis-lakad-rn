@@ -12,7 +12,7 @@ const OnboardingPreferences = () => {
 
     function handleDonePress() {
         mmkvStorage.set(StorageKey.HaveOnboarded, true)
-        router.replace("/(tabs)")
+        router.replace("/(auth)/signin")
     }
 
 
