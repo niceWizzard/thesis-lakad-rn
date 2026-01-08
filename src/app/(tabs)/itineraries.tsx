@@ -1,31 +1,29 @@
+import { Stack, useRouter } from 'expo-router';
+import {
+    CheckCircle2,
+    EllipsisVertical,
+    MapPin, Play, Plus, Search, Wand, X
+} from 'lucide-react-native';
+import React, { useState } from 'react';
+import { Alert, FlatList, Pressable, View } from 'react-native';
+
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Fab, FabIcon } from '@/components/ui/fab';
+import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
-import { Input, InputField } from '@/components/ui/input';
+import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
+
 import { Itinerary } from '@/src/constants/itineraries';
-import { Stack, useRouter } from 'expo-router';
-import { CheckCircle, Ellipsis, MapPin, Play, Plus, Search, Wand, X } from 'lucide-react-native';
-import { useState } from 'react';
-
 import { useItineraryStore } from '@/src/stores/useItineraryStore';
-import {
-    Alert,
-    Dimensions,
-    FlatList,
-    Pressable
-} from 'react-native';
-
-const width = Dimensions.get('screen').width
 
 export default function ItinerariesScreen() {
     const { itineraries, deleteItinerary } = useItineraryStore();
-    const [searchString, setSearchString] = useState<string | null>(null)
-    const showSearchInput = searchString !== null
+    const [searchString, setSearchString] = useState('');
     const router = useRouter();
 
     const handleDeleteItinerary = (itinerary: Itinerary) => {
@@ -34,196 +32,127 @@ export default function ItinerariesScreen() {
             `Are you sure you want to delete "${itinerary.name}"?`,
             [
                 { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => deleteItinerary(itinerary.id)
-                }
+                { text: 'Delete', style: 'destructive', onPress: () => deleteItinerary(itinerary.id) }
             ]
         );
     };
 
-    const getCompletedPOIs = (itinerary: Itinerary) => {
-        return itinerary.poiOrder.filter(poi => poi.visited).length;
-    };
-
-    const formatPOICount = (itinerary: Itinerary) => {
-        const total = itinerary.poiOrder.length;
-        const completed = getCompletedPOIs(itinerary);
-        return `${completed}/${total} POIs visited`;
-    };
-
     const calculateProgress = (itinerary: Itinerary) => {
         if (itinerary.poiOrder.length === 0) return 0;
-        return getCompletedPOIs(itinerary) / itinerary.poiOrder.length;
+        const completed = itinerary.poiOrder.filter(poi => poi.visited).length;
+        return (completed / itinerary.poiOrder.length) * 100;
     };
 
-    if (itineraries.length === 0) {
-        return (
-            <Box className='w-full h-full justify-center p-8 gap-4 items-center' >
-                <Text size='4xl'>
-                    No Itineraries Yet
-                </Text>
-                <Text >
-                    Create your first itinerary to get started
-                </Text>
-
-                {/* Create Button */}
-                <Button
-                    size='xl'
-                >
-                    <ButtonIcon as={Wand} />
-                    <ButtonText >Create Itinerary</ButtonText>
-                </Button>
-            </Box>
-        );
-    }
+    const filteredItineraries = itineraries.filter(v =>
+        v.name.toLowerCase().includes(searchString.toLowerCase())
+    );
 
     return (
         <>
-            <Stack.Screen
-                options={{
-                    headerRight: () => (
-                        (
-                            showSearchInput ? (
-                                <Button variant='link' className='mx-6' size='xl'
-                                    onPress={() => {
-                                        setSearchString(null)
-                                    }}
-                                >
-                                    <ButtonIcon as={X} size='xl' />
-                                </Button>
-                            ) : (
-                                <Button variant='link' className='mx-6' size='xl'
-                                    onPress={() => {
-                                        setSearchString('')
-                                    }}
-                                >
-                                    <ButtonIcon as={Search} size='xl' />
-                                </Button>
-                            )
-                        )
-                    ),
-                    headerTitle: () => (
-                        showSearchInput ? (
-                            <Box style={{ width: width - 64 }}>
-                                <Input variant='underlined' size='lg'>
-                                    <InputField
-                                        autoFocus
-                                        placeholder="Search..."
-                                        value={searchString}
-                                        onChangeText={setSearchString}
-                                        autoCorrect={false}
-                                        autoCapitalize="none"
-                                        returnKeyType="search"
-                                    />
-                                </Input>
-                            </Box>
-                        ) : (
-                            <Text size='2xl'>Itinerary</Text>
-                        )
-                    ),
-                }}
-            />
-            <Box className='h-full'>
+            {/* Simple Native Header */}
+            <Stack.Screen options={{ headerTitle: "My Trips" }} />
+
+            <Box className="flex-1 bg-background-0">
                 <FlatList
-                    data={itineraries.filter(v => {
-                        if (searchString == null)
-                            return true
-                        const a = RegExp(searchString, 'i')
-                        return a.test(v.name)
-                    })}
+                    data={filteredItineraries}
                     keyExtractor={item => item.id}
                     showsVerticalScrollIndicator={false}
-                    contentContainerClassName='gap-4 p-8'
-                    renderItem={({ item: itinerary }) => (
-                        <Pressable
-                            className='shadow-sm p-4 rounded-lg gap-3 bg-background-200'
-                            onPress={() => {
+                    keyboardShouldPersistTaps="always"
+                    contentContainerClassName="p-6 pb-32 gap-6"
+                    // --- SEARCH BAR ADDED AS HEADER OF THE LIST ---
+                    ListHeaderComponent={
+                        <VStack className="mb-2 gap-4">
+                            <Input
+                                variant="rounded"
+                                size="lg"
+                                className="border-none bg-background-100 h-12 rounded-2xl"
+                            >
+                                <InputSlot className="pl-4">
+                                    <InputIcon as={Search} className="text-typography-400" />
+                                </InputSlot>
+                                <InputField
+                                    placeholder="Search your trips..."
+                                    value={searchString}
+                                    onChangeText={setSearchString}
+                                    className="text-typography-900"
+                                />
+                                {searchString.length > 0 && (
+                                    <InputSlot className="pr-4" onPress={() => setSearchString('')}>
+                                        <InputIcon as={X} className="text-typography-400" size='lg' />
+                                    </InputSlot>
+                                )}
+                            </Input>
+                        </VStack>
+                    }
+                    renderItem={({ item: itinerary }) => {
+                        const progress = calculateProgress(itinerary);
+                        return (
+                            <Pressable className="bg-background-50 rounded-3xl border border-outline-100 shadow-soft-1 overflow-hidden">
+                                <View className="p-5">
+                                    {/* Card Header */}
+                                    <HStack className="justify-between items-start mb-4">
+                                        <VStack className="flex-1 pr-4">
+                                            <HStack className="items-center mb-1 gap-1">
+                                                <Icon as={MapPin} size="xs" className="text-primary-600" />
+                                                <Text size="xs" className="uppercase font-bold text-primary-600 tracking-wider">Itinerary</Text>
+                                            </HStack>
+                                            <Heading size="lg" className="text-typography-900">{itinerary.name}</Heading>
+                                        </VStack>
+                                        <Pressable onPress={() => handleDeleteItinerary(itinerary)} className="p-2">
+                                            <Icon as={EllipsisVertical} className="text-typography-400" />
+                                        </Pressable>
+                                    </HStack>
 
-                            }}
-                        >
-                            {/* Header */}
-                            <HStack className='justify-between items-center py-2'>
-                                <HStack space='md' className='items-center' >
-                                    <Icon
-                                        as={MapPin}
-                                    />
-                                    <Text size='lg' >
-                                        {itinerary.name}
-                                    </Text>
-                                </HStack>
-                                {/* More Options */}
-                                <Pressable
-                                    onPress={() => handleDeleteItinerary(itinerary)}
-                                >
-                                    <Icon
-                                        as={Ellipsis}
-                                    />
-                                </Pressable>
-                            </HStack>
-                            <VStack space='sm'>
-                                <Progress value={calculateProgress(itinerary) * 100}>
-                                    <ProgressFilledTrack />
-                                </Progress>
-                                <Text size='sm' >
-                                    {formatPOICount(itinerary)}
-                                </Text>
-                            </VStack>
-
-                            {/* POI Preview */}
-                            <VStack space='sm'>
-                                <Text size='md' >
-                                    Points of Interest:
-                                </Text>
-                                <VStack space='sm' >
-                                    {itinerary.poiOrder.slice(0, 3).map((poi, index) => (
-                                        <HStack space='sm' className='items-center' key={index}>
-                                            <Icon
-                                                as={poi.visited ? CheckCircle : MapPin}
-                                            />
-                                            <Text size='xs'
-                                                numberOfLines={1}
-                                            >
-                                                {poi.name}
+                                    {/* Progress */}
+                                    <VStack className="mb-6 gap-2">
+                                        <HStack className="justify-between items-end">
+                                            <Text size="sm" className="font-medium text-typography-700">Trip Progress</Text>
+                                            <Text size="xs" className="text-typography-500 font-bold">
+                                                {itinerary.poiOrder.filter(p => p.visited).length}/{itinerary.poiOrder.length}
                                             </Text>
                                         </HStack>
-                                    ))}
-                                    {itinerary.poiOrder.length > 3 && (
-                                        <Text size='xs'>
-                                            +{itinerary.poiOrder.length - 3} more
-                                        </Text>
-                                    )}
-                                </VStack>
-                            </VStack>
+                                        <Progress value={progress} className="h-2 bg-background-100">
+                                            <ProgressFilledTrack className="bg-primary-600" />
+                                        </Progress>
+                                    </VStack>
 
-                            {/* Action Buttons */}
-                            <Box>
-                                <Button
+                                    {/* POI Preview */}
+                                    <VStack className="bg-background-0 rounded-2xl p-4 border border-outline-50 gap-3 mb-5">
+                                        {itinerary.poiOrder.slice(0, 3).map((poi, index) => (
+                                            <HStack key={index} className="items-center justify-between">
+                                                <HStack className="items-center gap-3 flex-1">
+                                                    <Icon
+                                                        as={poi.visited ? CheckCircle2 : MapPin}
+                                                        className={poi.visited ? "text-success-500" : "text-typography-300"}
+                                                        size="sm"
+                                                    />
+                                                    <Text size="sm" className={poi.visited ? "text-typography-400 line-through" : "text-typography-700"}>
+                                                        {poi.name}
+                                                    </Text>
+                                                </HStack>
+                                            </HStack>
+                                        ))}
+                                    </VStack>
 
-                                >
-                                    <ButtonIcon as={Play} />
-                                    <ButtonText>
-                                        Continue
-                                    </ButtonText>
-                                </Button>
-                            </Box>
-                        </Pressable>
-                    )}
+                                    <Button size="lg" className="rounded-2xl bg-primary-600">
+                                        <ButtonIcon as={Play} className="mr-2" />
+                                        <ButtonText className="font-bold">Continue Journey</ButtonText>
+                                    </Button>
+                                </View>
+                            </Pressable>
+                        );
+                    }}
                 />
 
-                {/* Floating Action Button */}
-                <Fab
-                    size='lg'
-                    className='mb-14'
-                >
-                    <FabIcon as={Plus} />
-                </Fab>
-                <Fab
-                    size='lg'
-                >
-                    <FabIcon as={Wand} />
-                </Fab>
+                {/* FABs */}
+                <VStack className="absolute bottom-8 right-6 gap-4">
+                    <Fab size="lg" className="bg-secondary-500 shadow-soft-3 relative bottom-0 right-0">
+                        <FabIcon as={Wand} />
+                    </Fab>
+                    <Fab size="lg" className="bg-primary-600 shadow-soft-3 relative bottom-0 right-0">
+                        <FabIcon as={Plus} />
+                    </Fab>
+                </VStack>
             </Box>
         </>
     );
