@@ -1,69 +1,128 @@
-import { Text } from '@/components/ui/text';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { Alert, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+
+import { Button, ButtonText } from '@/components/ui/button';
+import { Center } from '@/components/ui/center';
+import { Heading } from '@/components/ui/heading';
+import { Spinner } from '@/components/ui/spinner';
+import { Text } from '@/components/ui/text';
+import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'expo-network';
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
 import { mmkvStorage } from '../utils/mmkv';
 import { supabase } from '../utils/supabase';
 
-
 const LoadingSplashScreen = () => {
-
-    const router = useRouter()
+    const router = useRouter();
     const { setAuth } = useAuthStore();
-
     const initialURL = Linking.useLinkingURL();
+    const [networkState, setNetworkState] = useState<NetworkState | null>(null);
+    const [loadingError, setLoadingError] = useState<Error | null | undefined>()
 
     useEffect(() => {
-        async function prepare() {
-            console.log("SPLASH SCREEN LOADING");
-            try {
-                if (
-                    initialURL && (initialURL.includes('type=recovery') ||
-                        initialURL.includes('access_token=') ||
-                        initialURL.includes('error='))
-                ) {
-                    console.log("Initial URL found, returning:",);
-                    return; // RootLayout will handle navigation
-                }
-                console.log("NO INITIAL URL FOUND")
-                // Check onboarding status
-                const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded) ?? false;
+        getNetworkStateAsync().then(setNetworkState);
+        const networkListener = addNetworkStateListener(setNetworkState);
+        return () => networkListener.remove();
+    }, [])
 
+    useEffect(() => {
+        const prepare = async () => {
+            try {
+                // 1. Prioritize Deep Links (Reset Password, Email Confirmation)
+                if (initialURL && (
+                    initialURL.includes('type=recovery') ||
+                    initialURL.includes('access_token=') ||
+                    initialURL.includes('error=')
+                )) {
+                    // We stay on splash or let RootLayout handle the redirect
+                    return;
+                }
+                console.log(loadingError)
+                if (loadingError) {
+                    return;
+                }
+                if (networkState == null)
+                    return;
+                if (networkState.isInternetReachable == false) {
+                    throw new Error("No internet connection. Please try again later.")
+                }
+
+                // 2. Check Onboarding Status
+                const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded) ?? false;
                 if (!haveOnboarded) {
                     return router.replace('/(onboarding)');
                 }
 
-                // Check session
-                const { data: { session } } = await supabase.auth.getSession();
+                // 3. Check Session with Supabase
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) throw error;
 
                 if (!session) {
-                    console.log("!!!!!")
-                    console.log("GOING TO SIGN IN")
                     return router.replace('/(auth)/signin');
                 }
 
+                // 4. Set global auth state and enter the app
                 setAuth(session);
                 router.replace('/(tabs)');
 
-            } catch (error) {
-                console.error("Error in splash screen:", error);
-                Alert.alert("Something went wrong.");
+            } catch (error: any) {
+                console.error("Splash Logic Error:", error);
+                setLoadingError(error)
             }
-        }
-        setTimeout(() => {
-            prepare();
-        }, 100)
-    }, []);
+        };
 
+        // Artificial delay for branding visibility (adjust or remove as needed)
+        const timer = setTimeout(prepare, 1500);
+        return () => clearTimeout(timer);
+    }, [initialURL, networkState]);
+
+    function handleRetryPress() {
+        router.replace('/')
+    }
 
     return (
-        <View className='flex-1 justify-center items-center'>
-            <Text>SplashScreen</Text>
-        </View>
-    )
-}
+        <View className="flex-1 justify-center items-center">
+            <Animated.View
+                entering={FadeIn.duration(800)}
+                className="items-center"
+            >
+                {/* Brand Logo Placeholder */}
+                <View className="w-24 h-24 bg-white rounded-3xl items-center justify-center mb-6 shadow-lg">
+                    <Heading size="3xl" className="text-primary-600">L</Heading>
+                </View>
 
-export default LoadingSplashScreen
+                <Heading size="3xl" className="text-white font-bold tracking-widest">
+                    LAKAD
+                </Heading>
+
+                <Text className="text-primary-100 mt-2 font-medium">
+                    Smart Itinerary Planner
+                </Text>
+            </Animated.View>
+
+            {/* Bottom Loader */}
+            {
+                loadingError ? (
+                    <Center className="w-[300px] h-[150px] mt-12">
+                        <Heading className='text-error-700'>Something went wrong</Heading>
+                        <Text className='text-error-800'>{loadingError.message}</Text>
+                        <Button className='mt-4' onPress={handleRetryPress}>
+                            <ButtonText>Retry</ButtonText>
+                        </Button>
+                    </Center>
+                ) : (
+                    <Center className="w-[300px] h-[150px]">
+                        <Spinner size="large" />
+                    </Center>
+                )
+            }
+
+        </View>
+    );
+};
+
+export default LoadingSplashScreen;
