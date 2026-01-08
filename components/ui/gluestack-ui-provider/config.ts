@@ -20,17 +20,17 @@ export const config = {
   light: vars({
     /* Primary - Emerald Green */
     '--color-primary-0': '236 253 245',
-    '--color-primary-50': '#f1fde1',
-    '--color-primary-100': '#dbf6b9',
-    '--color-primary-200': '#c5f18e',
-    '--color-primary-300': '#afeb62',
-    '--color-primary-400': '#98e537',
-    '--color-primary-500': '#7fcc20',
-    '--color-primary-600': '#639e17',
-    '--color-primary-700': '#46710e',
-    '--color-primary-800': '#294406',
-    '--color-primary-900': '#0b1800',
-    '--color-primary-950': '1 25 19',
+    '--color-primary-50': '236 253 245',
+    '--color-primary-100': '209 250 229',
+    '--color-primary-200': '167 243 208',
+    '--color-primary-300': '110 231 183',
+    '--color-primary-400': '52 211 153',
+    '--color-primary-500': '16 185 129', // Standard Emerald 500
+    '--color-primary-600': '5 150 105',
+    '--color-primary-700': '4 120 87',
+    '--color-primary-800': '6 95 70',
+    '--color-primary-900': '6 78 59',
+    '--color-primary-950': '2 44 34',
 
     /* Secondary - Neutral Grays */
     '--color-secondary-0': '253 253 253',
@@ -172,19 +172,19 @@ export const config = {
   }),
 
   dark: vars({
-    /* Primary - Vibrant Emerald for Dark Contrast */
-    '--color-primary-0': '1 25 19',
-    '--color-primary-50': '2 44 34',
-    '--color-primary-100': '6 78 59',
-    '--color-primary-200': '6 95 70',
-    '--color-primary-300': '4 120 87',
-    '--color-primary-400': '5 150 105',
-    '--color-primary-500': '16 185 129', // Brighter Primary for dark mode
-    '--color-primary-600': '52 211 153',
-    '--color-primary-700': '110 231 183',
-    '--color-primary-800': '167 243 208',
-    '--color-primary-900': '209 250 229',
-    '--color-primary-950': '236 253 245',
+    /* Primary - High Contrast Emerald for Dark Mode */
+    '--color-primary-0': '2 44 34',
+    '--color-primary-50': '6 78 59',
+    '--color-primary-100': '6 95 70',
+    '--color-primary-200': '4 120 87',
+    '--color-primary-300': '5 150 105',
+    '--color-primary-400': '16 185 129',
+    '--color-primary-500': '52 211 153', // Brighter for readability on black
+    '--color-primary-600': '110 231 183',
+    '--color-primary-700': '167 243 208',
+    '--color-primary-800': '209 250 229',
+    '--color-primary-900': '236 253 245',
+    '--color-primary-950': '255 255 255',
 
     /* Secondary */
     '--color-secondary-0': '20 20 20',
