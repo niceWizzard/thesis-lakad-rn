@@ -10,6 +10,7 @@ import {
     StyleSheet,
 } from "react-native";
 
+import { supabase } from '@/src/utils/supabase';
 import { Forward, Info, Option, Settings } from 'lucide-react-native';
 
 const coverImage = require('@/assets/images/lakad-cover.png');
@@ -40,6 +41,11 @@ function MoreTab() {
 
     const handleItemPress = (item: typeof menuItems[number]) => {
         item.onPress();
+    };
+
+    const handleSignoutPress = async () => {
+        await supabase.auth.signOut()
+        router.replace('/(auth)/signin')
     };
 
     return (
@@ -89,6 +95,11 @@ function MoreTab() {
 
             {/* Footer */}
             <Box style={styles.footer}>
+                <Button action='negative'
+                    onPress={handleSignoutPress}
+                >
+                    <ButtonText>Sign out</ButtonText>
+                </Button>
                 <Text style={[styles.footerText]}>
                     Version 1.0.0
                 </Text>
@@ -150,6 +161,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 'auto',
         paddingVertical: 16,
+        gap: 4,
     },
     footerText: {
         fontSize: 14,

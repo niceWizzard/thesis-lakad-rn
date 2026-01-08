@@ -2,7 +2,9 @@ import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
 import { StorageKey } from '../constants/Key';
+import { useAuthStore } from '../stores/useAuth';
 import { mmkvStorage } from '../utils/mmkv';
+import { supabase } from '../utils/supabase';
 
 
 
@@ -15,6 +17,15 @@ const SplashScreenProvider = ({ children }: React.PropsWithChildren) => {
     const router = useRouter()
     const segments = useSegments();
     const navigationState = useRootNavigationState()
+    const { session, setAuth } = useAuthStore()
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session)
+                setAuth(session)
+        })
+
+    }, [])
 
     async function hideSplashScreen() {
         setIsReady(true);
@@ -29,8 +40,12 @@ const SplashScreenProvider = ({ children }: React.PropsWithChildren) => {
         if (!inOnboardingGroup) {
             const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded) ?? false
             if (!haveOnboarded) {
-                console.log("REPLACING TO ONBOARDING")
                 router.replace('/(onboarding)')
+            }
+            const inAuthGroup = segments[0] === '(auth)';
+            const { data: retrievedSession } = await supabase.auth.getSession();
+            if (!inAuthGroup && !retrievedSession) {
+                router.replace('/(auth)/signin')
             }
         }
     }
@@ -48,8 +63,15 @@ const SplashScreenProvider = ({ children }: React.PropsWithChildren) => {
             // before navigating away
             setTimeout(() => {
                 prepare()
-            }, 50)
+            }, 150)
         }
+
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session)
+                setAuth(session)
+        })
+
+        return () => data.subscription.unsubscribe()
     }, [])
 
     if (!isReady) {

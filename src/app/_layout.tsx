@@ -9,6 +9,9 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+
+
+
   return <DefaultProviders>
     <Stack screenOptions={{
       header: ({ route }) => <ConnectivityChecker />,
