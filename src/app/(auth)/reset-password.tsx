@@ -5,16 +5,17 @@ import * as Linking from 'expo-linking'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableWithoutFeedback, View } from 'react-native'
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableWithoutFeedback, View } from 'react-native'
 import * as z from 'zod'
 
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
-import { AlertCircle, Lock, RefreshCw } from 'lucide-react-native'
+import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
+import { AlertCircle, CheckCircle2, Lock, RefreshCw } from 'lucide-react-native'
 
-// 1. Validation Schema (Consistent with Signup)
+// 1. Validation Schema
 const resetPasswordSchema = z.object({
     password: z
         .string()
@@ -31,6 +32,7 @@ type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>
 
 const ResetPasswordHandler = () => {
     const router = useRouter()
+    const toast = useToast()
     const [verifying, setVerifying] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -45,6 +47,28 @@ const ResetPasswordHandler = () => {
         mode: "onChange"
     })
 
+    // Helper to trigger Gluestack Toasts
+    const showToast = (title: string, description: string, action: "error" | "success") => {
+        toast.show({
+            placement: "top",
+            duration: 1500,
+            render: ({ id }) => {
+                const toastId = "toast-" + id
+                return (
+                    <Toast nativeID={toastId} action={action} >
+                        <View className="flex-row items-center gap-3">
+                            {action === "error" ? <AlertCircle size={20} color="#dc2626" /> : <CheckCircle2 size={20} color="#16a34a" />}
+                            <View>
+                                <ToastTitle>{title}</ToastTitle>
+                                <ToastDescription>{description}</ToastDescription>
+                            </View>
+                        </View>
+                    </Toast>
+                )
+            },
+        })
+    }
+
     // 2. Handle the Recovery Link Session
     useEffect(() => {
         const handleDeepLink = async () => {
@@ -56,7 +80,6 @@ const ResetPasswordHandler = () => {
             try {
                 if (!linkUrl) return
 
-                // Supabase sends tokens in the hash (#), convert to query params for parsing
                 const { queryParams } = Linking.parse(linkUrl.replace("#", '?'))
                 const access_token = queryParams?.access_token?.toString()
                 const refresh_token = queryParams?.refresh_token?.toString()
@@ -74,6 +97,7 @@ const ResetPasswordHandler = () => {
 
             } catch (err: any) {
                 setError(err.message || 'Verification failed')
+                showToast("Link Error", err.message || "Failed to verify reset link", "error")
             } finally {
                 setVerifying(false)
             }
@@ -89,16 +113,15 @@ const ResetPasswordHandler = () => {
             })
             if (error) throw error
 
-            Alert.alert("Success", "Your password has been updated. Please sign in.")
+            showToast("Success", "Password updated successfully. Please sign in.", "success")
             router.replace('/(auth)/signin')
         } catch (err: any) {
-            Alert.alert("Error", err.message)
+            showToast("Update Failed", err.message, "error")
         } finally {
             setSubmitting(false)
         }
     }
 
-    // --- Loading State ---
     if (verifying) {
         return (
             <View className="flex-1 justify-center items-center bg-background-0 p-6">
@@ -108,7 +131,6 @@ const ResetPasswordHandler = () => {
         )
     }
 
-    // --- Error State ---
     if (error) {
         return (
             <View className="flex-1 justify-center items-center bg-background-0 p-6">
@@ -127,97 +149,97 @@ const ResetPasswordHandler = () => {
         )
     }
 
-    // --- Form State ---
     return (
-        <>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="bg-background-0"
-                // flex-1 does not work with keyboard avoid
-                style={{ flex: 1 }}
-            >
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6" keyboardShouldPersistTaps="handled">
-                        <View className="flex-1 justify-center max-w-[400px] w-full self-center py-10">
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            className="bg-background-0"
+            style={{ flex: 1 }}
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6" keyboardShouldPersistTaps="handled">
+                    <View className="flex-1 justify-center max-w-[400px] w-full self-center py-10">
 
-                            <View className="mb-8 items-center">
-                                <Heading size="3xl" className="text-typography-900 mb-2">New Password</Heading>
-                                <Text size="md" className="text-typography-500 text-center">Set a secure password for your account</Text>
-                            </View>
+                        <View className="mb-8 items-center">
+                            <Heading size="3xl" className="text-typography-900 mb-2">New Password</Heading>
+                            <Text size="md" className="text-typography-500 text-center">Set a secure password for your account</Text>
+                        </View>
 
-                            <View className="bg-background-50 p-6 rounded-3xl border border-outline-100 shadow-soft-1">
-                                <View className="gap-5">
+                        <View className="bg-background-50 p-6 rounded-3xl border border-outline-100 shadow-soft-1">
+                            <View className="gap-5">
 
-                                    {/* New Password */}
-                                    <View className="gap-1">
-                                        <Text size="sm" className="font-medium text-typography-700 ml-1">New Password</Text>
-                                        <Controller
-                                            control={control}
-                                            name="password"
-                                            render={({ field: { onChange, onBlur, value } }) => (
-                                                <Input variant="outline" size="lg" isInvalid={!!errors.password && dirtyFields.password}>
-                                                    <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
-                                                    <InputField
-                                                        placeholder="Enter new password"
-                                                        type="password"
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        value={value}
-                                                        submitBehavior='submit'
-                                                        returnKeyType='next'
-                                                        onSubmitEditing={() => {
-                                                            confirmPasswordRef.current?.focus()
-                                                        }}
-                                                    />
-                                                </Input>
-                                            )}
-                                        />
-                                        {errors.password && dirtyFields.password && (
-                                            <Text size="xs" className="text-error-600 ml-1">{errors.password.message}</Text>
+                                {/* New Password */}
+                                <View className="gap-1">
+                                    <Text size="sm" className="font-medium text-typography-700 ml-1">New Password</Text>
+                                    <Controller
+                                        control={control}
+                                        name="password"
+                                        render={({ field: { onChange, onBlur, value } }) => (
+                                            <Input variant="outline" size="lg" isInvalid={!!errors.password && dirtyFields.password}>
+                                                <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
+                                                <InputField
+                                                    placeholder="Enter new password"
+                                                    type="password"
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    value={value}
+                                                    returnKeyType='next'
+                                                    onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+                                                />
+                                            </Input>
                                         )}
-                                    </View>
-
-                                    {/* Confirm Password */}
-                                    <View className="gap-1">
-                                        <Text size="sm" className="font-medium text-typography-700 ml-1">Confirm New Password</Text>
-                                        <Controller
-                                            control={control}
-                                            name="confirmPassword"
-                                            render={({ field: { onChange, onBlur, value } }) => (
-                                                <Input variant="outline" size="lg" isInvalid={!!errors.confirmPassword && dirtyFields.confirmPassword}>
-                                                    <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
-                                                    <InputField
-                                                        ref={confirmPasswordRef as any}
-                                                        placeholder="Repeat new password"
-                                                        type="password"
-                                                        onBlur={onBlur}
-                                                        onChangeText={onChange}
-                                                        onSubmitEditing={handleSubmit(onReset)}
-                                                        value={value}
-                                                    />
-                                                </Input>
-                                            )}
-                                        />
-                                        {errors.confirmPassword && dirtyFields.confirmPassword && (
-                                            <Text size="xs" className="text-error-600 ml-1">{errors.confirmPassword.message}</Text>
-                                        )}
-                                    </View>
-
-                                    <Button
-                                        size="lg"
-                                        className="rounded-xl mt-2 bg-primary-600"
-                                        onPress={handleSubmit(onReset)}
-                                        isDisabled={submitting}
-                                    >
-                                        <ButtonText className="font-bold">{submitting ? "Updating..." : "Update Password"}</ButtonText>
-                                        <ButtonIcon as={RefreshCw} className="ml-2" />
-                                    </Button>
+                                    />
+                                    {errors.password && dirtyFields.password && (
+                                        <Text size="xs" className="text-error-600 ml-1">{errors.password.message}</Text>
+                                    )}
                                 </View>
+
+                                {/* Confirm Password */}
+                                <View className="gap-1">
+                                    <Text size="sm" className="font-medium text-typography-700 ml-1">Confirm New Password</Text>
+                                    <Controller
+                                        control={control}
+                                        name="confirmPassword"
+                                        render={({ field: { onChange, onBlur, value } }) => (
+                                            <Input variant="outline" size="lg" isInvalid={!!errors.confirmPassword && dirtyFields.confirmPassword}>
+                                                <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
+                                                <InputField
+                                                    ref={confirmPasswordRef as any}
+                                                    placeholder="Repeat new password"
+                                                    type="password"
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    onSubmitEditing={handleSubmit(onReset)}
+                                                    value={value}
+                                                />
+                                            </Input>
+                                        )}
+                                    />
+                                    {errors.confirmPassword && dirtyFields.confirmPassword && (
+                                        <Text size="xs" className="text-error-600 ml-1">{errors.confirmPassword.message}</Text>
+                                    )}
+                                </View>
+
+                                <Button
+                                    size="lg"
+                                    className="rounded-xl mt-2 bg-primary-600"
+                                    onPress={handleSubmit(onReset)}
+                                    isDisabled={submitting}
+                                >
+                                    {submitting ? (
+                                        <ActivityIndicator size="small" color="white" />
+                                    ) : (
+                                        <>
+                                            <ButtonText className="font-bold">Update Password</ButtonText>
+                                            <ButtonIcon as={RefreshCw} className="ml-2" />
+                                        </>
+                                    )}
+                                </Button>
                             </View>
                         </View>
-                    </ScrollView>
-                </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
-        </>
+                    </View>
+                </ScrollView>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
     )
 }
 

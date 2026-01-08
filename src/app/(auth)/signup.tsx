@@ -1,25 +1,25 @@
 import { supabase } from '@/src/utils/supabase'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableWithoutFeedback, View } from 'react-native'
 import * as z from 'zod'
 
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
-import { Lock, Mail, UserPlus } from 'lucide-react-native'
+import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
+import { AlertCircle, CheckCircle2, Lock, Mail, UserPlus } from 'lucide-react-native'
 
-// 1. Define the Validation Schema
 const signupSchema = z.object({
     email: z.string().email("Please enter a valid email"),
     password: z
         .string()
         .min(8, "Password must be at least 8 characters")
-        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-        .regex(/[0-9]/, "Password must contain at least one number"),
+        .regex(/[A-Z]/, "Include at least one uppercase letter")
+        .regex(/[0-9]/, "Include at least one number"),
     confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -30,18 +30,35 @@ type SignupSchema = z.infer<typeof signupSchema>;
 
 const SignupPage = () => {
     const router = useRouter()
+    const toast = useToast()
     const [loading, setLoading] = useState(false)
 
-    // 2. Initialize React Hook Form
+    // Refs for keyboard navigation
+    const passwordRef = useRef<TextInput>(null)
+    const confirmPasswordRef = useRef<TextInput>(null)
+
     const { control, handleSubmit, formState: { errors, dirtyFields } } = useForm<SignupSchema>({
         resolver: zodResolver(signupSchema),
-        defaultValues: {
-            email: '',
-            password: '',
-            confirmPassword: ''
-        },
-        mode: "onChange" // Validates as the user types
+        defaultValues: { email: '', password: '', confirmPassword: '' },
+        mode: "onChange"
     })
+
+    const showToast = (title: string, description: string, action: "error" | "success") => {
+        toast.show({
+            placement: "top",
+            render: ({ id }) => (
+                <Toast nativeID={"toast-" + id} action={action}>
+                    <View className="flex-row items-center gap-3">
+                        {action === "error" ? <AlertCircle size={20} color="#dc2626" /> : <CheckCircle2 size={20} color="#16a34a" />}
+                        <View>
+                            <ToastTitle>{title}</ToastTitle>
+                            <ToastDescription>{description}</ToastDescription>
+                        </View>
+                    </View>
+                </Toast>
+            ),
+        })
+    }
 
     const onSignup = async (data: SignupSchema) => {
         setLoading(true)
@@ -51,18 +68,18 @@ const SignupPage = () => {
         })
 
         if (error) {
-            Alert.alert("Error", error.message)
+            showToast("Signup Error", error.message, "error")
         } else {
-            Alert.alert("Success", "Check your email for a verification link!")
+            showToast("Account Created", "Check your email for a verification link!", "success")
             router.replace('/(auth)/signin')
         }
         setLoading(false)
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             className="bg-background-0"
-            // flex-1 does not work with keyboard avoid
             style={{ flex: 1 }}
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -92,6 +109,10 @@ const SignupPage = () => {
                                                     onChangeText={onChange}
                                                     value={value}
                                                     autoCapitalize="none"
+                                                    keyboardType="email-address"
+                                                    returnKeyType="next"
+                                                    submitBehavior='submit'
+                                                    onSubmitEditing={() => passwordRef.current?.focus()}
                                                 />
                                             </Input>
                                         )}
@@ -111,11 +132,15 @@ const SignupPage = () => {
                                             <Input variant="outline" size="lg" isInvalid={!!errors.password && dirtyFields.password}>
                                                 <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
                                                 <InputField
+                                                    ref={passwordRef as any}
                                                     placeholder="Create a password"
                                                     type="password"
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
+                                                    submitBehavior='submit'
+                                                    returnKeyType="next"
+                                                    onSubmitEditing={() => confirmPasswordRef.current?.focus()}
                                                 />
                                             </Input>
                                         )}
@@ -135,11 +160,13 @@ const SignupPage = () => {
                                             <Input variant="outline" size="lg" isInvalid={!!errors.confirmPassword && dirtyFields.confirmPassword}>
                                                 <InputSlot className="pl-4"><InputIcon as={Lock} /></InputSlot>
                                                 <InputField
+                                                    ref={confirmPasswordRef as any}
                                                     placeholder="Repeat password"
                                                     type="password"
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
+                                                    onSubmitEditing={handleSubmit(onSignup)}
                                                 />
                                             </Input>
                                         )}
@@ -155,8 +182,14 @@ const SignupPage = () => {
                                     onPress={handleSubmit(onSignup)}
                                     isDisabled={loading}
                                 >
-                                    <ButtonText className="font-bold">{loading ? "Creating..." : "Sign Up"}</ButtonText>
-                                    <ButtonIcon as={UserPlus} className="ml-2" />
+                                    {loading ? (
+                                        <ActivityIndicator size="small" color="white" />
+                                    ) : (
+                                        <>
+                                            <ButtonText className="font-bold">Sign Up</ButtonText>
+                                            <ButtonIcon as={UserPlus} className="ml-2" />
+                                        </>
+                                    )}
                                 </Button>
                             </View>
 
