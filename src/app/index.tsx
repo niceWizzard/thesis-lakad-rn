@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Alert, View } from 'react-native';
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
@@ -11,7 +11,6 @@ import { supabase } from '../utils/supabase';
 
 const LoadingSplashScreen = () => {
 
-    const [haveLoaded, setHaveLoaded] = useState(false)
     const router = useRouter()
     const { setAuth } = useAuthStore();
 
@@ -20,7 +19,6 @@ const LoadingSplashScreen = () => {
     useEffect(() => {
         async function prepare() {
             console.log("SPLASH SCREEN LOADING");
-            setHaveLoaded(true)
             try {
                 if (
                     initialURL && (initialURL.includes('type=recovery') ||
@@ -55,8 +53,9 @@ const LoadingSplashScreen = () => {
                 Alert.alert("Something went wrong.");
             }
         }
-        if (!haveLoaded)
+        setTimeout(() => {
             prepare();
+        }, 100)
     }, []);
 
 

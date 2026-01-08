@@ -36,6 +36,12 @@ function MoreTab() {
         },
         {
             id: '3',
+            title: 'Reset Password',
+            icon: Option,
+            onPress: () => router.navigate('/reset-password'),
+        },
+        {
+            id: '4',
             title: 'About',
             icon: Info,
             onPress: () => Alert.alert('About', 'Lakad App v1.0.0'),
