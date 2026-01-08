@@ -38,7 +38,7 @@ const ChangePasswordHandler = () => {
     const newPasswordRef = useRef<TextInput>(null);
     const confirmPasswordRef = useRef<TextInput>(null);
 
-    const { control, handleSubmit, formState: { errors, dirtyFields }, reset } = useForm<ChangePasswordSchema>({
+    const { control, handleSubmit, formState: { errors, dirtyFields, isValid: isFormValid }, reset } = useForm<ChangePasswordSchema>({
         resolver: zodResolver(changePasswordSchema),
         defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
         mode: "onChange"
@@ -196,7 +196,7 @@ const ChangePasswordHandler = () => {
                                     size="lg"
                                     className="rounded-xl mt-2 bg-primary-600"
                                     onPress={handleSubmit(onChangePassword)}
-                                    isDisabled={submitting}
+                                    isDisabled={!isFormValid || submitting}
                                 >
                                     {submitting ? (
                                         <ActivityIndicator size="small" color="white" />

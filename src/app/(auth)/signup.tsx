@@ -37,7 +37,7 @@ const SignupPage = () => {
     const passwordRef = useRef<TextInput>(null)
     const confirmPasswordRef = useRef<TextInput>(null)
 
-    const { control, handleSubmit, formState: { errors, dirtyFields } } = useForm<SignupSchema>({
+    const { control, handleSubmit, formState: { errors, dirtyFields, isValid: isFormValid } } = useForm<SignupSchema>({
         resolver: zodResolver(signupSchema),
         defaultValues: { email: '', password: '', confirmPassword: '' },
         mode: "onChange"
@@ -46,6 +46,7 @@ const SignupPage = () => {
     const showToast = (title: string, description: string, action: "error" | "success") => {
         toast.show({
             placement: "top",
+            duration: 1500,
             render: ({ id }) => (
                 <Toast nativeID={"toast-" + id} action={action}>
                     <View className="flex-row items-center gap-3">
@@ -180,7 +181,7 @@ const SignupPage = () => {
                                     size="lg"
                                     className="rounded-xl mt-2 bg-primary-600"
                                     onPress={handleSubmit(onSignup)}
-                                    isDisabled={loading}
+                                    isDisabled={!isFormValid || loading}
                                 >
                                     {loading ? (
                                         <ActivityIndicator size="small" color="white" />

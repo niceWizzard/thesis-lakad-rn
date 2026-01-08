@@ -1,9 +1,9 @@
 import { supabase } from '@/src/utils/supabase'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableWithoutFeedback, View } from 'react-native'
 import * as z from 'zod'
 
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
@@ -11,7 +11,7 @@ import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
-import { Lock, LogIn, Mail } from 'lucide-react-native'
+import { AlertCircle, Lock, LogIn, Mail } from 'lucide-react-native'
 
 // Validation Schema
 const signinSchema = z.object({
@@ -24,20 +24,35 @@ type SigninSchema = z.infer<typeof signinSchema>
 const SigninPage = () => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
-    const toast = useToast();
+    const toast = useToast()
 
-    const {
-        control,
-        handleSubmit,
-        formState: { errors, dirtyFields }
-    } = useForm<SigninSchema>({
+    // Ref for keyboard navigation
+    const passwordRef = useRef<TextInput>(null)
+
+    const { control, handleSubmit, formState: { errors, dirtyFields, isValid: isFormValid } } = useForm<SigninSchema>({
         resolver: zodResolver(signinSchema),
-        defaultValues: {
-            email: '',
-            password: '',
-        },
+        defaultValues: { email: '', password: '' },
         mode: "onChange"
     })
+
+    // Reusable Toast Helper
+    const showToast = (title: string, description: string) => {
+        toast.show({
+            placement: "top",
+            duration: 1500,
+            render: ({ id }) => (
+                <Toast nativeID={"toast-" + id} action="error">
+                    <View className="flex-row items-center gap-3">
+                        <AlertCircle size={20} color="#dc2626" />
+                        <View>
+                            <ToastTitle className="font-bold">{title}</ToastTitle>
+                            <ToastDescription>{description}</ToastDescription>
+                        </View>
+                    </View>
+                </Toast>
+            ),
+        })
+    }
 
     const onSignin = async (data: SigninSchema) => {
         setLoading(true);
@@ -47,29 +62,13 @@ const SigninPage = () => {
                 password: data.password,
             });
 
-            if (error) throw error; // Jump to catch block if Supabase returns an error
+            if (error) throw error;
 
             if (session) {
                 router.replace('/(tabs)');
             }
         } catch (error: any) {
-            // 2. Trigger the Toast instead of Alert
-            toast.show({
-                placement: "top",
-                render: ({ id }) => {
-                    const toastId = "toast-" + id;
-                    return (
-                        <Toast nativeID={toastId} action="error" variant="solid" className="mt-10">
-                            <View className="flex-column">
-                                <ToastTitle className="font-bold">Login Failed</ToastTitle>
-                                <ToastDescription>
-                                    {error.message || "Please check your credentials and try again."}
-                                </ToastDescription>
-                            </View>
-                        </Toast>
-                    );
-                },
-            });
+            showToast("Login Failed", error.message || "Please check your credentials.")
         } finally {
             setLoading(false);
         }
@@ -78,8 +77,7 @@ const SigninPage = () => {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className=" bg-background-0"
-            // flex-1 does not work with keyboard avoid
+            className="bg-background-0"
             style={{ flex: 1 }}
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -91,7 +89,7 @@ const SigninPage = () => {
                     <View className="flex-1 justify-center max-w-[400px] w-full self-center py-10">
 
                         <View className="mb-10 items-center">
-                            <Heading size="3xl" className="text-typography-900 mb-2">Welcome Back</Heading>
+                            <Heading size="3xl" className="text-typography-900 mb-2">Welcome Back </Heading>
                             <Text size="md" className="text-typography-500">Sign in to your account</Text>
                         </View>
 
@@ -105,12 +103,7 @@ const SigninPage = () => {
                                         control={control}
                                         name="email"
                                         render={({ field: { onChange, onBlur, value } }) => (
-                                            <Input
-                                                variant="outline"
-                                                size="lg"
-                                                className="rounded-xl"
-                                                isInvalid={!!errors.email && dirtyFields.email}
-                                            >
+                                            <Input variant="outline" size="lg" isInvalid={!!errors.email && dirtyFields.email}>
                                                 <InputSlot className="pl-4">
                                                     <InputIcon as={Mail} className="text-typography-400" />
                                                 </InputSlot>
@@ -121,6 +114,9 @@ const SigninPage = () => {
                                                     value={value}
                                                     autoCapitalize="none"
                                                     keyboardType="email-address"
+                                                    returnKeyType="next"
+                                                    submitBehavior='submit'
+                                                    onSubmitEditing={() => passwordRef.current?.focus()}
                                                 />
                                             </Input>
                                         )}
@@ -146,21 +142,18 @@ const SigninPage = () => {
                                         control={control}
                                         name="password"
                                         render={({ field: { onChange, onBlur, value } }) => (
-                                            <Input
-                                                variant="outline"
-                                                size="lg"
-                                                className="rounded-xl"
-                                                isInvalid={!!errors.password && dirtyFields.password}
-                                            >
+                                            <Input variant="outline" size="lg" isInvalid={!!errors.password && dirtyFields.password}>
                                                 <InputSlot className="pl-4">
                                                     <InputIcon as={Lock} className="text-typography-400" />
                                                 </InputSlot>
                                                 <InputField
+                                                    ref={passwordRef as any}
                                                     placeholder="Enter password"
                                                     type="password"
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
+                                                    onSubmitEditing={handleSubmit(onSignin)}
                                                 />
                                             </Input>
                                         )}
@@ -174,10 +167,16 @@ const SigninPage = () => {
                                     size="lg"
                                     className="rounded-xl mt-2 bg-primary-600"
                                     onPress={handleSubmit(onSignin)}
-                                    isDisabled={loading}
+                                    isDisabled={!isFormValid || loading}
                                 >
-                                    <ButtonText className="font-bold">{loading ? "Signing in..." : "Sign In"}</ButtonText>
-                                    <ButtonIcon as={LogIn} className="ml-2" />
+                                    {loading ? (
+                                        <ActivityIndicator size="small" color="white" />
+                                    ) : (
+                                        <>
+                                            <ButtonText className="font-bold">Sign In</ButtonText>
+                                            <ButtonIcon as={LogIn} className="ml-2" />
+                                        </>
+                                    )}
                                 </Button>
                             </View>
 
