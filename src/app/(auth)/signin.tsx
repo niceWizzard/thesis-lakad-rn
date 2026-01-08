@@ -3,13 +3,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
 import * as z from 'zod'
 
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
+import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
 import { Lock, LogIn, Mail } from 'lucide-react-native'
 
 // Validation Schema
@@ -23,6 +24,7 @@ type SigninSchema = z.infer<typeof signinSchema>
 const SigninPage = () => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const toast = useToast();
 
     const {
         control,
@@ -38,19 +40,40 @@ const SigninPage = () => {
     })
 
     const onSignin = async (data: SigninSchema) => {
-        setLoading(true)
-        const { data: { session }, error } = await supabase.auth.signInWithPassword({
-            email: data.email,
-            password: data.password,
-        })
+        setLoading(true);
+        try {
+            const { data: { session }, error } = await supabase.auth.signInWithPassword({
+                email: data.email,
+                password: data.password,
+            });
 
-        if (session) {
-            router.replace('/(tabs)')
-        } else if (error) {
-            Alert.alert("Login Failed", error.message)
+            if (error) throw error; // Jump to catch block if Supabase returns an error
+
+            if (session) {
+                router.replace('/(tabs)');
+            }
+        } catch (error: any) {
+            // 2. Trigger the Toast instead of Alert
+            toast.show({
+                placement: "top",
+                render: ({ id }) => {
+                    const toastId = "toast-" + id;
+                    return (
+                        <Toast nativeID={toastId} action="error" variant="solid" className="mt-10">
+                            <View className="flex-column">
+                                <ToastTitle className="font-bold">Login Failed</ToastTitle>
+                                <ToastDescription>
+                                    {error.message || "Please check your credentials and try again."}
+                                </ToastDescription>
+                            </View>
+                        </Toast>
+                    );
+                },
+            });
+        } finally {
+            setLoading(false);
         }
-        setLoading(false)
-    }
+    };
 
     return (
         <KeyboardAvoidingView

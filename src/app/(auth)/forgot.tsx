@@ -1,17 +1,20 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Input, InputField } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
+import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
 import { supabase } from '@/src/utils/supabase'
 import { useRouter } from 'expo-router'
 import { ArrowLeft, CheckCircle } from 'lucide-react-native'
 import React, { useState } from 'react'
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, View } from 'react-native'
 
 const ForgotPasswordScreen = () => {
     const [email, setEmail] = useState('')
     const [loading, setLoading] = useState(false)
     const [emailSent, setEmailSent] = useState(false)
     const router = useRouter()
+    const toast = useToast();
+
 
     const handleBack = () => {
         // Safe check for router context
@@ -22,33 +25,49 @@ const ForgotPasswordScreen = () => {
         }
     }
 
+    const showToast = (title: string, description: string, action: "error" | "success" | "info" = "error") => {
+        toast.show({
+            placement: "top",
+            render: ({ id }) => (
+                <Toast nativeID={"toast-" + id} action={action} variant="solid" className="mt-10">
+                    <View className="flex-column">
+                        <ToastTitle className="font-bold">{title}</ToastTitle>
+                        <ToastDescription>{description}</ToastDescription>
+                    </View>
+                </Toast>
+            ),
+        });
+    };
+
     const handleResetPassword = async () => {
         if (!email) {
-            Alert.alert('Error', 'Please enter your email address')
-            return
+            showToast("Required", "Please enter your email address", "error");
+            return;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            Alert.alert('Error', 'Please enter a valid email address')
-            return
+            showToast("Invalid Email", "Please enter a valid email address", "error");
+            return;
         }
 
-        setLoading(true)
+        setLoading(true);
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: "thesislakadrn://reset-password"
-            })
+            });
 
-            if (error) throw error
-            setEmailSent(true)
+            if (error) throw error;
+
+            setEmailSent(true);
+            showToast("Success", "Reset link has been sent to your email", "success");
 
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to send reset email')
+            showToast("Error", error.message || 'Failed to send reset email', "error");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     return (
         <KeyboardAvoidingView
