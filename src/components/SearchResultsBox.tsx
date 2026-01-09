@@ -1,9 +1,11 @@
+import { Box } from '@/components/ui/box'
+import { Divider } from '@/components/ui/divider'
 import { Icon } from '@/components/ui/icon'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
-import { MapPin } from 'lucide-react-native'
+import { ChevronRight, MapPin } from 'lucide-react-native'
 import React from 'react'
-import { FlatList, Keyboard, StyleSheet, TouchableOpacity } from 'react-native'
+import { FlatList, Keyboard, TouchableOpacity, View } from 'react-native'
 import { useLandmarkStore } from '../stores/useLandmarkStore'
 
 const SearchResultsBox = ({
@@ -15,95 +17,59 @@ const SearchResultsBox = ({
     onResultPress: (id: number) => void
     visible: boolean
 }) => {
-    if (!visible || !searchString.trim()) {
-        return null;
-    }
+    // Hide if not visible, string too short, or only whitespace
+    if (!visible || searchString.trim().length < 2) return null;
 
     const landmarks = useLandmarkStore(v => v.landmarks)
+    const query = searchString.trim().toLowerCase();
+    const results = landmarks.filter(v => v.name?.toLowerCase().includes(query));
 
-    const test = new RegExp(searchString.trim(), 'i')
-    const results = landmarks.filter(v => test.test(v.name!));
+    if (results.length === 0) return null;
 
     return (
         <VStack
-            className='absolute top-24 bg-background-0 left-4 right-4 rounded-md p-4'
+            className='absolute top-[110px] left-4 right-4 bg-background-0 rounded-3xl shadow-soft-3 border border-outline-100 overflow-hidden z-40'
+            style={{ maxHeight: 300 }}
         >
-            <Text style={[
-                styles.resultsTitle,
-            ]}>
-                Search Results ({results.length})
-            </Text>
+            <Box className="px-4 py-3 bg-background-50 border-b border-outline-50">
+                <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">
+                    Found {results.length} Locations
+                </Text>
+            </Box>
+
             <FlatList
                 data={results}
                 keyExtractor={v => v.id.toString()}
-                keyboardShouldPersistTaps={'always'}
+                keyboardShouldPersistTaps='handled'
+                showsVerticalScrollIndicator={true}
+                ItemSeparatorComponent={() => <Divider className="bg-outline-50 mx-4" />}
                 renderItem={({ item: landmark }) => (
                     <TouchableOpacity
-                        style={[
-                            styles.resultItem,
-                        ]}
+                        className='flex-row items-center justify-between p-4 active:bg-background-50'
                         onPress={() => {
                             onResultPress(landmark.id)
                             Keyboard.dismiss()
                         }}
                     >
-                        <Icon as={MapPin} />
-                        <Text style={[
-                            styles.resultText,
-                        ]}>
-                            {landmark.name}
-                        </Text>
+                        <View className="flex-row items-center flex-1 gap-3">
+                            <Box className="bg-primary-50 p-2 rounded-full">
+                                <Icon as={MapPin} size="sm" className="text-primary-600" />
+                            </Box>
+                            <VStack className="flex-1">
+                                <Text size="md" className="font-medium text-typography-900" numberOfLines={1}>
+                                    {landmark.name}
+                                </Text>
+                                <Text size="xs" className="text-typography-500">
+                                    Historical Landmark
+                                </Text>
+                            </VStack>
+                        </View>
+                        <Icon as={ChevronRight} size="xs" className="text-typography-300" />
                     </TouchableOpacity>
                 )}
-                showsVerticalScrollIndicator={false}
-                style={styles.list}
             />
         </VStack>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        position: "absolute",
-        top: 90,
-        borderRadius: 12,
-        left: 16,
-        right: 16,
-        maxHeight: 200,
-        borderWidth: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
-        padding: 12,
-    },
-    resultsTitle: {
-        fontSize: 12,
-        fontWeight: '600',
-        marginBottom: 8,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    list: {
-        flex: 1,
-    },
-    resultItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        gap: 12,
-        borderRadius: 8,
-    },
-    resultItemPressed: {
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        transform: [{ scale: 0.95 }]
-    },
-    resultText: {
-        fontSize: 14,
-        flex: 1,
-    },
-})
 
 export default SearchResultsBox
