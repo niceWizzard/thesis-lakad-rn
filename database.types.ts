@@ -70,30 +70,30 @@ export type Database = {
       }
       landmark: {
         Row: {
-          categories: Database["public"]["Enums"]["poi_category"][] | null
+          categories: Database["public"]["Enums"]["poi_category"][]
           created_at: string
           created_by_user: boolean
           id: number
-          latitude: number | null
-          longitude: number | null
+          latitude: number
+          longitude: number
           name: string | null
         }
         Insert: {
-          categories?: Database["public"]["Enums"]["poi_category"][] | null
+          categories: Database["public"]["Enums"]["poi_category"][]
           created_at?: string
           created_by_user?: boolean
           id?: number
-          latitude?: number | null
-          longitude?: number | null
+          latitude: number
+          longitude: number
           name?: string | null
         }
         Update: {
-          categories?: Database["public"]["Enums"]["poi_category"][] | null
+          categories?: Database["public"]["Enums"]["poi_category"][]
           created_at?: string
           created_by_user?: boolean
           id?: number
-          latitude?: number | null
-          longitude?: number | null
+          latitude?: number
+          longitude?: number
           name?: string | null
         }
         Relationships: []
@@ -103,21 +103,21 @@ export type Database = {
           created_at: string
           id: number
           itinerary_id: number
-          landmark_id: number | null
+          landmark_id: number
           visited_at: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           itinerary_id: number
-          landmark_id?: number | null
+          landmark_id: number
           visited_at?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           itinerary_id?: number
-          landmark_id?: number | null
+          landmark_id?: number
           visited_at?: string | null
         }
         Relationships: [
