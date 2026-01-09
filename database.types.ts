@@ -35,6 +35,39 @@ export type Database = {
         }
         Relationships: []
       }
+      itinerary_poi_order: {
+        Row: {
+          itinerary_id: number
+          poi_id: number
+          visit_order: number
+        }
+        Insert: {
+          itinerary_id: number
+          poi_id: number
+          visit_order?: number
+        }
+        Update: {
+          itinerary_id?: number
+          poi_id?: number
+          visit_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_poi_order_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itinerary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "itinerary_poi_order_poi_id_fkey"
+            columns: ["poi_id"]
+            isOneToOne: false
+            referencedRelation: "poi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       landmark: {
         Row: {
           categories: Database["public"]["Enums"]["poi_category"][] | null
