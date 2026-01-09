@@ -36,23 +36,23 @@ const ExpandableFab = () => {
             </Fab>
 
             {/* The Menu (Actionsheet) */}
-            <Actionsheet isOpen={showMenu} onClose={handleClose} >
+            <Actionsheet isOpen={showMenu} onClose={handleClose} snapPoints={[30]}  >
                 <ActionsheetBackdrop />
-                <ActionsheetContent>
+                <ActionsheetContent className='max-h-[50%]'>
                     <ActionsheetDragIndicatorWrapper>
                         <ActionsheetDragIndicator />
                     </ActionsheetDragIndicatorWrapper>
-                    <Box>
+                    <Box className='mb-4'>
                         <Heading>Create an Itinerary</Heading>
                     </Box>
                     <ActionsheetItem onPress={handleManual}>
-                        <Icon as={Plus} />
-                        <ActionsheetItemText>Create manually</ActionsheetItemText>
+                        <Icon as={Plus} size='lg' />
+                        <ActionsheetItemText size='lg'>Create manually</ActionsheetItemText>
                     </ActionsheetItem>
 
                     <ActionsheetItem onPress={handleSmartGenerate}>
-                        <Icon as={Wand2} />
-                        <ActionsheetItemText>Smart Generate</ActionsheetItemText>
+                        <Icon as={Wand2} size='lg' />
+                        <ActionsheetItemText size='lg'>Smart Generate</ActionsheetItemText>
                     </ActionsheetItem>
 
                 </ActionsheetContent>
