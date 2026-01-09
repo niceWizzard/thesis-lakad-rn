@@ -3,6 +3,7 @@ import { Landmark } from "./landmark.types";
 import { POI } from "./poi.types";
 
 export type Itinerary = Database['public']['Tables']['itinerary']['Row']
+export type ItineraryInsert = Database['public']['Tables']['itinerary']['Insert']
 
 export type ItineraryWithStops = Itinerary & {
     stops: {

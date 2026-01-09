@@ -11,6 +11,7 @@ import {
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
+    Alert,
     Keyboard,
     KeyboardAvoidingView,
     Platform,
@@ -39,8 +40,8 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { Icon } from '@/components/ui/icon';
-import { historicalLandmarks } from '@/src/constants/landmarks';
-import { useItineraryStore } from '@/src/stores/useItineraryStore';
+import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
+import { createItinerary } from '@/src/utils/fetchItineraries';
 
 // --- Types & Data ---
 const DISTRICTS = [
@@ -72,8 +73,8 @@ type FormData = z.infer<typeof schema>;
 const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
 
 const CreateWithAgamScreen = () => {
-    const addItinerary = useItineraryStore(v => v.addItinerary);
     const router = useRouter();
+    const landmarks = useLandmarkStore(v => v.landmarks);
 
     const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -94,15 +95,17 @@ const CreateWithAgamScreen = () => {
         setValue(field, next, { shouldValidate: true });
     };
 
-    const onGenerate = (data: FormData) => {
-        const id = Date.now().toString();
-        addItinerary({
-            id,
-            name: `Plan ${new Date().toLocaleDateString()}`,
-            poiOrder: shuffle(historicalLandmarks).map(v => ({ ...v, visited: false })),
-        });
+    const onGenerate = async (data: FormData) => {
+        try {
+            const newId = await createItinerary({
+                poiIds: shuffle(landmarks.map(v => v.id)),
+            })
 
-        router.replace({ pathname: '/itinerary/[id]', params: { id } });
+            router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
+        } catch (err) {
+            const error = err as Error
+            Alert.alert(error.message)
+        }
     };
 
     return (

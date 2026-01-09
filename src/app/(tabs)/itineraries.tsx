@@ -20,35 +20,47 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import ExpandableFab from '@/src/components/ExpandableFAB';
-import { Itinerary } from '@/src/constants/itineraries';
-import { useItineraryStore } from '@/src/stores/useItineraryStore';
+import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { useAuthStore } from '@/src/stores/useAuth';
+import { fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
+import {
+    useQuery,
+} from '@tanstack/react-query';
+
 
 export default function ItinerariesScreen() {
-    const { itineraries, deleteItinerary } = useItineraryStore();
     const [searchString, setSearchString] = useState('');
+    const auth = useAuthStore();
+    const userId = auth.session?.user?.id;
+    const { data: itineraries, isLoading, } = useQuery<ItineraryWithStops[]>({
+        queryKey: ['itineraries',],
+        initialData: [],
+        queryFn: () => fetchItinerariesOfUser(userId!),
+        enabled: !!userId,
+    })
     const router = useRouter();
 
-    const handleDeleteItinerary = (itinerary: Itinerary) => {
+    const handleDeleteItinerary = (itinerary: ItineraryWithStops) => {
         Alert.alert(
             'Delete Itinerary',
             `Are you sure you want to delete "${itinerary.name}"?`,
             [
                 { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: () => deleteItinerary(itinerary.id) }
+                { text: 'Delete', style: 'destructive', onPress: () => { } }
             ]
         );
     };
 
-    const calculateProgress = (itinerary: Itinerary) => {
-        if (itinerary.poiOrder.length === 0) return 0;
-        const completed = itinerary.poiOrder.filter(poi => poi.visited).length;
-        return (completed / itinerary.poiOrder.length) * 100;
+    const calculateProgress = (itinerary: ItineraryWithStops) => {
+        if (itinerary.stops.length === 0) return 0;
+        const completed = itinerary.stops.filter(stop => !!stop.poi.visited_at).length;
+        return (completed / itinerary.stops.length) * 100;
     };
 
-    const handleContinuePress = (id: string) => {
+    const handleContinuePress = (id: number) => {
         router.push({
             pathname: '/itinerary/[id]',
-            params: { id: itineraries[0].id }
+            params: { id: itineraries.find(v => v.id === id)!.id }
         })
     }
 
@@ -64,7 +76,7 @@ export default function ItinerariesScreen() {
             <Box className="flex-1 bg-background-0">
                 <FlatList
                     data={filteredItineraries}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => `itinerary-${item.id}`}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="always"
                     contentContainerClassName="p-6 pb-32 gap-6"
@@ -117,7 +129,7 @@ export default function ItinerariesScreen() {
                                         <HStack className="justify-between items-end">
                                             <Text size="sm" className="font-medium text-typography-700">Trip Progress</Text>
                                             <Text size="xs" className="text-typography-500 font-bold">
-                                                {itinerary.poiOrder.filter(p => p.visited).length}/{itinerary.poiOrder.length}
+                                                {itinerary.stops.filter(stop => !!stop.poi.visited_at).length}/{itinerary.stops.length}
                                             </Text>
                                         </HStack>
                                         <Progress value={progress} className="h-2 bg-background-100">
@@ -127,16 +139,16 @@ export default function ItinerariesScreen() {
 
                                     {/* POI Preview */}
                                     <VStack className="bg-background-0 rounded-2xl p-4 border border-outline-50 gap-3 mb-5">
-                                        {itinerary.poiOrder.slice(0, 3).map((poi, index) => (
+                                        {itinerary.stops.slice(0, 3).map((stop, index) => (
                                             <HStack key={index} className="items-center justify-between">
                                                 <HStack className="items-center gap-3 flex-1">
                                                     <Icon
-                                                        as={poi.visited ? CheckCircle2 : MapPin}
-                                                        className={poi.visited ? "text-success-500" : "text-typography-300"}
+                                                        as={stop.poi.visited_at ? CheckCircle2 : MapPin}
+                                                        className={stop.poi.visited_at ? "text-success-500" : "text-typography-300"}
                                                         size="sm"
                                                     />
-                                                    <Text size="sm" className={poi.visited ? "text-typography-400 line-through" : "text-typography-700"}>
-                                                        {poi.name}
+                                                    <Text size="sm" className={stop.poi.visited_at ? "text-typography-400 line-through" : "text-typography-700"}>
+                                                        {stop.poi.landmark?.name ?? "Uknown landmark"}
                                                     </Text>
                                                 </HStack>
                                             </HStack>

@@ -142,7 +142,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_full_itinerary:
+        | { Args: { p_landmark_list: Json; p_name: string }; Returns: number }
+        | {
+            Args: { p_landmark_list: Json; p_name: string; p_user_id: string }
+            Returns: number
+          }
     }
     Enums: {
       poi_category: "Church" | "Historical" | "Nature" | "Museum" | "Landmark"
