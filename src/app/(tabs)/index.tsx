@@ -145,6 +145,12 @@ const ExploreTab = () => {
                         coordinate={[landmark.longitude, landmark.latitude]}
                         // This ensures the marker "points" to the coordinate from the bottom center
                         anchor={{ x: 0.5, y: 1 }}
+                        hitSlop={{
+                            top: 36,
+                            left: 36,
+                            right: 36,
+                            bottom: 36,
+                        }}
                     >
                         <Pressable
                             onPress={() => handleMarkerPress(landmark)}
