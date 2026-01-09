@@ -37,7 +37,7 @@ export default function ItinerariesScreen() {
         isRefetching,
         refetch
     } = useQuery<ItineraryWithStops[]>({
-        queryKey: ['itineraries', userId],
+        queryKey: ['itineraries'],
         queryFn: () => fetchItinerariesOfUser(userId!),
         enabled: !!userId,
     });

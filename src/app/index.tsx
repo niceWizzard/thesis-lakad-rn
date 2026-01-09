@@ -9,10 +9,12 @@ import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import { Spinner } from '@/components/ui/spinner';
 import { Text } from '@/components/ui/text';
+import { useQueryClient } from '@tanstack/react-query';
 import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'expo-network';
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
 import { useLandmarkStore } from '../stores/useLandmarkStore';
+import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
 import { fetchLandmarks } from '../utils/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
 import { supabase } from '../utils/supabase';
@@ -24,6 +26,9 @@ const LoadingSplashScreen = () => {
     const [networkState, setNetworkState] = useState<NetworkState | null>(null);
     const [loadingError, setLoadingError] = useState<Error | null | undefined>()
     const setLandmarks = useLandmarkStore(v => v.setLandmarks);
+
+    const queryClient = useQueryClient();
+
 
     useEffect(() => {
         getNetworkStateAsync().then(setNetworkState);
@@ -73,6 +78,12 @@ const LoadingSplashScreen = () => {
 
                 const landmarks = await fetchLandmarks();
                 setLandmarks(landmarks);
+
+                await queryClient.fetchQuery({
+                    queryKey: ['itineraries'],
+                    queryFn: () => fetchItinerariesOfUser(session.user.id),
+                    staleTime: 1000 * 60 * 2, // Consider it fresh for 5 minutes
+                });
 
                 router.replace('/(tabs)');
 

@@ -57,6 +57,32 @@ const ExploreTab = () => {
         })();
     }, []);
 
+    useEffect(() => {
+        let subscription: Location.LocationSubscription | null = null;
+
+        (async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') return;
+
+            // WatchPositionAsync will update userLocation whenever they move
+            // and importantly, it will start working as soon as permissions are granted
+            subscription = await Location.watchPositionAsync(
+                {
+                    accuracy: Location.Accuracy.Balanced,
+                    timeInterval: 5000,
+                    distanceInterval: 10,
+                },
+                (loc) => {
+                    setUserLocation([loc.coords.longitude, loc.coords.latitude]);
+                }
+            );
+        })();
+
+        return () => {
+            if (subscription) subscription.remove();
+        };
+    }, []);
+
     const centerMap = (coords: [number, number], zoom = 15) => {
         camera.current?.setCamera({
             centerCoordinate: coords,
@@ -70,8 +96,25 @@ const ExploreTab = () => {
         centerMap([landmark.longitude, landmark.latitude], 16);
     };
 
-    const handleLocatePress = () => {
-        if (userLocation) centerMap(userLocation);
+    const handleLocatePress = async () => {
+        // Check permission status again in case they changed it in settings
+        let { status } = await Location.getForegroundPermissionsAsync();
+
+        // If not granted, try requesting it now
+        if (status !== 'granted') {
+            const request = await Location.requestForegroundPermissionsAsync();
+            status = request.status;
+        }
+
+        if (status === 'granted') {
+            const loc = await Location.getCurrentPositionAsync({});
+            const coords: [number, number] = [loc.coords.longitude, loc.coords.latitude];
+            setUserLocation(coords); // Sync state
+            centerMap(coords);       // Fly there
+        } else {
+            // Optional: Alert the user that permission is required
+            console.warn("Location permission denied");
+        }
     };
 
     return (
