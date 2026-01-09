@@ -1,3 +1,4 @@
+import { Database } from '@/database.types';
 import { createClient } from '@supabase/supabase-js';
 import 'expo-sqlite/localStorage/install';
 import { AppState } from 'react-native';
@@ -30,7 +31,7 @@ AppState.addEventListener('change', (state) => {
   }
 })
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   auth: {
     storage: MMKVAdapter,
     autoRefreshToken: true,
