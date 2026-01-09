@@ -1,6 +1,7 @@
 import { Stack, useRouter } from "expo-router";
 
 import '@/global.css';
+import Mapbox from '@rnmapbox/maps';
 import * as Linking from 'expo-linking';
 import { useEffect } from "react";
 import ConnectivityStatusBar from "../components/ConnectivityChecker";
@@ -8,6 +9,7 @@ import DefaultProviders from "../providers/DefaultProviders";
 import { useAuthStore } from "../stores/useAuth";
 import { supabase } from "../utils/supabase";
 
+Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN!)
 
 export default function RootLayout() {
 
