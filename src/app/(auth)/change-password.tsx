@@ -125,6 +125,7 @@ const ChangePasswordHandler = () => {
                                                 <InputField
                                                     placeholder="Current password"
                                                     type="password"
+                                                    autoCapitalize='none'
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
@@ -152,6 +153,7 @@ const ChangePasswordHandler = () => {
                                                     ref={newPasswordRef as any}
                                                     placeholder="At least 8 characters"
                                                     type="password"
+                                                    autoCapitalize='none'
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
@@ -179,6 +181,7 @@ const ChangePasswordHandler = () => {
                                                     ref={confirmPasswordRef as any}
                                                     placeholder="Repeat new password"
                                                     type="password"
+                                                    autoCapitalize='none'
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     onSubmitEditing={handleSubmit(onChangePassword)}

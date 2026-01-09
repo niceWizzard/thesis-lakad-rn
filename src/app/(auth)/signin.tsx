@@ -150,6 +150,7 @@ const SigninPage = () => {
                                                     ref={passwordRef as any}
                                                     placeholder="Enter password"
                                                     type="password"
+                                                    autoCapitalize="none"
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}

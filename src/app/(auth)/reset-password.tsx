@@ -181,6 +181,7 @@ const ResetPasswordHandler = () => {
                                                     type="password"
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
+                                                    autoCapitalize='none'
                                                     value={value}
                                                     returnKeyType='next'
                                                     onSubmitEditing={() => confirmPasswordRef.current?.focus()}
@@ -205,6 +206,7 @@ const ResetPasswordHandler = () => {
                                                 <InputField
                                                     ref={confirmPasswordRef as any}
                                                     placeholder="Repeat new password"
+                                                    autoCapitalize='none'
                                                     type="password"
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}

@@ -136,6 +136,7 @@ const SignupPage = () => {
                                                     ref={passwordRef as any}
                                                     placeholder="Create a password"
                                                     type="password"
+                                                    autoCapitalize='none'
                                                     onBlur={onBlur}
                                                     onChangeText={onChange}
                                                     value={value}
@@ -165,6 +166,7 @@ const SignupPage = () => {
                                                     placeholder="Repeat password"
                                                     type="password"
                                                     onBlur={onBlur}
+                                                    autoCapitalize='none'
                                                     onChangeText={onChange}
                                                     value={value}
                                                     onSubmitEditing={handleSubmit(onSignup)}
