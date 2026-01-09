@@ -17,13 +17,13 @@ const SearchResultsBox = ({
     onResultPress: (id: number) => void
     visible: boolean
 }) => {
-    // Hide if not visible, string too short, or only whitespace
-    if (!visible || searchString.trim().length < 2) return null;
+
 
     const landmarks = useLandmarkStore(v => v.landmarks)
     const query = searchString.trim().toLowerCase();
     const results = landmarks.filter(v => v.name?.toLowerCase().includes(query));
-
+    // Hide if not visible, string too short, or only whitespace
+    if (!visible || searchString.trim().length < 2) return null;
     if (results.length === 0) return null;
 
     return (
