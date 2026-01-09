@@ -45,7 +45,7 @@ const OnboardingScreen = () => {
         if (currentIndex < SLIDES.length - 1) {
             slidesRef.current?.scrollToIndex({ index: currentIndex + 1 })
         } else {
-            router.navigate("/(onboarding)/preferences")
+            router.replace("/(onboarding)/preferences")
         }
     }
 
