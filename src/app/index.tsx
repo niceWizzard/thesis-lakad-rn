@@ -64,6 +64,9 @@ const LoadingSplashScreen = () => {
                     return router.replace('/(onboarding)');
                 }
 
+                const landmarks = await fetchLandmarks();
+                setLandmarks(landmarks);
+
                 // 3. Check Session with Supabase
                 const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -76,8 +79,7 @@ const LoadingSplashScreen = () => {
                 // 4. Set global auth state and enter the app
                 setAuth(session);
 
-                const landmarks = await fetchLandmarks();
-                setLandmarks(landmarks);
+
 
                 await queryClient.fetchQuery({
                     queryKey: ['itineraries'],
