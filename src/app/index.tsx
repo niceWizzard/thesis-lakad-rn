@@ -12,6 +12,8 @@ import { Text } from '@/components/ui/text';
 import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'expo-network';
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
+import { useLandmarkStore } from '../stores/useLandmarkStore';
+import { fetchLandmarks } from '../utils/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
 import { supabase } from '../utils/supabase';
 
@@ -21,6 +23,7 @@ const LoadingSplashScreen = () => {
     const initialURL = Linking.useLinkingURL();
     const [networkState, setNetworkState] = useState<NetworkState | null>(null);
     const [loadingError, setLoadingError] = useState<Error | null | undefined>()
+    const setLandmarks = useLandmarkStore(v => v.setLandmarks);
 
     useEffect(() => {
         getNetworkStateAsync().then(setNetworkState);
@@ -67,6 +70,10 @@ const LoadingSplashScreen = () => {
 
                 // 4. Set global auth state and enter the app
                 setAuth(session);
+
+                const landmarks = await fetchLandmarks();
+                setLandmarks(landmarks);
+
                 router.replace('/(tabs)');
 
             } catch (error: any) {
