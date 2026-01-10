@@ -73,7 +73,9 @@ export type Database = {
           categories: Database["public"]["Enums"]["poi_category"][]
           created_at: string
           created_by_user: boolean
+          description: string | null
           id: number
+          image_url: string | null
           latitude: number
           longitude: number
           name: string
@@ -82,7 +84,9 @@ export type Database = {
           categories: Database["public"]["Enums"]["poi_category"][]
           created_at?: string
           created_by_user?: boolean
+          description?: string | null
           id?: number
+          image_url?: string | null
           latitude: number
           longitude: number
           name?: string
@@ -91,7 +95,9 @@ export type Database = {
           categories?: Database["public"]["Enums"]["poi_category"][]
           created_at?: string
           created_by_user?: boolean
+          description?: string | null
           id?: number
+          image_url?: string | null
           latitude?: number
           longitude?: number
           name?: string
