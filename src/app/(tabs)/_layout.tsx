@@ -5,10 +5,10 @@ import React from 'react';
 
 
 
-const primaryColor = "#7fcc20";
+export const primaryColor = "#7fcc20";
 
 
-function TabIcon(icon: React.ElementType<any, keyof React.JSX.IntrinsicElements>): ((props: {
+export function TabIcon(icon: React.ElementType<any, keyof React.JSX.IntrinsicElements>): ((props: {
     focused: boolean;
     color: string;
     size: number;
@@ -30,7 +30,6 @@ export default function TabLayout() {
                     tabBarIcon: TabIcon(Navigation),
                     tabBarLabel: 'Explore',
                     headerShown: false,
-
                 }}
             />
             <Tabs.Screen

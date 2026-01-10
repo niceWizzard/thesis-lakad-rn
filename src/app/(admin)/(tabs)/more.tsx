@@ -4,21 +4,19 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
 import React from 'react';
-import { Alert, Image, ScrollView, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
 
 import { Icon } from '@/components/ui/icon';
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { supabase } from '@/src/utils/supabase';
 import {
+    ArrowLeftRight,
     ChevronRight,
-    Info,
     Key,
     LogOut,
     Mail,
-    Settings,
-    Sliders,
-    User
+    Settings
 } from 'lucide-react-native';
 
 const coverImage = require('@/assets/images/lakad-cover.png');
@@ -31,34 +29,16 @@ function MoreTab() {
     const menuItems = [
         {
             id: '1',
-            title: 'Account Settings',
+            title: 'Make an Admin',
             icon: Settings,
             onPress: () => Alert.alert('Settings', 'Settings screen coming soon!'),
-        },
-        {
-            id: '2',
-            title: 'Travel Preferences',
-            icon: Sliders,
-            onPress: () => router.navigate('/(onboarding)/preferences'),
         },
         {
             id: '3',
             title: 'Change Password',
             icon: Key,
             onPress: () => router.navigate('/change-password'),
-        },
-        {
-            id: '4',
-            title: 'About Lakad',
-            icon: Info,
-            onPress: () => Alert.alert('About', 'Lakad App v1.0.0'),
-        },
-        {
-            id: '5',
-            title: 'Admin Mode',
-            icon: Info,
-            onPress: () => router.replace("/(admin)/(tabs)/more"),
-        },
+        }
     ] as const;
 
     const handleSignoutPress = async () => {
@@ -76,6 +56,11 @@ function MoreTab() {
             showErrorToast((e as Error).message);
         }
     };
+
+    const handleBackToRegularModePress = () => {
+        router.replace("/");
+    }
+
 
     // Abstract this to keep handleSignoutPress clean
     const showErrorToast = (message: string) => {
@@ -101,18 +86,7 @@ function MoreTab() {
         >
             {/* 1. Profile Header Section */}
             <View className="items-center py-10 px-6 bg-background-50 border-b border-outline-50">
-                <View className="relative">
-                    <Image
-                        source={coverImage}
-                        className="w-24 h-24 rounded-full border-4 border-background-0 shadow-soft-1"
-                        resizeMode="cover"
-                    />
-                    <View className="absolute bottom-0 right-0 bg-primary-600 p-1.5 rounded-full border-2 border-background-0">
-                        <User size={14} color="white" />
-                    </View>
-                </View>
-
-                <Heading size="xl" className="mt-4 text-typography-900">Lakad Explorer</Heading>
+                <Heading size="xl" className="mt-4 text-typography-900">Admin</Heading>
 
                 {session?.user?.email && (
                     <View className="flex-row items-center mt-1 gap-4">
@@ -155,7 +129,7 @@ function MoreTab() {
             </View>
 
             {/* 3. Danger Zone / Footer */}
-            <View className="px-4 mt-8">
+            <View className="px-4 mt-8 gap-2" >
                 <Button
                     action="negative"
                     variant="solid"
@@ -165,6 +139,16 @@ function MoreTab() {
                 >
                     <ButtonText className="font-bold">Sign Out</ButtonText>
                     <ButtonIcon as={LogOut} size="md" className="ml-2" />
+                </Button>
+                <Button
+                    action="secondary"
+                    variant="solid"
+                    size="lg"
+                    className="rounded-2xl  h-14"
+                    onPress={handleBackToRegularModePress}
+                >
+                    <ButtonText className="font-bold">Back to Regular Mode</ButtonText>
+                    <ButtonIcon as={ArrowLeftRight} size="md" className="ml-2" />
                 </Button>
 
                 <View className="items-center mt-8">

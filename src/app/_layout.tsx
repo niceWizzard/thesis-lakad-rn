@@ -74,6 +74,9 @@ export default function RootLayout() {
         options={{
         }}
       />
+      <Stack.Screen
+        name="(admin)"
+      />
     </Stack>
     <ConnectivityStatusBar />
   </DefaultProviders>
