@@ -149,27 +149,27 @@ export type Database = {
           email: string
           full_name: string
           id: number
-          is_admin: boolean
           updated_at: string
           user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
         }
         Insert: {
           created_at?: string
           email: string
           full_name: string
           id?: number
-          is_admin?: boolean
           updated_at?: string
           user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
         }
         Update: {
           created_at?: string
           email?: string
           full_name?: string
           id?: number
-          is_admin?: boolean
           updated_at?: string
           user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
       }
@@ -187,6 +187,7 @@ export type Database = {
     }
     Enums: {
       poi_category: "Church" | "Historical" | "Nature" | "Museum" | "Landmark"
+      user_type: "Regular" | "Admin" | "SuperAdmin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -315,6 +316,7 @@ export const Constants = {
   public: {
     Enums: {
       poi_category: ["Church", "Historical", "Nature", "Museum", "Landmark"],
+      user_type: ["Regular", "Admin", "SuperAdmin"],
     },
   },
 } as const

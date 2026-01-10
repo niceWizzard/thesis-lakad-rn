@@ -29,7 +29,7 @@ function MoreTab() {
     const menuItems = [
         {
             id: '1',
-            title: 'Make an Admin',
+            title: 'Manage Users',
             icon: Settings,
             onPress: () => router.navigate("/(admin)/users"),
         },

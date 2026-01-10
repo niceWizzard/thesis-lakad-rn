@@ -20,6 +20,7 @@ import { Text } from '@/components/ui/text';
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
+import { Center } from '@/components/ui/center';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -49,9 +50,10 @@ export default function AdminUserEditScreen() {
         mutationFn: async (newAdminStatus: boolean) => {
             const { error } = await supabase
                 .from('profiles')
-                .update({ is_admin: newAdminStatus })
+                .update({ user_type: newAdminStatus ? 'Admin' : 'Regular' })
                 .eq('user_id', id as any);
             if (error) throw error;
+
         },
         onSuccess: (_, newStatus) => {
             // Refresh the data locally
@@ -75,7 +77,7 @@ export default function AdminUserEditScreen() {
     });
 
     const handleRoleToggle = () => {
-        const action = profile?.is_admin ? 'Demote' : 'Promote';
+        const action = profile?.user_type === 'Admin' ? 'Demote' : 'Promote';
         Alert.alert(
             `${action} User`,
             `Are you sure you want to ${action.toLowerCase()} ${profile?.email}?`,
@@ -83,17 +85,27 @@ export default function AdminUserEditScreen() {
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Confirm',
-                    onPress: () => toggleAdminMutation.mutate(!profile?.is_admin)
+                    onPress: () => toggleAdminMutation.mutate(profile?.user_type === 'Regular' ? true : false)
                 },
             ]
         );
     };
+
 
     if (isLoading) {
         return (
             <Box className="flex-1 justify-center items-center bg-background-0">
                 <Text>Loading profile...</Text>
             </Box>
+        );
+    }
+
+
+    if (!profile) {
+        return (
+            <Center className="flex-1 justify-center items-center bg-background-0">
+                <Text>Profile does not exist</Text>
+            </Center>
         );
     }
 
@@ -121,9 +133,9 @@ export default function AdminUserEditScreen() {
                             <Heading size="xl" className="text-center">{profile?.full_name || 'Unnamed User'}</Heading>
                             <Text className="text-typography-500">{profile?.email}</Text>
                         </VStack>
-                        <Badge action={profile?.is_admin ? "info" : "muted"} variant="solid" className="rounded-full px-4">
+                        <Badge action={profile?.user_type ? "info" : "muted"} variant="solid" className="rounded-full px-4">
                             <BadgeText className="font-bold">
-                                {profile?.is_admin ? 'ADMINISTRATOR' : 'MEMBER'}
+                                {profile.user_type === 'Admin' ? 'ADMINISTRATOR' : (profile.user_type === 'Regular' ? 'MEMBER' : 'Super ADMINISTRATOR')}
                             </BadgeText>
                         </Badge>
                     </VStack>
@@ -162,18 +174,29 @@ export default function AdminUserEditScreen() {
                                 </Text>
                             </VStack>
 
-                            <Button
-                                action={profile?.is_admin ? "negative" : "primary"}
-                                variant="solid"
-                                className="rounded-2xl h-14"
-                                onPress={handleRoleToggle}
-                                isDisabled={toggleAdminMutation.isPending}
-                            >
-                                <ButtonIcon as={profile?.is_admin ? ShieldOff : ShieldCheck} className="mr-2" />
-                                <ButtonText className="font-bold">
-                                    {profile?.is_admin ? 'Revoke Admin Status' : 'Grant Admin Status'}
-                                </ButtonText>
-                            </Button>
+                            {
+                                profile.user_type === 'SuperAdmin' ? (
+                                    <Button>
+                                        <ButtonIcon as={ShieldCheck} className="mr-2" />
+                                        <ButtonText className="font-bold">
+                                            Super Admin
+                                        </ButtonText>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        action={profile.user_type === 'Admin' ? "negative" : "primary"}
+                                        variant="solid"
+                                        className="rounded-2xl h-14"
+                                        onPress={handleRoleToggle}
+                                        isDisabled={toggleAdminMutation.isPending}
+                                    >
+                                        <ButtonIcon as={profile.user_type == 'Admin' ? ShieldOff : ShieldCheck} className="mr-2" />
+                                        <ButtonText className="font-bold">
+                                            {profile.user_type === 'Admin' ? 'Revoke Admin Status' : 'Grant Admin Status'}
+                                        </ButtonText>
+                                    </Button>
+                                )
+                            }
                         </Box>
                     </VStack>
                 </VStack>

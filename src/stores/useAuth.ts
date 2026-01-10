@@ -1,26 +1,31 @@
 import { Session } from "@supabase/supabase-js";
 import { create } from "zustand";
+import { UserType } from "../model/profile.types";
 
 
 interface AuthStore {
     session?: Session | null
-    setAuth(userId: Session, isAdmin?: boolean): void
+    setAuth(userId: Session, userType?: UserType): void
     isAdmin: boolean
-    setIsAdmin(isAdmin: boolean): void
+    userType: UserType
+    setUserType(isAdmin: UserType): void
 }
 
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
-    setAuth(session, isAdmin) {
+    setAuth(session, userType) {
         set({
             session,
-            isAdmin: isAdmin ?? get().isAdmin,
+            userType: userType ?? get().userType,
+            isAdmin: userType === 'Regular' ? false : true,
+        })
+    },
+    userType: 'Regular',
+    setUserType(userType) {
+        set({
+            userType,
+            isAdmin: userType === 'Regular' ? false : true,
         })
     },
     isAdmin: false,
-    setIsAdmin(isAdmin) {
-        set({
-            isAdmin
-        })
-    }
 }))

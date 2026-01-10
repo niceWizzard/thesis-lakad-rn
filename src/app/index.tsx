@@ -14,7 +14,7 @@ import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'exp
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
 import { useLandmarkStore } from '../stores/useLandmarkStore';
-import { fetchAdminStatus } from '../utils/fetchAdminStatus';
+import { fetchAdminStatus as fetchUserType } from '../utils/fetchAdminStatus';
 import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
 import { fetchLandmarks } from '../utils/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
@@ -94,10 +94,10 @@ const LoadingSplashScreen = () => {
                 }
 
 
-                const isAdmin = await fetchAdminStatus(session.user.id);
-
+                const userType = await fetchUserType(session.user.id);
+                console.log("USER TYPE: ", userType)
                 // 4. Set global auth state and enter the app
-                setAuth(session, isAdmin);
+                setAuth(session, userType);
 
                 await queryClient.fetchQuery({
                     queryKey: ['itineraries'],
