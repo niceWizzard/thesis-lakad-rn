@@ -76,7 +76,7 @@ export type Database = {
           id: number
           latitude: number
           longitude: number
-          name: string | null
+          name: string
         }
         Insert: {
           categories: Database["public"]["Enums"]["poi_category"][]
@@ -85,7 +85,7 @@ export type Database = {
           id?: number
           latitude: number
           longitude: number
-          name?: string | null
+          name?: string
         }
         Update: {
           categories?: Database["public"]["Enums"]["poi_category"][]
@@ -94,7 +94,7 @@ export type Database = {
           id?: number
           latitude?: number
           longitude?: number
-          name?: string | null
+          name?: string
         }
         Relationships: []
       }
@@ -136,6 +136,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          id: number
+          is_admin: boolean
+          user_id: string | null
+        }
+        Insert: {
+          id?: number
+          is_admin?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          id?: number
+          is_admin?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
