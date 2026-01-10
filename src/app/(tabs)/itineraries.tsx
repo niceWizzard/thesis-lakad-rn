@@ -6,7 +6,7 @@ import {
     Search
 } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { FlatList, RefreshControl, ScrollView, View } from 'react-native';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { useQuery } from '@tanstack/react-query';
+import { Pressable } from 'react-native-gesture-handler';
 
 export default function ItinerariesScreen() {
     const [searchString, setSearchString] = useState('');
