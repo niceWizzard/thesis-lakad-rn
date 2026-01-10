@@ -65,7 +65,7 @@ const SigninPage = () => {
             if (error) throw error;
 
             if (session) {
-                router.replace('/(tabs)');
+                router.replace('/');
             }
         } catch (error: any) {
             showToast("Login Failed", error.message || "Please check your credentials.")
