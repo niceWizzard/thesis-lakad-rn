@@ -79,6 +79,7 @@ export type Database = {
           latitude: number
           longitude: number
           name: string
+          updated_at: string
         }
         Insert: {
           categories: Database["public"]["Enums"]["poi_category"][]
@@ -90,6 +91,7 @@ export type Database = {
           latitude: number
           longitude: number
           name?: string
+          updated_at?: string
         }
         Update: {
           categories?: Database["public"]["Enums"]["poi_category"][]
@@ -101,6 +103,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           name?: string
+          updated_at?: string
         }
         Relationships: []
       }
