@@ -4,14 +4,23 @@ import { create } from "zustand";
 
 interface AuthStore {
     session?: Session | null
-    setAuth(userId: Session): void
+    setAuth(userId: Session, isAdmin?: boolean): void
+    isAdmin: boolean
+    setIsAdmin(isAdmin: boolean): void
 }
 
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
-    setAuth(session) {
+    setAuth(session, isAdmin) {
         set({
-            session
+            session,
+            isAdmin: isAdmin ?? get().isAdmin,
+        })
+    },
+    isAdmin: false,
+    setIsAdmin(isAdmin) {
+        set({
+            isAdmin
         })
     }
 }))

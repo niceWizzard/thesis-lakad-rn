@@ -14,6 +14,7 @@ import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'exp
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
 import { useLandmarkStore } from '../stores/useLandmarkStore';
+import { fetchAdminStatus } from '../utils/fetchAdminStatus';
 import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
 import { fetchLandmarks } from '../utils/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
@@ -78,10 +79,10 @@ const LoadingSplashScreen = () => {
                     return router.replace('/(auth)/signin');
                 }
 
+                const isAdmin = await fetchAdminStatus(session.user.id);
+
                 // 4. Set global auth state and enter the app
-                setAuth(session);
-
-
+                setAuth(session, isAdmin);
 
                 await queryClient.fetchQuery({
                     queryKey: ['itineraries'],

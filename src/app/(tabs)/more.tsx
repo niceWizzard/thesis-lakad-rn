@@ -25,7 +25,7 @@ const coverImage = require('@/assets/images/lakad-cover.png');
 
 function MoreTab() {
     const router = useRouter();
-    const { session } = useAuthStore();
+    const { session, isAdmin } = useAuthStore();
     const toast = useToast();
 
     const menuItems = [
@@ -53,13 +53,16 @@ function MoreTab() {
             icon: Info,
             onPress: () => Alert.alert('About', 'Lakad App v1.0.0'),
         },
-        {
-            id: '5',
-            title: 'Admin Mode',
-            icon: Info,
-            onPress: () => router.replace("/(admin)/(tabs)/more"),
-        },
-    ] as const;
+    ];
+
+    if (isAdmin)
+        menuItems.push(
+            {
+                id: '5',
+                title: 'Admin Mode',
+                icon: Info,
+                onPress: () => router.replace("/(admin)/(tabs)/more"),
+            })
 
     const handleSignoutPress = async () => {
         try {
