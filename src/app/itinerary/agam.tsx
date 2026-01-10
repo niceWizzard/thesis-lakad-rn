@@ -42,6 +42,7 @@ import { VStack } from '@/components/ui/vstack';
 import { Icon } from '@/components/ui/icon';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { createItinerary } from '@/src/utils/fetchItineraries';
+import { useQueryClient } from '@tanstack/react-query';
 
 // --- Types & Data ---
 const DISTRICTS = [
@@ -75,6 +76,8 @@ const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
 const CreateWithAgamScreen = () => {
     const router = useRouter();
     const landmarks = useLandmarkStore(v => v.landmarks);
+    const queryClient = useQueryClient();
+
 
     const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -100,6 +103,8 @@ const CreateWithAgamScreen = () => {
             const newId = await createItinerary({
                 poiIds: shuffle(landmarks.map(v => v.id)),
             })
+
+            queryClient.invalidateQueries({ queryKey: ['itineraries'] })
 
             router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
         } catch (err) {

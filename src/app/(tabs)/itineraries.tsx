@@ -1,11 +1,11 @@
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import {
     ClipboardList,
     EllipsisVertical,
     MapPin, Play,
     Search
 } from 'lucide-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
 import { Box } from '@/components/ui/box';
@@ -42,12 +42,7 @@ export default function ItinerariesScreen() {
         enabled: !!userId,
     });
 
-    useFocusEffect(
-        useCallback(() => {
-            // Manually refetch every time the user navigates to this tab
-            refetch();
-        }, [refetch])
-    );
+
 
     const calculateProgress = (itinerary: ItineraryWithStops) => {
         if (!itinerary.stops || itinerary.stops.length === 0) return 0;
