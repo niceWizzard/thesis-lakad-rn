@@ -65,7 +65,15 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ],
-      "@rnmapbox/maps"
+      "@rnmapbox/maps",
+      [
+        "expo-asset",
+        {
+          "assets": [
+            "./assets/images"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

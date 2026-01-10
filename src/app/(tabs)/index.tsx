@@ -19,14 +19,16 @@ import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Landmark } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
-import { Center } from '@/components/ui/center';
-import { Ionicons } from '@expo/vector-icons';
-import { Camera, LocationPuck, MapView, MarkerView } from '@rnmapbox/maps';
+import { Camera, Images, LocationPuck, MapView, ShapeSource, SymbolLayer } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Layers, LocateFixed, Map as MapIcon, Navigation, Plus, Star } from 'lucide-react-native';
-import { Pressable } from 'react-native-gesture-handler';
+
+
+const RedMarker = require('@/assets/images/red_marker.png')
+
 
 const { width } = Dimensions.get('window');
+
 
 const MAP_STYLES = {
     standard: "mapbox://styles/mapbox/standard",
@@ -35,6 +37,7 @@ const MAP_STYLES = {
 
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 
+const IconImage = require("@/assets/images/red_marker.png")
 const ExploreTab = () => {
     const camera = useRef<Camera>(null);
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -119,6 +122,8 @@ const ExploreTab = () => {
         }
     };
 
+
+
     return (
         <Box className="flex-1 bg-background-0">
             <MapView
@@ -140,67 +145,46 @@ const ExploreTab = () => {
                     puckBearing="heading"
                     pulsing={{ isEnabled: true, color: '#2563eb' }}
                 />
+                <ShapeSource
+                    id='landmark-shape-source'
+                    shape={{
+                        type: 'FeatureCollection',
+                        features: landmarks.map((landmark) => ({
+                            type: 'Feature',
+                            id: landmark.id,
+                            properties: {
+                                title: landmark.name,
+                            },
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [landmark.longitude, landmark.latitude],
+                            },
+                        })),
+                    }}
+                    onPress={(event) => {
+                        const landmark = landmarks.find((landmark) => landmark.id == event.features[0].id) || null
+                        if (landmark)
+                            handleMarkerPress(landmark)
+                    }}
 
-                {landmarks.map((landmark) => (
-                    <MarkerView
-                        key={`marker-${landmark.id}`}
-                        coordinate={[landmark.longitude, landmark.latitude]}
-                        // This ensures the marker "points" to the coordinate from the bottom center
-                        anchor={{ x: 0.5, y: 1 }}
-                        hitSlop={{
-                            top: 36,
-                            left: 36,
-                            right: 36,
-                            bottom: 36,
+                >
+                    <Images
+                        images={{
+                            IconImage,
                         }}
-                    >
-                        <Pressable
-                            onPress={() => handleMarkerPress(landmark)}
-                            className="items-center"
-                        >
-                            <Center>
-                                {/* 1. The Image Circular Pin */}
-                                <Box
-                                    className={`rounded-full border-2 bg-white shadow-md ${selectedLandmark?.id === landmark.id
-                                        ? 'border-primary-600 w-12 h-12'
-                                        : 'border-white w-10 h-10'
-                                        }`}
-                                >
-                                    <Image
-                                        source={{ uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg" }}
-                                        className="w-full h-full rounded-full"
-                                        resizeMode="cover"
-                                    />
-                                </Box>
+                    />
+                    <SymbolLayer
+                        id={'symbol-layer'}
+                        style={{
+                            textField: ['get', 'title'],
+                            textAnchor: 'top',
+                            textOffset: [0, .5],
+                            iconSize: 0.3,
+                            iconImage: "IconImage",
+                        }}
 
-                                {/* 2. The Pointer Caret */}
-                                <Ionicons
-                                    name="caret-down"
-                                    size={16}
-                                    color={selectedLandmark?.id === landmark.id ? '#2563eb' : 'white'}
-                                    style={{ marginTop: -6, textShadowColor: 'rgba(0, 0, 0, 0.2)', textShadowRadius: 2 }}
-                                />
-
-                                {/* 3. The Bottom Text Label */}
-                                <Box
-                                    className={`mt-1 px-2 py-0.5 rounded-md shadow-sm border ${selectedLandmark?.id === landmark.id
-                                        ? 'bg-primary-600 border-primary-700'
-                                        : 'bg-white/90 border-outline-100'
-                                        }`}
-                                >
-                                    <Text
-                                        size="xs"
-                                        className={`font-bold text-[10px] text-center ${selectedLandmark?.id === landmark.id ? 'text-white' : 'text-typography-400'
-                                            }`}
-                                        numberOfLines={1}
-                                    >
-                                        {landmark.name?.substring(0, 20)}
-                                    </Text>
-                                </Box>
-                            </Center>
-                        </Pressable>
-                    </MarkerView>
-                ))}
+                    />
+                </ShapeSource>
             </MapView>
 
             {/* Floating UI Overlays */}
