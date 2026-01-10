@@ -58,14 +58,16 @@ const LoadingSplashScreen = () => {
                     throw new Error("No internet connection. Please try again later.")
                 }
 
+                const landmarks = await fetchLandmarks();
+                setLandmarks(landmarks);
+
                 // 2. Check Onboarding Status
                 const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded) ?? false;
                 if (!haveOnboarded) {
                     return router.replace('/(onboarding)');
                 }
 
-                const landmarks = await fetchLandmarks();
-                setLandmarks(landmarks);
+
 
                 // 3. Check Session with Supabase
                 const { data: { session }, error } = await supabase.auth.getSession();
