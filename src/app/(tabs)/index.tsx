@@ -12,7 +12,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet } from 'react-native';
+import { Image, ScrollView, StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
@@ -22,12 +22,6 @@ import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { Camera, Images, LocationPuck, MapView, ShapeSource, SymbolLayer } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Layers, LocateFixed, Map as MapIcon, Navigation, Plus, Star } from 'lucide-react-native';
-
-
-const RedMarker = require('@/assets/images/red_marker.png')
-
-
-const { width } = Dimensions.get('window');
 
 
 const MAP_STYLES = {
