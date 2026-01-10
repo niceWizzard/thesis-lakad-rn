@@ -79,6 +79,21 @@ const LoadingSplashScreen = () => {
                     return router.replace('/(auth)/signin');
                 }
 
+                // Check for profile existence
+                const { data: profiles, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('user_id', session.user.id)
+
+                if (profileError)
+                    throw profileError;
+
+                if (!profiles.length) {
+                    router.replace('/profile/setup');
+                    return;
+                }
+
+
                 const isAdmin = await fetchAdminStatus(session.user.id);
 
                 // 4. Set global auth state and enter the app

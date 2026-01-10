@@ -150,6 +150,7 @@ export type Database = {
           full_name: string
           id: number
           is_admin: boolean
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -158,6 +159,7 @@ export type Database = {
           full_name: string
           id?: number
           is_admin?: boolean
+          updated_at?: string
           user_id?: string
         }
         Update: {
@@ -166,6 +168,7 @@ export type Database = {
           full_name?: string
           id?: number
           is_admin?: boolean
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
