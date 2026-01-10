@@ -12,17 +12,19 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Dimensions, Image, ScrollView, StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Landmark } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
+import { Center } from '@/components/ui/center';
 import { Ionicons } from '@expo/vector-icons';
 import { Camera, LocationPuck, MapView, MarkerView } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Layers, LocateFixed, Map as MapIcon, Navigation, Plus, Star } from 'lucide-react-native';
+import { Pressable } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
 
@@ -156,44 +158,46 @@ const ExploreTab = () => {
                             onPress={() => handleMarkerPress(landmark)}
                             className="items-center"
                         >
-                            {/* 1. The Image Circular Pin */}
-                            <Box
-                                className={`rounded-full border-2 bg-white shadow-md ${selectedLandmark?.id === landmark.id
-                                    ? 'border-primary-600 w-12 h-12'
-                                    : 'border-white w-10 h-10'
-                                    }`}
-                            >
-                                <Image
-                                    source={{ uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg" }}
-                                    className="w-full h-full rounded-full"
-                                    resizeMode="cover"
-                                />
-                            </Box>
-
-                            {/* 2. The Pointer Caret */}
-                            <Ionicons
-                                name="caret-down"
-                                size={16}
-                                color={selectedLandmark?.id === landmark.id ? '#2563eb' : 'white'}
-                                style={{ marginTop: -6, textShadowColor: 'rgba(0, 0, 0, 0.2)', textShadowRadius: 2 }}
-                            />
-
-                            {/* 3. The Bottom Text Label */}
-                            <Box
-                                className={`mt-1 px-2 py-0.5 rounded-md shadow-sm border ${selectedLandmark?.id === landmark.id
-                                    ? 'bg-primary-600 border-primary-700'
-                                    : 'bg-white/90 border-outline-100'
-                                    }`}
-                            >
-                                <Text
-                                    size="xs"
-                                    className={`font-bold text-[10px] text-center ${selectedLandmark?.id === landmark.id ? 'text-white' : 'text-typography-400'
+                            <Center>
+                                {/* 1. The Image Circular Pin */}
+                                <Box
+                                    className={`rounded-full border-2 bg-white shadow-md ${selectedLandmark?.id === landmark.id
+                                        ? 'border-primary-600 w-12 h-12'
+                                        : 'border-white w-10 h-10'
                                         }`}
-                                    numberOfLines={1}
                                 >
-                                    {landmark.name?.substring(0, 20)}
-                                </Text>
-                            </Box>
+                                    <Image
+                                        source={{ uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg" }}
+                                        className="w-full h-full rounded-full"
+                                        resizeMode="cover"
+                                    />
+                                </Box>
+
+                                {/* 2. The Pointer Caret */}
+                                <Ionicons
+                                    name="caret-down"
+                                    size={16}
+                                    color={selectedLandmark?.id === landmark.id ? '#2563eb' : 'white'}
+                                    style={{ marginTop: -6, textShadowColor: 'rgba(0, 0, 0, 0.2)', textShadowRadius: 2 }}
+                                />
+
+                                {/* 3. The Bottom Text Label */}
+                                <Box
+                                    className={`mt-1 px-2 py-0.5 rounded-md shadow-sm border ${selectedLandmark?.id === landmark.id
+                                        ? 'bg-primary-600 border-primary-700'
+                                        : 'bg-white/90 border-outline-100'
+                                        }`}
+                                >
+                                    <Text
+                                        size="xs"
+                                        className={`font-bold text-[10px] text-center ${selectedLandmark?.id === landmark.id ? 'text-white' : 'text-typography-400'
+                                            }`}
+                                        numberOfLines={1}
+                                    >
+                                        {landmark.name?.substring(0, 20)}
+                                    </Text>
+                                </Box>
+                            </Center>
                         </Pressable>
                     </MarkerView>
                 ))}
