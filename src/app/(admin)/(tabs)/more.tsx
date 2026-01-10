@@ -4,7 +4,7 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
 import React from 'react';
-import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
 import { Icon } from '@/components/ui/icon';
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
@@ -31,7 +31,7 @@ function MoreTab() {
             id: '1',
             title: 'Make an Admin',
             icon: Settings,
-            onPress: () => Alert.alert('Settings', 'Settings screen coming soon!'),
+            onPress: () => router.navigate("/(admin)/users"),
         },
         {
             id: '3',
