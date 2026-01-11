@@ -9,6 +9,8 @@ import {
 
 
 
+
+
     Dimensions,
     Pressable,
     StyleSheet
@@ -100,7 +102,7 @@ export const CustomLocalSheet = ({ isOpen, onClose, children }: CustomLocalSheet
                 }}
             >
                 <Box
-                    className="bg-white rounded-t-[32px] pb-10 pt-2 shadow-lg"
+                    className="bg-background-0 rounded-t-[32px] pb-10 pt-2 shadow-lg"
                     style={{ minHeight: 200, maxHeight: SCREEN_HEIGHT * 0.8 }}
                 >
                     <VStack className="p-4">
