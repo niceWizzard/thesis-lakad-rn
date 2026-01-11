@@ -168,7 +168,9 @@ export default function AdminLandmarksScreen() {
                                 <View className=" flex-row flex-wrap gap-0.5">
                                     {
                                         landmark.categories.map(category => (
-                                            <Badge action="info" variant="outline" className="self-start rounded-md border-primary-200">
+                                            <Badge
+                                                key={`landmark-${landmark.id}-category-${category}`}
+                                                action="info" variant="outline" className="self-start rounded-md border-primary-200">
                                                 <BadgeText className="text-[10px] uppercase font-bold text-primary-600">{category || 'Uknown'}</BadgeText>
                                             </Badge>
                                         ))
