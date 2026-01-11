@@ -74,44 +74,15 @@ import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
 import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
-import { DISTRICT_TO_MUNICIPALITY_MAP, DISTRICTS, MUNICIPALITIES } from '@/src/constants/jurisdictions';
+import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LandmarkDistrict } from '@/src/model/landmark.types';
+import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 
-// --- Validation Schema ---
-const createLandmarkSchema = z.object({
-    name: z.string().min(3, "Landmark name is required"),
-    categories: z.array(z.enum(LANDMARK_CATEGORIES)).min(1, "Select at least one category"),
-    district: z.enum(DISTRICTS, "Please select a valid district"),
-    municipality: z.enum(MUNICIPALITIES, "Please select a valid municipality"),
-    description: z.string().min(10, "Please provide a detailed history"),
-    latitude: z.string().regex(/^-?\d*\.?\d*$/, "Must be a valid number"),
-    longitude: z.string().regex(/^-?\d*\.?\d*$/, "Must be a valid number"),
-    gmaps_rating: z.string()
-        .optional()
-        .refine(val => !val || /^\d*\.?\d*$/.test(val), "Rating must be a valid number")
-        .refine(val => {
-            if (!val) return true;
-            const num = parseFloat(val);
-            return !isNaN(num) && num >= 0 && num <= 5;
-        }, "Rating must be between 0 and 5"),
-}).superRefine((data, ctx) => {
-    const validMunicipalities = DISTRICT_TO_MUNICIPALITY_MAP[data.district as LandmarkDistrict] as readonly string[];
 
-    // Debug: Check if this runs on every change
-    // console.log(`Checking ${data.municipality} against ${data.district}`);
-
-    if (!validMunicipalities.includes(data.municipality)) {
-        ctx.addIssue({
-            code: 'custom', // Use the Zod constant
-            message: `Municipality must be within District ${data.district}`,
-            path: ["municipality"],
-        });
-    }
-});
-type CreateFormData = z.infer<typeof createLandmarkSchema>;
+type CreateFormData = z.infer<typeof createAndEditLandmarkSchema>;
 
 export default function AdminLandmarkCreateScreen() {
     const router = useRouter();
@@ -126,7 +97,7 @@ export default function AdminLandmarkCreateScreen() {
     const [showDiscardAlert, setShowDiscardAlert] = useState(false);
 
     const { control, handleSubmit, reset, watch, setValue, formState: { errors, isValid, isDirty }, getValues } = useForm<CreateFormData>({
-        resolver: zodResolver(createLandmarkSchema),
+        resolver: zodResolver(createAndEditLandmarkSchema),
         mode: "onChange",
         defaultValues: {
             name: '',
@@ -405,7 +376,12 @@ export default function AdminLandmarkCreateScreen() {
                                     <Controller control={control} name="latitude" render={({ field: { onChange, value } }) => (
                                         <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" placeholder="14.8..." /></Input>
                                     )} />
+                                    <FormControlError>
+                                        <FormControlErrorIcon as={AlertCircle} />
+                                        <FormControlErrorText>{errors.latitude?.message}</FormControlErrorText>
+                                    </FormControlError>
                                 </FormControl>
+
                             </Box>
                             <Box className="flex-1">
                                 <FormControl isInvalid={!!errors.longitude}>
@@ -413,7 +389,12 @@ export default function AdminLandmarkCreateScreen() {
                                     <Controller control={control} name="longitude" render={({ field: { onChange, value } }) => (
                                         <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={MapPin} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" placeholder="120.8..." /></Input>
                                     )} />
+                                    <FormControlError>
+                                        <FormControlErrorIcon as={AlertCircle} />
+                                        <FormControlErrorText>{errors.longitude?.message}</FormControlErrorText>
+                                    </FormControlError>
                                 </FormControl>
+
                             </Box>
                         </HStack>
                     </VStack>

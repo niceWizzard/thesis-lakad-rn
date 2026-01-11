@@ -74,40 +74,16 @@ import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
 import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
-import { DISTRICT_TO_MUNICIPALITY_MAP, DISTRICTS, MUNICIPALITIES } from '@/src/constants/jurisdictions';
+import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LandmarkDistrict } from '@/src/model/landmark.types';
+import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // --- VALIDATION SCHEMA ---
-const landmarkSchema = z.object({
-    name: z.string().min(3, "Name must be at least 3 characters"),
-    categories: z.array(z.enum(LANDMARK_CATEGORIES)).min(1, "Select at least one category"),
-    district: z.enum(DISTRICTS, "Please select a valid district"),
-    municipality: z.enum(MUNICIPALITIES, "Please select a valid municipality"),
-    description: z.string().min(10, "Description must be at least 10 characters"),
-    latitude: z.string().regex(/^-?\d*\.?\d*$/, "Must be a valid number"),
-    longitude: z.string().regex(/^-?\d*\.?\d*$/, "Must be a valid number"),
-    gmaps_rating: z.string()
-        .optional()
-        .refine(val => !val || /^\d*\.?\d*$/.test(val), "Rating must be a valid number")
-        .refine(val => {
-            if (!val) return true;
-            const num = parseFloat(val);
-            return !isNaN(num) && num >= 0 && num <= 5;
-        }, "Rating must be between 0 and 5"),
-}).superRefine((data, ctx) => {
-    const validMunicipalities = DISTRICT_TO_MUNICIPALITY_MAP[data.district as LandmarkDistrict] as readonly string[];
-    if (!validMunicipalities.includes(data.municipality)) {
-        ctx.addIssue({
-            code: 'custom',
-            message: `Municipality must be within District ${data.district}`,
-            path: ["municipality"],
-        });
-    }
-});
 
-type LandmarkFormData = z.infer<typeof landmarkSchema>;
+
+type LandmarkFormData = z.infer<typeof createAndEditLandmarkSchema>;
 
 export default function AdminLandmarkEditScreen() {
     const { id } = useLocalSearchParams();
@@ -133,7 +109,7 @@ export default function AdminLandmarkEditScreen() {
     });
 
     const { control, handleSubmit, reset, watch, setValue, formState: { errors, isDirty, isValid }, getValues } = useForm<LandmarkFormData>({
-        resolver: zodResolver(landmarkSchema),
+        resolver: zodResolver(createAndEditLandmarkSchema),
         mode: "onChange",
         defaultValues: {
             name: '',
@@ -363,8 +339,47 @@ export default function AdminLandmarkEditScreen() {
                         </FormControl>
 
                         <HStack space="md">
-                            <Box className="flex-1"><FormControl isInvalid={!!errors.latitude}><Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Latitude</Text><Controller control={control} name="latitude" render={({ field: { onChange, value } }) => <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>} /></FormControl></Box>
-                            <Box className="flex-1"><FormControl isInvalid={!!errors.longitude}><Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Longitude</Text><Controller control={control} name="longitude" render={({ field: { onChange, value } }) => <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={MapPin} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>} /></FormControl></Box>
+                            <Box className="flex-1">
+                                <FormControl isInvalid={!!errors.latitude}>
+                                    <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Latitude</Text>
+                                    <Controller
+                                        control={control}
+                                        name="latitude"
+                                        render={({ field: { onChange, value } }) => (
+                                            <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" />
+                                            </InputSlot>
+                                                <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                            </Input>
+                                        )}
+                                    />
+                                    <FormControlError>
+                                        <FormControlErrorIcon as={AlertCircle} />
+                                        <FormControlErrorText>{errors.latitude?.message}</FormControlErrorText>
+                                    </FormControlError>
+                                </FormControl>
+
+                            </Box>
+                            <Box className="flex-1">
+                                <FormControl isInvalid={!!errors.longitude}>
+                                    <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Longitude</Text>
+                                    <Controller
+                                        control={control}
+                                        name="longitude"
+                                        render={({ field: { onChange, value } }) => (
+                                            <Input size="md" className="rounded-xl">
+                                                <InputSlot className="pl-3"><Icon as={MapPin} size="sm" />
+                                                </InputSlot>
+                                                <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                            </Input>
+                                        )}
+                                    />
+                                    <FormControlError>
+                                        <FormControlErrorIcon as={AlertCircle} />
+                                        <FormControlErrorText>{errors.longitude?.message}</FormControlErrorText>
+                                    </FormControlError>
+                                </FormControl>
+
+                            </Box>
                         </HStack>
                     </VStack>
                 </VStack>
