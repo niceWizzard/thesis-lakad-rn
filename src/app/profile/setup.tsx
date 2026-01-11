@@ -65,7 +65,7 @@ export default function SetupProfileScreen() {
             });
 
             // Redirect to the main app flow
-            router.replace('/(tabs)');
+            router.replace('/');
         } catch (error: any) {
             console.error(error);
             toast.show({
