@@ -25,7 +25,7 @@ import { VStack } from '@/components/ui/vstack';
 import { CustomLocalSheet } from '@/src/components/CustomLocalSheet';
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
-import { Landmark } from '@/src/model/landmark.types';
+import { Landmark, LandmarkCategory } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
 const MAP_STYLES = {
@@ -34,7 +34,26 @@ const MAP_STYLES = {
 };
 
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605]; // Bulacan Center
+const WaterPin = require("@/assets/images/categories/water.png")
+const LandscapePin = require("@/assets/images/categories/landscape.png")
+const NaturePin = require("@/assets/images/categories/nature.png")
+const HistoryPin = require("@/assets/images/categories/history.png")
+const ReligiousPin = require("@/assets/images/categories/religious.png")
 const IconImage = require("@/assets/images/red_marker.png");
+function getPin(category: LandmarkCategory) {
+    switch (category) {
+        case 'History':
+            return 'HistoryPin';
+        case 'Landscape':
+            return 'LandscapePin';
+        case 'Nature':
+            return 'NaturePin';
+        case 'Religious':
+            return 'ReligiousPin';
+        default:
+            return 'IconImage';
+    }
+}
 
 export default function AdminMapOverviewScreen() {
     const router = useRouter();
@@ -124,7 +143,10 @@ export default function AdminMapOverviewScreen() {
                         features: landmarks.map((l) => ({
                             type: 'Feature',
                             id: l.id,
-                            properties: { title: l.name },
+                            properties: {
+                                title: l.name,
+                                icon: getPin(l.categories[Math.floor(Math.random() * l.categories.length)]),
+                            },
                             geometry: {
                                 type: 'Point',
                                 coordinates: [l.longitude, l.latitude],
@@ -136,7 +158,16 @@ export default function AdminMapOverviewScreen() {
                         if (l) handleMarkerPress(l);
                     }}
                 >
-                    <Images images={{ IconImage }} />
+                    <Images
+                        images={{
+                            IconImage: IconImage,      // Default/Fallback
+                            HistoryPin: HistoryPin,
+                            LandscapePin: LandscapePin,
+                            NaturePin: NaturePin,
+                            ReligiousPin: ReligiousPin,
+                            WaterPin: WaterPin,
+                        }}
+                    />
                     <SymbolLayer
                         id={'symbol-layer'}
                         style={{
@@ -144,8 +175,7 @@ export default function AdminMapOverviewScreen() {
                             textAnchor: 'top',
                             textOffset: [0, 0.8],
                             textSize: 12,
-                            iconSize: 0.25,
-                            iconImage: "IconImage",
+                            iconImage: ['get', 'icon'],
                             iconAllowOverlap: true,
                             textAllowOverlap: false,
                         }}

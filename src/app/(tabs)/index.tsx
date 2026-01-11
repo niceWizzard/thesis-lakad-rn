@@ -16,7 +16,7 @@ import { Image, ScrollView, StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
-import { Landmark } from '@/src/model/landmark.types';
+import { Landmark, LandmarkCategory } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
 import { Camera, Images, LocationPuck, MapView, ShapeSource, SymbolLayer } from '@rnmapbox/maps';
@@ -32,6 +32,27 @@ const MAP_STYLES = {
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 
 const IconImage = require("@/assets/images/red_marker.png")
+const WaterPin = require("@/assets/images/categories/water.png")
+const LandscapePin = require("@/assets/images/categories/landscape.png")
+const NaturePin = require("@/assets/images/categories/nature.png")
+const HistoryPin = require("@/assets/images/categories/history.png")
+const ReligiousPin = require("@/assets/images/categories/religious.png")
+
+function getPin(category: LandmarkCategory) {
+    switch (category) {
+        case 'History':
+            return 'HistoryPin';
+        case 'Landscape':
+            return 'LandscapePin';
+        case 'Nature':
+            return 'NaturePin';
+        case 'Religious':
+            return 'ReligiousPin';
+        default:
+            return 'IconImage';
+    }
+}
+
 const ExploreTab = () => {
     const camera = useRef<Camera>(null);
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -148,6 +169,7 @@ const ExploreTab = () => {
                             id: landmark.id,
                             properties: {
                                 title: landmark.name,
+                                icon: getPin(landmark.categories[Math.floor(Math.random() * landmark.categories.length)]),
                             },
                             geometry: {
                                 type: 'Point',
@@ -164,7 +186,12 @@ const ExploreTab = () => {
                 >
                     <Images
                         images={{
-                            IconImage,
+                            IconImage: IconImage,      // Default/Fallback
+                            HistoryPin: HistoryPin,
+                            LandscapePin: LandscapePin,
+                            NaturePin: NaturePin,
+                            ReligiousPin: ReligiousPin,
+                            WaterPin: WaterPin,
                         }}
                     />
                     <SymbolLayer
@@ -173,8 +200,8 @@ const ExploreTab = () => {
                             textField: ['get', 'title'],
                             textAnchor: 'top',
                             textOffset: [0, .5],
-                            iconSize: 0.3,
-                            iconImage: "IconImage",
+                            iconSize: 1,
+                            iconImage: ['get', 'icon'],
                         }}
 
                     />
