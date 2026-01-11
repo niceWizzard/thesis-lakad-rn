@@ -1,10 +1,5 @@
-import {
-    Actionsheet, ActionsheetBackdrop, ActionsheetContent,
-    ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper
-} from '@/components/ui/actionsheet';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { Divider } from '@/components/ui/divider';
 import { Fab, FabIcon } from '@/components/ui/fab';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
@@ -19,9 +14,12 @@ import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Landmark, LandmarkCategory } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
+import { Badge, BadgeText } from '@/components/ui/badge';
+import { CustomLocalSheet } from '@/src/components/CustomLocalSheet';
 import { Camera, Images, LocationPuck, MapView, ShapeSource, SymbolLayer } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
-import { Layers, LocateFixed, Map as MapIcon, Navigation, Plus, Star } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Info, Layers, LocateFixed, MapPin, Navigation, Star } from 'lucide-react-native';
 
 
 const MAP_STYLES = {
@@ -60,6 +58,7 @@ const ExploreTab = () => {
     const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard);
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const router = useRouter();
 
     const landmarks = useLandmarkStore(v => v.landmarks);
 
@@ -244,67 +243,82 @@ const ExploreTab = () => {
             </Fab>
 
             {/* Landmark Details Sheet */}
-            <Actionsheet isOpen={selectedLandmark != null} onClose={() => setSelectedLandmark(null)}>
-                <ActionsheetBackdrop />
-                <ActionsheetContent className="pb-10">
-                    <ActionsheetDragIndicatorWrapper>
-                        <ActionsheetDragIndicator />
-                    </ActionsheetDragIndicatorWrapper>
-
-                    <ScrollView className="w-full px-4 mt-4" showsVerticalScrollIndicator={false}>
-                        <VStack className="gap-6">
+            <CustomLocalSheet isOpen={selectedLandmark != null} onClose={() => setSelectedLandmark(null)}>
+                {selectedLandmark && (
+                    <ScrollView className="w-full px-4" showsVerticalScrollIndicator={false}>
+                        <VStack className="gap-5 mt-4">
                             <VStack className="gap-2">
                                 <HStack className="justify-between items-start">
-                                    <Heading size="xl" className="flex-1 text-typography-900">
-                                        {selectedLandmark?.name}
-                                    </Heading>
-                                    <HStack className="items-center bg-primary-50 px-2 py-1 rounded-md">
-                                        <Icon as={Star} size="xs" className="text-primary-600 mr-1" />
-                                        <Text size="sm" className="font-bold text-primary-700">4.8</Text>
+                                    <VStack className="flex-1">
+                                        <Heading size="xl" className="text-typography-900">
+                                            {selectedLandmark.name}
+                                        </Heading>
+                                        <HStack space="xs" className="mt-1 items-center">
+                                            <Icon as={MapPin} size="xs" className="text-typography-400" />
+                                            <Text size="xs" className="text-typography-500 font-medium">
+                                                {selectedLandmark.municipality}, District {selectedLandmark.district}
+                                            </Text>
+                                        </HStack>
+                                    </VStack>
+
+                                    <HStack className="items-center bg-warning-50 px-3 py-1 rounded-full border border-warning-100">
+                                        <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
+                                        <Text size="sm" className="font-bold text-warning-700">
+                                            {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
+                                        </Text>
                                     </HStack>
                                 </HStack>
-                                <HStack className="items-center gap-1">
-                                    <Icon as={MapIcon} size="xs" className="text-typography-400" />
-                                    <Text size="xs" className="text-typography-500">
-                                        {selectedLandmark?.latitude.toFixed(5)}, {selectedLandmark?.longitude.toFixed(5)}
-                                    </Text>
+
+                                <HStack space="xs" className="flex-wrap mt-2">
+                                    {selectedLandmark.categories?.map(cat => (
+                                        <Badge key={cat} action="info" variant="outline" className="rounded-md">
+                                            <BadgeText className="text-[10px] uppercase font-bold">{cat}</BadgeText>
+                                        </Badge>
+                                    ))}
                                 </HStack>
                             </VStack>
 
                             <Image
-                                source={{ uri: "https://media-cdn.tripadvisor.com/media/photo-s/0f/48/5c/af/random-location.jpg" }}
-                                className="w-full h-48 rounded-2xl bg-background-100"
+                                source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
+                                className="w-full h-52 rounded-3xl bg-background-100"
                                 resizeMode="cover"
                             />
 
-                            <VStack className="gap-2">
-                                <Text size="sm" className="text-typography-600 leading-relaxed">
-                                    This historical landmark offers a glimpse into the rich heritage of the region. A must-visit destination for travelers looking to explore local history.
+                            <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                <Text size="sm" className="text-typography-600 leading-relaxed" numberOfLines={3}>
+                                    {selectedLandmark.description || "No description available for this landmark."}
                                 </Text>
-                            </VStack>
+                            </Box>
 
-                            <Divider />
-
-                            <HStack className="gap-3">
+                            <HStack space="md" className="mb-4">
                                 <Button
-                                    className="flex-1 rounded-xl h-12 bg-primary-600"
-                                    onPress={() => { }}
+                                    className="flex-1 rounded-2xl h-14 bg-primary-600"
+                                    onPress={() => {
+                                        router.push({
+                                            pathname: '/landmark/[id]/view',
+                                            params: { id: selectedLandmark.id.toString() },
+                                        });
+                                    }}
                                 >
-                                    <ButtonIcon as={Plus} className="mr-2" />
-                                    <ButtonText>Add to Plan</ButtonText>
+                                    <ButtonIcon as={Info} className="mr-2" />
+                                    <ButtonText className="font-bold">Full Details</ButtonText>
                                 </Button>
+
                                 <Button
                                     variant="outline"
-                                    className="rounded-xl h-12 border-outline-300"
-                                    onPress={() => { }}
+                                    action="secondary"
+                                    className="rounded-2xl h-14 w-16 border-outline-300"
+                                    onPress={() => {
+                                        // Logic for external maps can go here
+                                    }}
                                 >
-                                    <ButtonIcon as={Navigation} />
+                                    <ButtonIcon as={Navigation} className="text-primary-600" />
                                 </Button>
                             </HStack>
                         </VStack>
                     </ScrollView>
-                </ActionsheetContent>
-            </Actionsheet>
+                )}
+            </CustomLocalSheet>
         </Box>
     );
 };
