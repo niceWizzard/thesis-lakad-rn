@@ -1,7 +1,6 @@
 import Mapbox from '@rnmapbox/maps';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  ArrowLeft,
   Edit2,
   Eye,
   History,
@@ -10,10 +9,10 @@ import {
   RefreshCcw,
   Star,
   Tag,
-  Trash2,
+  Trash2
 } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Image, ScrollView } from 'react-native';
 
 import {
   AlertDialog,
@@ -94,11 +93,6 @@ export default function AdminLandmarkDetailScreen() {
     <>
       <Stack.Screen options={{
         headerTitle: isArchived ? "Archived Landmark" : "Landmark Management",
-        headerLeft: () => (
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <ArrowLeft color="black" size={24} />
-          </TouchableOpacity>
-        )
       }} />
 
       <Box className="flex-1 bg-background-0">
@@ -135,7 +129,7 @@ export default function AdminLandmarkDetailScreen() {
         </AlertDialog>
 
         {/* Status Bar */}
-        <Box className={`p-4 border-b border-outline-100 ${isArchived ? 'bg-amber-50' : 'bg-background-50'}`}>
+        <Box className={`p-4 border-b border-outline-100 ${isArchived ? '' : 'bg-background-50'}`}>
           <HStack className="justify-between items-center">
             <VStack>
               <Text size="xs" className="uppercase font-bold text-typography-400">Visibility</Text>
@@ -233,11 +227,11 @@ export default function AdminLandmarkDetailScreen() {
               </HStack>
               <Divider />
               <HStack space="md">
-                <VStack className="flex-1 bg-white p-3 rounded-xl border border-outline-50">
+                <VStack className="flex-1 bg-background-100 p-3 rounded-xl border border-outline-50">
                   <Text size="xs" className="text-typography-400 font-bold uppercase mb-1">Lat</Text>
                   <Text size="sm" className="font-mono">{landmark.latitude}</Text>
                 </VStack>
-                <VStack className="flex-1 bg-white p-3 rounded-xl border border-outline-50">
+                <VStack className="flex-1 bg-background-100 p-3 rounded-xl border border-outline-50">
                   <Text size="xs" className="text-typography-400 font-bold uppercase mb-1">Lng</Text>
                   <Text size="sm" className="font-mono">{landmark.longitude}</Text>
                 </VStack>
@@ -305,7 +299,7 @@ export default function AdminLandmarkDetailScreen() {
         </ScrollView>
 
         {/* FIXED ACTION BAR */}
-        <Box className="p-6 bg-white border-t border-outline-50 shadow-lg">
+        <Box className="p-6  border-t border-outline-50 shadow-lg bg-background-50">
           <HStack space="md">
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
