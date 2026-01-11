@@ -247,7 +247,8 @@ export default function AdminLandmarkCreateScreen() {
 
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            className="flex-1 bg-background-0"
+            className="bg-background-0"
+            style={{ flex: 1 }}
         >
 
 

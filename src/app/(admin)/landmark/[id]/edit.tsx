@@ -262,7 +262,9 @@ export default function AdminLandmarkEditScreen() {
     if (isLoading) return <Box className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></Box>;
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-background-0">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="bg-background-0"
+            style={{ flex: 1 }}
+        >
             <AlertDialog isOpen={showDiscardAlert} onClose={() => setShowDiscardAlert(false)}>
                 <AlertDialogBackdrop />
                 <AlertDialogContent>
@@ -296,7 +298,7 @@ export default function AdminLandmarkEditScreen() {
                                 <Button size="xs" variant={uploadMode === 'url' ? 'solid' : 'outline'} onPress={() => setUploadMode('url')}><ButtonText>URL</ButtonText></Button>
                             </ButtonGroup>
                         </HStack>
-                        
+
                         <Box className="relative w-full h-64 rounded-3xl bg-background-100 overflow-hidden border border-outline-200">
                             {imagePreview ? (
                                 <Image source={{ uri: imagePreview }} className="w-full h-full" resizeMode="cover" />
