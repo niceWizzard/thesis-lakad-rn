@@ -48,7 +48,9 @@ import {
     FormControl,
     FormControlError,
     FormControlErrorIcon,
-    FormControlErrorText
+    FormControlErrorText,
+    FormControlLabel,
+    FormControlLabelText
 } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
@@ -77,10 +79,16 @@ import { LandmarkDistrict } from '@/src/model/landmark.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import debounce from 'lodash.debounce';
 
 
+const editLandmarkSchema = createAndEditLandmarkSchema.extend({
+    externalImageUrl: z.url({ message: "Please enter a valid URL (include http://)" })
+        .optional()
+        .or(z.literal(''))
+});
 
-type CreateFormData = z.infer<typeof createAndEditLandmarkSchema>;
+type CreateFormData = z.infer<typeof editLandmarkSchema>;
 
 export default function AdminLandmarkCreateScreen() {
     const router = useRouter();
@@ -89,13 +97,13 @@ export default function AdminLandmarkCreateScreen() {
     const queryClient = useQueryClient();
 
     const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file');
-    const [externalUrlInput, setExternalUrlInput] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [pendingImageData, setPendingImageData] = useState<{ base64?: string, remoteUrl?: string } | null>(null);
     const [showDiscardAlert, setShowDiscardAlert] = useState(false);
+    const [isVerifyingUrl, setIsVerifyingUrl] = useState(false);
 
     const { control, handleSubmit, reset, watch, setValue, formState: { errors, isValid, isDirty }, getValues } = useForm<CreateFormData>({
-        resolver: zodResolver(createAndEditLandmarkSchema),
+        resolver: zodResolver(editLandmarkSchema),
         mode: "onChange",
         defaultValues: {
             name: '',
@@ -106,11 +114,14 @@ export default function AdminLandmarkCreateScreen() {
             latitude: '',
             longitude: '',
             gmaps_rating: '0',
+            externalImageUrl: undefined,
         }
     });
 
+    const externalUrlInput = watch('externalImageUrl')
+
     const selectedDistrict = watch('district');
-    const hasStartedEntry = isDirty || !!pendingImageData || externalUrlInput.length > 0;
+    const hasStartedEntry = isDirty || !!pendingImageData || externalUrlInput && externalUrlInput.length > 0;
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -136,13 +147,34 @@ export default function AdminLandmarkCreateScreen() {
         }
     };
 
-    const handleApplyUrl = () => {
-        if (externalUrlInput) {
-            setImagePreview(externalUrlInput);
-            setPendingImageData({ remoteUrl: externalUrlInput });
-            setExternalUrlInput('');
+    const isImageUrl = async (url: string): Promise<boolean> => {
+        try {
+            console.log("FETCHING ", url)
+            const response = await fetch(url, { method: 'HEAD' });
+            const contentType = response.headers.get('Content-Type');
+            return contentType?.startsWith('image/') ?? false;
+        } catch {
+            return false;
         }
     };
+
+    const handleUrlChange = debounce(async (url: string) => {
+        setTimeout(async () => {
+            const valid = await isImageUrl(url);
+            console.log("CHECKED ", valid, url)
+            setIsVerifyingUrl(false);
+
+            if (valid) {
+                setImagePreview(url);
+                setPendingImageData({ remoteUrl: url });
+            } else {
+                // Optional: clear preview if the link becomes invalid
+                console.log("LKSDJF")
+                setImagePreview(null);
+                setPendingImageData(null);
+            }
+        }, 10)
+    }, 600);
 
     const createMutation = useMutation({
         mutationFn: async (formData: CreateFormData) => {
@@ -235,7 +267,7 @@ export default function AdminLandmarkCreateScreen() {
 
             <Modal transparent visible={createMutation.isPending} animationType="fade">
                 <Box className="flex-1 bg-black/50 justify-center items-center">
-                    <VStack className="bg-white p-8 rounded-3xl items-center gap-4 shadow-lg">
+                    <VStack className="bg-background-100 p-8 rounded-3xl items-center gap-4 shadow-lg">
                         <ActivityIndicator size="large" color="#0891b2" />
                         <Text className="font-bold text-lg text-center">Publishing Landmark...</Text>
                     </VStack>
@@ -252,98 +284,124 @@ export default function AdminLandmarkCreateScreen() {
                                 <Button size="xs" variant={uploadMode === 'url' ? 'solid' : 'outline'} onPress={() => setUploadMode('url')}><ButtonText>URL</ButtonText></Button>
                             </ButtonGroup>
                         </HStack>
+
                         <Box className="relative w-full h-64 rounded-3xl bg-background-100 overflow-hidden border border-outline-200">
                             {imagePreview ? <Image source={{ uri: imagePreview }} className="w-full h-full" resizeMode="cover" /> : <VStack className="w-full h-full items-center justify-center gap-2"><Icon as={Camera} size="xl" className="text-typography-300" /><Text size="sm" className="text-typography-400">Preview will appear here</Text></VStack>}
                             {uploadMode === 'file' && <Button onPress={handlePickImage} className="absolute bottom-4 right-4 rounded-2xl shadow-xl" action="primary"><ButtonIcon as={Camera} className="mr-2" /><ButtonText>{imagePreview ? 'Change' : 'Select'} Photo</ButtonText></Button>}
                         </Box>
-                        {uploadMode === 'url' && <Input variant="outline" size="lg" className="rounded-xl overflow-hidden"><InputSlot className="pl-3"><Icon as={Globe} /></InputSlot><InputField placeholder="Paste image URL..." value={externalUrlInput} onChangeText={setExternalUrlInput} /><Button onPress={handleApplyUrl} isDisabled={!externalUrlInput} className="rounded-none h-full"><ButtonIcon as={CheckCircle2} /></Button></Input>}
+
+                        {uploadMode === 'url' && (
+                            <FormControl isInvalid={!!errors.externalImageUrl}>
+                                <FormControlLabel className="mb-1">
+                                    <FormControlLabelText size="xs" className="uppercase font-bold">Image URL</FormControlLabelText>
+                                </FormControlLabel>
+                                <Controller
+                                    control={control}
+                                    name="externalImageUrl"
+                                    render={({ field: { onChange, value } }) => (
+                                        <Input variant="outline" size="lg" className="rounded-xl overflow-hidden">
+                                            <InputSlot className="pl-3">
+                                                {isVerifyingUrl ? <ActivityIndicator size="small" color="#0891b2" /> : <Icon as={Globe} className={imagePreview === externalUrlInput ? "text-success-500" : ""} />}
+                                            </InputSlot>
+                                            <InputField
+                                                placeholder="https://example.com/image.jpg"
+                                                value={value}
+                                                onChangeText={(text) => {
+                                                    onChange(text);
+                                                    setIsVerifyingUrl(true);
+                                                    handleUrlChange(text);
+                                                }}
+                                            />
+                                            {imagePreview && imagePreview === externalUrlInput && !isVerifyingUrl && (
+                                                <InputSlot className="pr-3"><Icon as={CheckCircle2} size="sm" className="text-success-500" /></InputSlot>
+                                            )}
+                                        </Input>
+                                    )}
+                                />
+                                <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.externalImageUrl?.message}</FormControlErrorText></FormControlError>
+                            </FormControl>
+                        )}
                     </VStack>
 
                     <VStack className="gap-5">
                         <Heading size="md">Landmark Details</Heading>
 
+                        {/* Official Name */}
                         <FormControl isInvalid={!!errors.name}>
-                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Official Name</Text>
-                            <Controller control={control} name="name" render={({ field: { onChange, value } }) => (
-                                <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><InputIcon as={Type} /></InputSlot><InputField placeholder="e.g. Barasoain Church" value={value} onChangeText={onChange} /></Input>
-                            )} />
+                            <FormControlLabel className="mb-1">
+                                <FormControlLabelText size="xs" className="uppercase font-bold">Official Name</FormControlLabelText>
+                            </FormControlLabel>
+                            <Controller
+                                control={control}
+                                name="name"
+                                render={({ field: { onChange, value } }) => (
+                                    <Input size="lg" className="rounded-xl">
+                                        <InputSlot className="pl-3"><InputIcon as={Type} /></InputSlot>
+                                        <InputField placeholder="e.g. Barasoain Church" value={value} onChangeText={onChange} />
+                                    </Input>
+                                )}
+                            />
                             <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.name?.message}</FormControlErrorText></FormControlError>
                         </FormControl>
 
-                        {/* JURISDICTION SELECTS */}
                         <HStack space="md">
+                            {/* District */}
                             <VStack className="flex-1">
                                 <FormControl isInvalid={!!errors.district}>
-                                    <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">District</Text>
+                                    <FormControlLabel className="mb-1">
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">District</FormControlLabelText>
+                                    </FormControlLabel>
                                     <Controller control={control} name="district" render={({ field: { onChange, value } }) => (
-                                        <Select selectedValue={value}
-                                            onValueChange={(val) => {
-                                                onChange(val); // Update District
-
-                                                const validTowns = DISTRICT_TO_MUNICIPALITY_MAP[val as LandmarkDistrict];
-                                                const firstTown = validTowns[0];
-
-                                                // Set the new municipality AND force validation on that field
-                                                setValue('municipality', getValues('municipality'), {
-                                                    shouldValidate: true,
-                                                    shouldDirty: true
-                                                });
-                                            }}
-                                        >
-                                            <SelectTrigger size="lg" className="rounded-xl">
-                                                <SelectInput placeholder="District" />
-                                                <SelectIcon className="mr-3" as={ChevronDown} />
-                                            </SelectTrigger>
-                                            <SelectPortal>
-                                                <SelectBackdrop />
-                                                <SelectContent>
-                                                    <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                    {Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map((d) => <SelectItem key={d} label={d} value={d} />)}
-                                                </SelectContent>
-                                            </SelectPortal>
+                                        <Select selectedValue={value} onValueChange={(val) => {
+                                            onChange(val);
+                                            setValue('municipality', getValues('municipality'), { shouldValidate: true, shouldDirty: true });
+                                        }}>
+                                            <SelectTrigger size="lg" className="rounded-xl"><SelectInput placeholder="District" /><SelectIcon className="mr-3" as={ChevronDown} /></SelectTrigger>
+                                            <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                {Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map((d) => <SelectItem key={d} label={d} value={d} />)}
+                                            </SelectContent></SelectPortal>
                                         </Select>
                                     )} />
                                 </FormControl>
                             </VStack>
+
+                            {/* Municipality */}
                             <VStack className="flex-1">
                                 <FormControl isInvalid={!!errors.municipality}>
-                                    <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Municipality</Text>
+                                    <FormControlLabel className="mb-1">
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">Municipality</FormControlLabelText>
+                                    </FormControlLabel>
                                     <Controller control={control} name="municipality" render={({ field: { onChange, value } }) => (
                                         <Select selectedValue={value} onValueChange={onChange} isDisabled={!selectedDistrict}>
-                                            <SelectTrigger size="lg" className="rounded-xl">
-                                                <SelectInput placeholder="Town" />
-                                                <SelectIcon className="mr-3" as={ChevronDown} />
-                                            </SelectTrigger>
-                                            <SelectPortal>
-                                                <SelectBackdrop />
-                                                <SelectContent>
-                                                    <SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                    {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => (
-                                                        <SelectItem key={m} label={m.replace("_", " ")} value={m} />
-                                                    ))}
-                                                </SelectContent>
-                                            </SelectPortal>
+                                            <SelectTrigger size="lg" className="rounded-xl"><SelectInput placeholder="Town" /><SelectIcon className="mr-3" as={ChevronDown} /></SelectTrigger>
+                                            <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
+                                                {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => (
+                                                    <SelectItem key={m} label={m.replace("_", " ")} value={m} />
+                                                ))}
+                                            </SelectContent></SelectPortal>
                                         </Select>
                                     )} />
-                                    {/* Error text will now show the Zod superRefine message */}
-                                    <FormControlError >
-                                        <FormControlErrorIcon as={AlertCircle} />
-                                        <FormControlErrorText>{errors.municipality?.message}</FormControlErrorText>
-                                    </FormControlError>
+                                    <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.municipality?.message}</FormControlErrorText></FormControlError>
                                 </FormControl>
                             </VStack>
                         </HStack>
 
+                        {/* GMaps Rating */}
                         <FormControl isInvalid={!!errors.gmaps_rating}>
-                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">GMaps Rating (0-5)</Text>
+                            <FormControlLabel className="mb-1">
+                                <FormControlLabelText size="xs" className="uppercase font-bold">GMaps Rating (0-5)</FormControlLabelText>
+                            </FormControlLabel>
                             <Controller control={control} name="gmaps_rating" render={({ field: { onChange, value } }) => (
                                 <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Star} size="sm" className="text-warning-500" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" placeholder="4.5" /></Input>
                             )} />
                             <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.gmaps_rating?.message}</FormControlErrorText></FormControlError>
                         </FormControl>
 
+                        {/* Categories */}
                         <FormControl isInvalid={!!errors.categories}>
-                            <HStack className="items-center gap-2 mb-2 ml-1"><Icon as={Tag} size="xs" className="text-typography-500" /><Text size="xs" className="font-bold text-typography-500 uppercase">Categories</Text></HStack>
+                            <FormControlLabel className="mb-1">
+                                <HStack className="items-center gap-2"><Icon as={Tag} size="xs" /><FormControlLabelText size="xs" className="uppercase font-bold">Categories</FormControlLabelText></HStack>
+                            </FormControlLabel>
                             <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
                                 <Controller control={control} name="categories" render={({ field: { onChange, value } }) => (
                                     <CheckboxGroup value={value} onChange={onChange}>
@@ -353,47 +411,47 @@ export default function AdminLandmarkCreateScreen() {
                             </Box>
                         </FormControl>
 
+                        {/* Description */}
                         <FormControl isInvalid={!!errors.description}>
-                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Description</Text>
+                            <FormControlLabel className="mb-1">
+                                <FormControlLabelText size="xs" className="uppercase font-bold">Description</FormControlLabelText>
+                            </FormControlLabel>
                             <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
                                 <Textarea className="rounded-xl"><TextareaInput placeholder="Historical background..." value={value} onChangeText={onChange} multiline className="h-32" /></Textarea>
                             )} />
                             <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.description?.message}</FormControlErrorText></FormControlError>
                         </FormControl>
 
+                        {/* Coordinates */}
                         <HStack space="md">
                             <Box className="flex-1">
                                 <FormControl isInvalid={!!errors.latitude}>
-                                    <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Latitude</Text>
+                                    <FormControlLabel className="mb-1">
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">Latitude</FormControlLabelText>
+                                    </FormControlLabel>
                                     <Controller control={control} name="latitude" render={({ field: { onChange, value } }) => (
                                         <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" placeholder="14.8..." /></Input>
                                     )} />
-                                    <FormControlError>
-                                        <FormControlErrorIcon as={AlertCircle} />
-                                        <FormControlErrorText>{errors.latitude?.message}</FormControlErrorText>
-                                    </FormControlError>
+                                    <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.latitude?.message}</FormControlErrorText></FormControlError>
                                 </FormControl>
-
                             </Box>
                             <Box className="flex-1">
                                 <FormControl isInvalid={!!errors.longitude}>
-                                    <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Longitude</Text>
+                                    <FormControlLabel className="mb-1">
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">Longitude</FormControlLabelText>
+                                    </FormControlLabel>
                                     <Controller control={control} name="longitude" render={({ field: { onChange, value } }) => (
                                         <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={MapPin} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" placeholder="120.8..." /></Input>
                                     )} />
-                                    <FormControlError>
-                                        <FormControlErrorIcon as={AlertCircle} />
-                                        <FormControlErrorText>{errors.longitude?.message}</FormControlErrorText>
-                                    </FormControlError>
+                                    <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.longitude?.message}</FormControlErrorText></FormControlError>
                                 </FormControl>
-
                             </Box>
                         </HStack>
                     </VStack>
                 </VStack>
             </ScrollView>
 
-            <Box className="p-6 bg-white border-t border-outline-50">
+            <Box className="p-6 bg-background-50 border-t border-outline-50">
                 <Button onPress={handleSubmit((data) => createMutation.mutate(data))} size="lg" isDisabled={!isValid || !imagePreview || createMutation.isPending} className="rounded-2xl h-14">
                     {createMutation.isPending ? <ActivityIndicator color="white" className="mr-2" /> : <ButtonIcon as={Plus} className="mr-2" />}
                     <ButtonText className="font-bold">{createMutation.isPending ? 'Publishing...' : 'Publish Landmark'}</ButtonText>
