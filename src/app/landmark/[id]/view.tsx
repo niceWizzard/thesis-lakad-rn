@@ -58,7 +58,7 @@ export default function LandmarkViewerScreen() {
                 {/* 1. Hero Image Section */}
                 <Box className="relative w-full h-[350px]">
                     <Image
-                        source={{ uri: 'https://via.placeholder.com/600x400' }}
+                        source={{ uri: landmark.image_url || 'https://via.placeholder.com/600x400' }}
                         className="w-full h-full"
                         resizeMode="cover"
                     />

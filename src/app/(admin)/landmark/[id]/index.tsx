@@ -107,7 +107,7 @@ export default function AdminLandmarkDetailScreen() {
           {/* Visual Content Check */}
           <VStack className="gap-4">
             <Image
-              source={{ uri: 'https://via.placeholder.com/600x400' }}
+              source={{ uri: landmark.image_url || 'https://via.placeholder.com/600x400' }}
               className="w-full h-64 rounded-3xl bg-background-100"
               resizeMode="cover"
             />
