@@ -1,13 +1,15 @@
+import Mapbox from '@rnmapbox/maps';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
   Edit2,
   Eye,
   History,
+  MapPin,
   Navigation2,
   Star,
   Tag,
-  Trash2
+  Trash2,
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, TouchableOpacity } from 'react-native';
@@ -41,7 +43,7 @@ export default function AdminLandmarkDetailScreen() {
   const queryClient = useQueryClient();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-  // --- 1. DATA FETCHING ---
+  // --- DATA FETCHING ---
   const { data: landmark, isLoading } = useQuery({
     queryKey: ['landmark', id],
     queryFn: async () => {
@@ -56,17 +58,15 @@ export default function AdminLandmarkDetailScreen() {
     enabled: !!id,
   });
 
-  // --- 2. DELETE MUTATION ---
+  // --- DELETE MUTATION ---
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      // 1. Storage Cleanup
       if (landmark?.image_url) {
         const path = landmark.image_url.split('/public/landmark_images/')[1];
         if (path) {
           await supabase.storage.from('landmark_images').remove([path]);
         }
       }
-      // 2. Database Cleanup
       const { error } = await supabase.from('landmark').delete().eq('id', id as any);
       if (error) throw error;
     },
@@ -197,7 +197,7 @@ export default function AdminLandmarkDetailScreen() {
             </VStack>
           </VStack>
 
-          {/* 3. Location Card*/}
+          {/* 3. COORDINATES CARD */}
           <VStack space="md" className="bg-background-50 p-5 rounded-3xl border border-outline-100">
             <HStack className="items-center gap-2">
               <Icon as={Navigation2} size="sm" className="text-primary-600" />
@@ -224,6 +224,32 @@ export default function AdminLandmarkDetailScreen() {
                 <Text size="sm" className="font-mono">{landmark.longitude}</Text>
               </VStack>
             </HStack>
+          </VStack>
+
+          {/* 4. MAP PREVIEW CARD (RNMapbox) */}
+          <VStack space="md" className="bg-background-50 p-2 rounded-3xl border border-outline-100 overflow-hidden">
+            <Box className="h-48 w-full rounded-2xl overflow-hidden bg-background-200">
+              <Mapbox.MapView
+                style={{ flex: 1 }}
+                zoomEnabled={false}
+                scrollEnabled={false} // Static feel for mini-map
+                logoEnabled={false}
+                attributionEnabled={false}
+              >
+                <Mapbox.Camera
+                  defaultSettings={{ centerCoordinate: [landmark.longitude, landmark.latitude], zoomLevel: 14, }}
+
+                />
+                <Mapbox.PointAnnotation
+                  id="landmark-marker"
+                  coordinate={[landmark.longitude, landmark.latitude]}
+                >
+                  <Box className="bg-primary-600 p-2 rounded-full shadow-md">
+                    <MapPin color="white" size={16} />
+                  </Box>
+                </Mapbox.PointAnnotation>
+              </Mapbox.MapView>
+            </Box>
           </VStack>
 
           {/* 5. DESCRIPTION PREVIEW */}
