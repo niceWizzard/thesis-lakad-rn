@@ -70,7 +70,7 @@ export type Database = {
       }
       landmark: {
         Row: {
-          categories: Database["public"]["Enums"]["poi_category"][]
+          categories: Database["public"]["Enums"]["landmark_category"][]
           created_at: string
           created_by_user: boolean
           deleted_at: string | null
@@ -86,7 +86,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          categories: Database["public"]["Enums"]["poi_category"][]
+          categories?: Database["public"]["Enums"]["landmark_category"][]
           created_at?: string
           created_by_user?: boolean
           deleted_at?: string | null
@@ -102,7 +102,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          categories?: Database["public"]["Enums"]["poi_category"][]
+          categories?: Database["public"]["Enums"]["landmark_category"][]
           created_at?: string
           created_by_user?: boolean
           deleted_at?: string | null
@@ -202,6 +202,12 @@ export type Database = {
     }
     Enums: {
       district: "1" | "2" | "3" | "4" | "5" | "6" | "Lone"
+      landmark_category:
+        | "Nature"
+        | "Landscape"
+        | "Water"
+        | "History"
+        | "Religious"
       municipality:
         | "Bulakan"
         | "Calumpit"
@@ -357,6 +363,13 @@ export const Constants = {
   public: {
     Enums: {
       district: ["1", "2", "3", "4", "5", "6", "Lone"],
+      landmark_category: [
+        "Nature",
+        "Landscape",
+        "Water",
+        "History",
+        "Religious",
+      ],
       municipality: [
         "Bulakan",
         "Calumpit",

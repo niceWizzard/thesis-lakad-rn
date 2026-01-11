@@ -20,11 +20,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 // 1. Define the categories
 const CATEGORIES = [
-    { id: 'Church', label: 'Church', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
-    { id: 'Historical', label: 'Historical', icon: Utensils, color: 'bg-orange-100', text: 'text-orange-700' },
-    { id: 'Landmark', label: 'Landmark', icon: History, color: 'bg-amber-100', text: 'text-amber-700' },
-    { id: 'Museum', label: 'Museum', icon: Music, color: 'bg-purple-100', text: 'text-purple-700' },
-    { id: 'Nature', label: 'Nature', icon: Mountain, color: 'bg-blue-100', text: 'text-blue-700' },
+    { id: 'History', label: 'History', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
+    { id: 'Landscape', label: 'Landscape', icon: Utensils, color: 'bg-orange-100', text: 'text-orange-700' },
+    { id: 'Nature', label: 'Nature', icon: History, color: 'bg-amber-100', text: 'text-amber-700' },
+    { id: 'Religious', label: 'Religious', icon: Music, color: 'bg-purple-100', text: 'text-purple-700' },
+    { id: 'Water', label: 'Water', icon: Mountain, color: 'bg-blue-100', text: 'text-blue-700' },
 ] satisfies {
     id: LandmarkCategory,
     label: string,
