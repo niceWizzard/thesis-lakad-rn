@@ -7,6 +7,7 @@ import {
   History,
   MapPin,
   Navigation2,
+  RefreshCcw,
   Star,
   Tag,
   Trash2,
@@ -58,29 +59,31 @@ export default function AdminLandmarkDetailScreen() {
     enabled: !!id,
   });
 
-  // --- DELETE MUTATION ---
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (landmark?.image_url) {
-        const path = landmark.image_url.split('/public/landmark_images/')[1];
-        if (path) {
-          await supabase.storage.from('landmark_images').remove([path]);
-        }
-      }
-      const { error } = await supabase.from('landmark').delete().eq('id', id as any);
+  const isArchived = landmark?.deleted_at !== null;
+
+  // --- DELETE/RESTORE MUTATION ---
+  const toggleArchiveMutation = useMutation({
+    mutationFn: async (shouldRestore: boolean = false) => {
+      const { error } = await supabase
+        .from('landmark')
+        .update({
+          deleted_at: shouldRestore ? null : new Date().toISOString(),
+        })
+        .eq('id', id as any);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, isRestoring) => {
+      queryClient.invalidateQueries({ queryKey: ['landmark', id] });
       queryClient.invalidateQueries({ queryKey: ['landmarks'] });
       toast.show({
         placement: "top",
         render: ({ id }) => (
           <Toast nativeID={id} action="success" variant="solid">
-            <ToastTitle>Landmark Deleted Successfully</ToastTitle>
+            <ToastTitle>{isRestoring ? "Landmark Restored" : "Landmark Archived"}</ToastTitle>
           </Toast>
         ),
       });
-      router.back();
+      if (!isRestoring) router.back();
     },
   });
 
@@ -90,26 +93,26 @@ export default function AdminLandmarkDetailScreen() {
   return (
     <>
       <Stack.Screen options={{
-        headerTitle: "Landmark Management",
+        headerTitle: isArchived ? "Archived Landmark" : "Landmark Management",
         headerLeft: () => (
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <ArrowLeft color="black" size={24} />
           </TouchableOpacity>
         )
       }} />
-      <Box className="flex-1 bg-background-0">
 
+      <Box className="flex-1 bg-background-0">
 
         {/* DELETE CONFIRMATION */}
         <AlertDialog isOpen={showDeleteAlert} onClose={() => setShowDeleteAlert(false)}>
           <AlertDialogBackdrop />
           <AlertDialogContent>
             <AlertDialogHeader>
-              <Heading size="lg" className="text-error-600">Permanently Delete?</Heading>
+              <Heading size="lg" className="text-error-600">Archive Landmark?</Heading>
             </AlertDialogHeader>
             <AlertDialogBody>
               <Text size="sm">
-                This will remove "{landmark.name}" from the public app and delete its hosted image. This action cannot be undone.
+                This will remove "{landmark.name}" from public searches. It will remain in the database to preserve historical itinerary data.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter className='mt-3'>
@@ -121,10 +124,10 @@ export default function AdminLandmarkDetailScreen() {
                   action="negative"
                   onPress={() => {
                     setShowDeleteAlert(false);
-                    deleteMutation.mutate();
+                    toggleArchiveMutation.mutate(false);
                   }}
                 >
-                  <ButtonText>{deleteMutation.isPending ? "Deleting..." : "Delete"}</ButtonText>
+                  <ButtonText>{toggleArchiveMutation.isPending ? "Archiving..." : "Archive"}</ButtonText>
                 </Button>
               </ButtonGroup>
             </AlertDialogFooter>
@@ -132,28 +135,43 @@ export default function AdminLandmarkDetailScreen() {
         </AlertDialog>
 
         {/* Status Bar */}
-        <Box className="bg-background-50 p-4 border-b border-outline-100">
+        <Box className={`p-4 border-b border-outline-100 ${isArchived ? 'bg-amber-50' : 'bg-background-50'}`}>
           <HStack className="justify-between items-center">
             <VStack>
               <Text size="xs" className="uppercase font-bold text-typography-400">Visibility</Text>
-              <Badge action="success" variant="solid" className="rounded-md self-start mt-1">
-                <BadgeText>LIVE ON APP</BadgeText>
+              <Badge action={isArchived ? "warning" : "success"} variant="solid" className="rounded-md self-start mt-1">
+                <BadgeText>{isArchived ? "ARCHIVED" : "LIVE ON APP"}</BadgeText>
               </Badge>
             </VStack>
-            <Button
-              variant="outline"
-              action="secondary"
-              size="xs"
-              onPress={() => router.navigate(`/landmark/${landmark.id}/view`)}
-            >
-              <ButtonText>User View</ButtonText>
-              <ButtonIcon as={Eye} className="ml-1" />
-            </Button>
+
+            <HStack space="sm">
+              {isArchived ? (
+                <Button
+                  variant="outline"
+                  action="primary"
+                  size="xs"
+                  onPress={() => toggleArchiveMutation.mutate(true)}
+                >
+                  <ButtonText>Restore</ButtonText>
+                  <ButtonIcon as={RefreshCcw} className="ml-1" />
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  action="secondary"
+                  size="xs"
+                  onPress={() => router.navigate(`/landmark/${landmark.id}/view`)}
+                >
+                  <ButtonText>User View</ButtonText>
+                  <ButtonIcon as={Eye} className="ml-1" />
+                </Button>
+              )}
+            </HStack>
           </HStack>
         </Box>
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <VStack className="p-6 gap-6">
+          <VStack className={`p-6 gap-6 ${isArchived ? 'opacity-70' : ''}`}>
 
             {/* 1. HERO IMAGE */}
             <Box className="relative">
@@ -181,9 +199,7 @@ export default function AdminLandmarkDetailScreen() {
                   </HStack>
                 </VStack>
               </HStack>
-
               <Divider />
-
               <VStack className="gap-2">
                 <HStack className="items-center gap-2">
                   <Icon as={Tag} size="xs" className="text-primary-600" />
@@ -228,8 +244,7 @@ export default function AdminLandmarkDetailScreen() {
               </HStack>
             </VStack>
 
-            {/* 4. MAP PREVIEW CARD (RNMapbox) */}
-            {/* 4. MAP PREVIEW CARD */}
+            {/* 4. MAP PREVIEW */}
             <VStack space="md" className="bg-background-50 p-2 rounded-3xl border border-outline-100 overflow-hidden">
               <Box className="h-48 w-full rounded-2xl overflow-hidden bg-background-200">
                 {(Math.abs(landmark.longitude) <= 180 && Math.abs(landmark.latitude) < 90) ? (
@@ -256,14 +271,12 @@ export default function AdminLandmarkDetailScreen() {
                     </Mapbox.PointAnnotation>
                   </Mapbox.MapView>
                 ) : (
-                  <Box className="flex-1 justify-center items-center">
-                    <Text>Invalid coordinates set.</Text>
-                  </Box>
+                  <Box className="flex-1 justify-center items-center"><Text>No Coordinates</Text></Box>
                 )}
               </Box>
             </VStack>
 
-            {/* 5. DESCRIPTION PREVIEW */}
+            {/* 5. DESCRIPTION */}
             <VStack className="gap-3">
               <Heading size="sm" className="ml-1">Historical Description</Heading>
               <Box className="bg-background-50 p-5 rounded-3xl border border-outline-100">
@@ -280,6 +293,11 @@ export default function AdminLandmarkDetailScreen() {
                   <Text size="xs" className="text-secondary-600">
                     Record Created: {new Date(landmark.created_at).toLocaleString()}
                   </Text>
+                  {isArchived && (
+                    <Text size="xs" className="text-error-600 font-bold">
+                      Archived On: {new Date(landmark.deleted_at!).toLocaleString()}
+                    </Text>
+                  )}
                 </VStack>
               </HStack>
             </Box>
@@ -290,21 +308,26 @@ export default function AdminLandmarkDetailScreen() {
         <Box className="p-6 bg-white border-t border-outline-50 shadow-lg">
           <HStack space="md">
             <Button
-              className="flex-1 rounded-2xl h-14 bg-primary-600"
-              onPress={() => router.push(`/(admin)/landmark/${landmark.id}/edit`)}
+              className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
+              onPress={() => !isArchived && router.push(`/(admin)/landmark/${landmark.id}/edit`)}
+              disabled={isArchived}
             >
-              <ButtonIcon as={Edit2} className="mr-2" />
-              <ButtonText className="font-bold">Edit Content</ButtonText>
+              <ButtonIcon as={Edit2} className={isArchived ? "text-typography-300" : "mr-2"} />
+              <ButtonText className={isArchived ? "text-typography-400" : "font-bold"}>
+                {isArchived ? "Archived (No Edit)" : "Edit Content"}
+              </ButtonText>
             </Button>
 
-            <Button
-              variant="outline"
-              action="negative"
-              className="w-16 rounded-2xl h-14 border-error-200"
-              onPress={() => setShowDeleteAlert(true)}
-            >
-              <ButtonIcon as={Trash2} className="text-error-600" />
-            </Button>
+            {!isArchived && (
+              <Button
+                variant="outline"
+                action="negative"
+                className="w-16 rounded-2xl h-14 border-error-200"
+                onPress={() => setShowDeleteAlert(true)}
+              >
+                <ButtonIcon as={Trash2} className="text-error-600" />
+              </Button>
+            )}
           </HStack>
         </Box>
       </Box>

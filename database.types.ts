@@ -73,6 +73,7 @@ export type Database = {
           categories: Database["public"]["Enums"]["poi_category"][]
           created_at: string
           created_by_user: boolean
+          deleted_at: string | null
           description: string | null
           district: Database["public"]["Enums"]["district"]
           gmaps_rating: number
@@ -88,6 +89,7 @@ export type Database = {
           categories: Database["public"]["Enums"]["poi_category"][]
           created_at?: string
           created_by_user?: boolean
+          deleted_at?: string | null
           description?: string | null
           district: Database["public"]["Enums"]["district"]
           gmaps_rating?: number
@@ -103,6 +105,7 @@ export type Database = {
           categories?: Database["public"]["Enums"]["poi_category"][]
           created_at?: string
           created_by_user?: boolean
+          deleted_at?: string | null
           description?: string | null
           district?: Database["public"]["Enums"]["district"]
           gmaps_rating?: number

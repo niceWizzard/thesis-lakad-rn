@@ -34,6 +34,12 @@ function MoreTab() {
             onPress: () => router.navigate("/(admin)/users"),
         },
         {
+            id: '4',
+            title: 'Archived Landmarks',
+            icon: Key,
+            onPress: () => router.navigate('/(admin)/landmark/archived'),
+        },
+        {
             id: '3',
             title: 'Change Password',
             icon: Key,
