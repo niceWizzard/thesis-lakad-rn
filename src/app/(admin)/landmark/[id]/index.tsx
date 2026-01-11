@@ -229,28 +229,37 @@ export default function AdminLandmarkDetailScreen() {
             </VStack>
 
             {/* 4. MAP PREVIEW CARD (RNMapbox) */}
+            {/* 4. MAP PREVIEW CARD */}
             <VStack space="md" className="bg-background-50 p-2 rounded-3xl border border-outline-100 overflow-hidden">
               <Box className="h-48 w-full rounded-2xl overflow-hidden bg-background-200">
-                <Mapbox.MapView
-                  style={{ flex: 1 }}
-                  zoomEnabled={false}
-                  scrollEnabled={false} // Static feel for mini-map
-                  logoEnabled={false}
-                  attributionEnabled={false}
-                >
-                  <Mapbox.Camera
-                    defaultSettings={{ centerCoordinate: [landmark.longitude, landmark.latitude], zoomLevel: 14, }}
-
-                  />
-                  <Mapbox.PointAnnotation
-                    id="landmark-marker"
-                    coordinate={[landmark.longitude, landmark.latitude]}
+                {(Math.abs(landmark.longitude) <= 180 && Math.abs(landmark.latitude) < 90) ? (
+                  <Mapbox.MapView
+                    style={{ flex: 1 }}
+                    zoomEnabled={false}
+                    scrollEnabled={false}
+                    logoEnabled={false}
+                    attributionEnabled={false}
                   >
-                    <Box className="bg-primary-600 p-2 rounded-full shadow-md">
-                      <MapPin color="white" size={16} />
-                    </Box>
-                  </Mapbox.PointAnnotation>
-                </Mapbox.MapView>
+                    <Mapbox.Camera
+                      defaultSettings={{
+                        centerCoordinate: [landmark.longitude, landmark.latitude],
+                        zoomLevel: 14
+                      }}
+                    />
+                    <Mapbox.PointAnnotation
+                      id="landmark-marker"
+                      coordinate={[landmark.longitude, landmark.latitude]}
+                    >
+                      <Box className="bg-primary-600 p-2 rounded-full shadow-md">
+                        <MapPin color="white" size={16} />
+                      </Box>
+                    </Mapbox.PointAnnotation>
+                  </Mapbox.MapView>
+                ) : (
+                  <Box className="flex-1 justify-center items-center">
+                    <Text>Invalid coordinates set.</Text>
+                  </Box>
+                )}
               </Box>
             </VStack>
 
