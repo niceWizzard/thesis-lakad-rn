@@ -171,23 +171,22 @@ export default function AdminMapOverviewScreen() {
                 visible={showResults}
             />
 
-            {/* Map Action Buttons */}
-            <VStack className="absolute right-4 bottom-24 gap-3">
-                <Fab
-                    onPress={() => setMapStyle(prev => prev === MAP_STYLES.standard ? MAP_STYLES.satellite : MAP_STYLES.standard)}
-                    size="md"
-                    className="bg-white shadow-md border border-outline-100"
-                >
-                    <FabIcon as={Layers} className="text-typography-700" />
-                </Fab>
-                <Fab
-                    onPress={handleLocatePress}
-                    size="md"
-                    className="bg-primary-600 shadow-md"
-                >
-                    <FabIcon as={LocateFixed} color="white" />
-                </Fab>
-            </VStack>
+            {/* Map Controls (FABs) */}
+            <Fab
+                onPress={() => setMapStyle(prev => prev === MAP_STYLES.standard ? MAP_STYLES.satellite : MAP_STYLES.standard)}
+                size="md"
+                placement='top right'
+                className='mt-40'
+            >
+                <FabIcon as={Layers} className="text-typography-700" />
+            </Fab>
+            <Fab
+                onPress={handleLocatePress}
+                size="lg"
+                placement='bottom right'
+            >
+                <FabIcon as={LocateFixed} />
+            </Fab>
 
             {/* Admin Quick View Sheet */}
             {/* Landmark Details Sheet */}
