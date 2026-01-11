@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { decode } from 'base64-arraybuffer';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import {
     AlertCircle,
-    ArrowLeft,
     Camera,
     CheckCircle2,
     ChevronDown,
@@ -24,8 +23,7 @@ import {
     KeyboardAvoidingView,
     Modal,
     Platform,
-    ScrollView,
-    TouchableOpacity
+    ScrollView
 } from 'react-native';
 import * as z from 'zod';
 
@@ -228,171 +226,168 @@ export default function AdminLandmarkEditScreen() {
     if (isLoading) return <Box className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></Box>;
 
     return (
-        <>
-            <Stack.Screen options={{ headerTitle: "Edit Landmark", headerLeft: () => <TouchableOpacity onPress={() => router.back()} className="mr-4"><ArrowLeft color="black" size={24} /></TouchableOpacity> }} />
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-background-0">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-background-0">
 
-                <AlertDialog isOpen={showDiscardAlert} onClose={() => setShowDiscardAlert(false)}>
-                    <AlertDialogBackdrop />
-                    <AlertDialogContent className='gap-4'>
-                        <AlertDialogHeader><Heading size="lg">Unsaved Changes</Heading></AlertDialogHeader>
-                        <AlertDialogBody><Text size="sm">Are you sure you want to discard your edits?</Text></AlertDialogBody>
-                        <AlertDialogFooter>
-                            <ButtonGroup space="lg" flexDirection='row'>
-                                <Button variant="outline" action="secondary" onPress={() => setShowDiscardAlert(false)}><ButtonText>Stay</ButtonText></Button>
-                                <Button action="negative" onPress={() => { setShowDiscardAlert(false); setPendingImageData(null); reset(); router.back(); }}><ButtonText>Discard</ButtonText></Button>
-                            </ButtonGroup>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+            <AlertDialog isOpen={showDiscardAlert} onClose={() => setShowDiscardAlert(false)}>
+                <AlertDialogBackdrop />
+                <AlertDialogContent className='gap-4'>
+                    <AlertDialogHeader><Heading size="lg">Unsaved Changes</Heading></AlertDialogHeader>
+                    <AlertDialogBody><Text size="sm">Are you sure you want to discard your edits?</Text></AlertDialogBody>
+                    <AlertDialogFooter>
+                        <ButtonGroup space="lg" flexDirection='row'>
+                            <Button variant="outline" action="secondary" onPress={() => setShowDiscardAlert(false)}><ButtonText>Stay</ButtonText></Button>
+                            <Button action="negative" onPress={() => { setShowDiscardAlert(false); setPendingImageData(null); reset(); router.back(); }}><ButtonText>Discard</ButtonText></Button>
+                        </ButtonGroup>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
-                <Modal transparent visible={updateMutation.isPending} animationType="fade">
-                    <Box className="flex-1 bg-black/50 justify-center items-center">
-                        <VStack className="bg-white p-8 rounded-3xl items-center gap-4 shadow-lg">
-                            <ActivityIndicator size="large" color="#0891b2" />
-                            <Text className="font-bold text-lg text-center">Saving Changes...</Text>
-                        </VStack>
-                    </Box>
-                </Modal>
-
-                <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                    <VStack className="p-6 gap-8">
-                        <VStack className="gap-4">
-                            <HStack className="justify-between items-center">
-                                <Heading size="md">Visual Content</Heading>
-                                <ButtonGroup isAttached flexDirection='row'>
-                                    <Button size="xs" variant={uploadMode === 'file' ? 'solid' : 'outline'} onPress={() => setUploadMode('file')}><ButtonText>Gallery</ButtonText></Button>
-                                    <Button size="xs" variant={uploadMode === 'url' ? 'solid' : 'outline'} onPress={() => setUploadMode('url')}><ButtonText>URL</ButtonText></Button>
-                                </ButtonGroup>
-                            </HStack>
-                            <Box className="relative w-full h-64 rounded-3xl bg-background-100 overflow-hidden border border-outline-200">
-                                <Image source={{ uri: imagePreview || 'https://via.placeholder.com/600x400' }} className="w-full h-full" resizeMode="cover" />
-                                {uploadMode === 'file' && <Button onPress={handlePickImage} className="absolute bottom-4 right-4 rounded-2xl shadow-xl" action="primary"><ButtonIcon as={Camera} className="mr-2" /><ButtonText>Replace</ButtonText></Button>}
-                            </Box>
-                            {uploadMode === 'url' && <Input variant="outline" size="lg" className="rounded-xl overflow-hidden"><InputSlot className="pl-3"><Icon as={Globe} /></InputSlot><InputField placeholder="Enter image URL..." value={externalUrlInput} onChangeText={setExternalUrlInput} /><Button onPress={handleApplyUrl} isDisabled={!externalUrlInput} className="rounded-none h-full"><ButtonIcon as={CheckCircle2} /></Button></Input>}
-                        </VStack>
-
-                        <VStack className="gap-5">
-                            <Heading size="md">Landmark Details</Heading>
-                            <FormControl isInvalid={!!errors.name}>
-                                <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Official Name</Text>
-                                <Controller control={control} name="name" render={({ field: { onChange, value } }) => <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><InputIcon as={Type} /></InputSlot><InputField value={value} onChangeText={onChange} /></Input>} />
-                            </FormControl>
-
-                            <HStack space="md">
-                                <VStack className="flex-1">
-                                    <FormControl isInvalid={!!errors.district}>
-                                        <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">District</Text>
-                                        <Controller control={control} name="district" render={({ field: { onChange, value } }) => (
-                                            <Select selectedValue={value}
-                                                onValueChange={(val) => {
-                                                    onChange(val); // Update District
-
-                                                    const validTowns = DISTRICT_TO_MUNICIPALITY_MAP[val as LandmarkDistrict];
-                                                    const firstTown = validTowns[0];
-
-                                                    // Set the new municipality AND force validation on that field
-                                                    setValue('municipality', getValues('municipality'), {
-                                                        shouldValidate: true,
-                                                        shouldDirty: true
-                                                    });
-                                                }}
-                                            >
-                                                <SelectTrigger size="lg" className="rounded-xl"><SelectInput placeholder="District" /><SelectIcon className="mr-3" as={ChevronDown} /></SelectTrigger>
-                                                <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>{Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map((d) => <SelectItem key={d} label={d} value={d} />)}</SelectContent></SelectPortal>
-                                            </Select>
-                                        )} />
-                                    </FormControl>
-                                </VStack>
-                                <VStack className="flex-1">
-                                    <FormControl isInvalid={!!errors.municipality}>
-                                        <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Municipality</Text>
-                                        <Controller control={control} name="municipality" render={({ field: { onChange, value } }) => (
-                                            <Select selectedValue={value} onValueChange={onChange} isDisabled={!selectedDistrict}>
-                                                <SelectTrigger size="lg" className="rounded-xl"><SelectInput placeholder="Town" /><SelectIcon className="mr-3" as={ChevronDown} /></SelectTrigger>
-                                                <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>{(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => <SelectItem key={m} label={m.replace("_", " ")} value={m} />)}</SelectContent></SelectPortal>
-                                            </Select>
-                                        )} />
-                                        <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.municipality?.message}</FormControlErrorText></FormControlError>
-                                    </FormControl>
-                                </VStack>
-                            </HStack>
-
-                            <FormControl isInvalid={!!errors.gmaps_rating}>
-                                <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">GMaps Rating (0-5)</Text>
-                                <Controller control={control} name="gmaps_rating" render={({ field: { onChange, value } }) => <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Star} size="sm" className="text-warning-500" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>} />
-                            </FormControl>
-
-                            <FormControl isInvalid={!!errors.categories}>
-                                <HStack className="items-center gap-2 mb-2 ml-1"><Icon as={Tag} size="xs" className="text-typography-500" /><Text size="xs" className="font-bold text-typography-500 uppercase">Categories</Text></HStack>
-                                <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
-                                    <Controller control={control} name="categories" render={({ field: { onChange, value } }) => (
-                                        <CheckboxGroup value={value} onChange={onChange}>
-                                            <VStack className="gap-3">{LANDMARK_CATEGORIES.map((cat) => (<Checkbox key={cat} value={cat} size="md" aria-label={cat}><CheckboxIndicator><CheckboxIcon as={CheckIcon} /></CheckboxIndicator><CheckboxLabel className="ml-2">{cat}</CheckboxLabel></Checkbox>))}</VStack>
-                                        </CheckboxGroup>
-                                    )} />
-                                </Box>
-                            </FormControl>
-
-                            <FormControl isInvalid={!!errors.description}>
-                                <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Description</Text>
-                                <Controller control={control} name="description" render={({ field: { onChange, value } }) => <Textarea className="rounded-xl"><TextareaInput value={value} onChangeText={onChange} multiline className="h-32" /></Textarea>} />
-                            </FormControl>
-
-                            <HStack space="md">
-                                <Box className="flex-1">
-                                    <FormControl isInvalid={!!errors.latitude}>
-                                        <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Latitude</Text>
-                                        <Controller
-                                            control={control}
-                                            name="latitude"
-                                            render={({ field: { onChange, value } }) => (
-                                                <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" />
-                                                </InputSlot>
-                                                    <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
-                                                </Input>
-                                            )}
-                                        />
-                                        <FormControlError>
-                                            <FormControlErrorIcon as={AlertCircle} />
-                                            <FormControlErrorText>{errors.latitude?.message}</FormControlErrorText>
-                                        </FormControlError>
-                                    </FormControl>
-
-                                </Box>
-                                <Box className="flex-1">
-                                    <FormControl isInvalid={!!errors.longitude}>
-                                        <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Longitude</Text>
-                                        <Controller
-                                            control={control}
-                                            name="longitude"
-                                            render={({ field: { onChange, value } }) => (
-                                                <Input size="md" className="rounded-xl">
-                                                    <InputSlot className="pl-3"><Icon as={MapPin} size="sm" />
-                                                    </InputSlot>
-                                                    <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
-                                                </Input>
-                                            )}
-                                        />
-                                        <FormControlError>
-                                            <FormControlErrorIcon as={AlertCircle} />
-                                            <FormControlErrorText>{errors.longitude?.message}</FormControlErrorText>
-                                        </FormControlError>
-                                    </FormControl>
-
-                                </Box>
-                            </HStack>
-                        </VStack>
+            <Modal transparent visible={updateMutation.isPending} animationType="fade">
+                <Box className="flex-1 bg-black/50 justify-center items-center">
+                    <VStack className="bg-white p-8 rounded-3xl items-center gap-4 shadow-lg">
+                        <ActivityIndicator size="large" color="#0891b2" />
+                        <Text className="font-bold text-lg text-center">Saving Changes...</Text>
                     </VStack>
-                </ScrollView>
-
-                <Box className="p-6 bg-white border-t border-outline-50">
-                    <Button onPress={handleSubmit((data) => updateMutation.mutate(data))} size="lg" isDisabled={(!isDirty && !pendingImageData) || !isValid || updateMutation.isPending} className="rounded-2xl h-14">
-                        {updateMutation.isPending ? <ActivityIndicator color="white" className="mr-2" /> : <ButtonIcon as={Save} className="mr-2" />}
-                        <ButtonText className="font-bold">{updateMutation.isPending ? 'Saving...' : 'Save Changes'}</ButtonText>
-                    </Button>
                 </Box>
-            </KeyboardAvoidingView>
-        </>
+            </Modal>
+
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                <VStack className="p-6 gap-8">
+                    <VStack className="gap-4">
+                        <HStack className="justify-between items-center">
+                            <Heading size="md">Visual Content</Heading>
+                            <ButtonGroup isAttached flexDirection='row'>
+                                <Button size="xs" variant={uploadMode === 'file' ? 'solid' : 'outline'} onPress={() => setUploadMode('file')}><ButtonText>Gallery</ButtonText></Button>
+                                <Button size="xs" variant={uploadMode === 'url' ? 'solid' : 'outline'} onPress={() => setUploadMode('url')}><ButtonText>URL</ButtonText></Button>
+                            </ButtonGroup>
+                        </HStack>
+                        <Box className="relative w-full h-64 rounded-3xl bg-background-100 overflow-hidden border border-outline-200">
+                            <Image source={{ uri: imagePreview || 'https://via.placeholder.com/600x400' }} className="w-full h-full" resizeMode="cover" />
+                            {uploadMode === 'file' && <Button onPress={handlePickImage} className="absolute bottom-4 right-4 rounded-2xl shadow-xl" action="primary"><ButtonIcon as={Camera} className="mr-2" /><ButtonText>Replace</ButtonText></Button>}
+                        </Box>
+                        {uploadMode === 'url' && <Input variant="outline" size="lg" className="rounded-xl overflow-hidden"><InputSlot className="pl-3"><Icon as={Globe} /></InputSlot><InputField placeholder="Enter image URL..." value={externalUrlInput} onChangeText={setExternalUrlInput} /><Button onPress={handleApplyUrl} isDisabled={!externalUrlInput} className="rounded-none h-full"><ButtonIcon as={CheckCircle2} /></Button></Input>}
+                    </VStack>
+
+                    <VStack className="gap-5">
+                        <Heading size="md">Landmark Details</Heading>
+                        <FormControl isInvalid={!!errors.name}>
+                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Official Name</Text>
+                            <Controller control={control} name="name" render={({ field: { onChange, value } }) => <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><InputIcon as={Type} /></InputSlot><InputField value={value} onChangeText={onChange} /></Input>} />
+                        </FormControl>
+
+                        <HStack space="md">
+                            <VStack className="flex-1">
+                                <FormControl isInvalid={!!errors.district}>
+                                    <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">District</Text>
+                                    <Controller control={control} name="district" render={({ field: { onChange, value } }) => (
+                                        <Select selectedValue={value}
+                                            onValueChange={(val) => {
+                                                onChange(val); // Update District
+
+                                                const validTowns = DISTRICT_TO_MUNICIPALITY_MAP[val as LandmarkDistrict];
+                                                const firstTown = validTowns[0];
+
+                                                // Set the new municipality AND force validation on that field
+                                                setValue('municipality', getValues('municipality'), {
+                                                    shouldValidate: true,
+                                                    shouldDirty: true
+                                                });
+                                            }}
+                                        >
+                                            <SelectTrigger size="lg" className="rounded-xl"><SelectInput placeholder="District" /><SelectIcon className="mr-3" as={ChevronDown} /></SelectTrigger>
+                                            <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>{Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map((d) => <SelectItem key={d} label={d} value={d} />)}</SelectContent></SelectPortal>
+                                        </Select>
+                                    )} />
+                                </FormControl>
+                            </VStack>
+                            <VStack className="flex-1">
+                                <FormControl isInvalid={!!errors.municipality}>
+                                    <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Municipality</Text>
+                                    <Controller control={control} name="municipality" render={({ field: { onChange, value } }) => (
+                                        <Select selectedValue={value} onValueChange={onChange} isDisabled={!selectedDistrict}>
+                                            <SelectTrigger size="lg" className="rounded-xl"><SelectInput placeholder="Town" /><SelectIcon className="mr-3" as={ChevronDown} /></SelectTrigger>
+                                            <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>{(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => <SelectItem key={m} label={m.replace("_", " ")} value={m} />)}</SelectContent></SelectPortal>
+                                        </Select>
+                                    )} />
+                                    <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.municipality?.message}</FormControlErrorText></FormControlError>
+                                </FormControl>
+                            </VStack>
+                        </HStack>
+
+                        <FormControl isInvalid={!!errors.gmaps_rating}>
+                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">GMaps Rating (0-5)</Text>
+                            <Controller control={control} name="gmaps_rating" render={({ field: { onChange, value } }) => <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Star} size="sm" className="text-warning-500" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>} />
+                        </FormControl>
+
+                        <FormControl isInvalid={!!errors.categories}>
+                            <HStack className="items-center gap-2 mb-2 ml-1"><Icon as={Tag} size="xs" className="text-typography-500" /><Text size="xs" className="font-bold text-typography-500 uppercase">Categories</Text></HStack>
+                            <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                <Controller control={control} name="categories" render={({ field: { onChange, value } }) => (
+                                    <CheckboxGroup value={value} onChange={onChange}>
+                                        <VStack className="gap-3">{LANDMARK_CATEGORIES.map((cat) => (<Checkbox key={cat} value={cat} size="md" aria-label={cat}><CheckboxIndicator><CheckboxIcon as={CheckIcon} /></CheckboxIndicator><CheckboxLabel className="ml-2">{cat}</CheckboxLabel></Checkbox>))}</VStack>
+                                    </CheckboxGroup>
+                                )} />
+                            </Box>
+                        </FormControl>
+
+                        <FormControl isInvalid={!!errors.description}>
+                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1 text-uppercase">Description</Text>
+                            <Controller control={control} name="description" render={({ field: { onChange, value } }) => <Textarea className="rounded-xl"><TextareaInput value={value} onChangeText={onChange} multiline className="h-32" /></Textarea>} />
+                        </FormControl>
+
+                        <HStack space="md">
+                            <Box className="flex-1">
+                                <FormControl isInvalid={!!errors.latitude}>
+                                    <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Latitude</Text>
+                                    <Controller
+                                        control={control}
+                                        name="latitude"
+                                        render={({ field: { onChange, value } }) => (
+                                            <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" />
+                                            </InputSlot>
+                                                <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                            </Input>
+                                        )}
+                                    />
+                                    <FormControlError>
+                                        <FormControlErrorIcon as={AlertCircle} />
+                                        <FormControlErrorText>{errors.latitude?.message}</FormControlErrorText>
+                                    </FormControlError>
+                                </FormControl>
+
+                            </Box>
+                            <Box className="flex-1">
+                                <FormControl isInvalid={!!errors.longitude}>
+                                    <Text size="xs" className="font-bold text-typography-500 mb-1 text-uppercase">Longitude</Text>
+                                    <Controller
+                                        control={control}
+                                        name="longitude"
+                                        render={({ field: { onChange, value } }) => (
+                                            <Input size="md" className="rounded-xl">
+                                                <InputSlot className="pl-3"><Icon as={MapPin} size="sm" />
+                                                </InputSlot>
+                                                <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                            </Input>
+                                        )}
+                                    />
+                                    <FormControlError>
+                                        <FormControlErrorIcon as={AlertCircle} />
+                                        <FormControlErrorText>{errors.longitude?.message}</FormControlErrorText>
+                                    </FormControlError>
+                                </FormControl>
+
+                            </Box>
+                        </HStack>
+                    </VStack>
+                </VStack>
+            </ScrollView>
+
+            <Box className="p-6 bg-white border-t border-outline-50">
+                <Button onPress={handleSubmit((data) => updateMutation.mutate(data))} size="lg" isDisabled={(!isDirty && !pendingImageData) || !isValid || updateMutation.isPending} className="rounded-2xl h-14">
+                    {updateMutation.isPending ? <ActivityIndicator color="white" className="mr-2" /> : <ButtonIcon as={Save} className="mr-2" />}
+                    <ButtonText className="font-bold">{updateMutation.isPending ? 'Saving...' : 'Save Changes'}</ButtonText>
+                </Button>
+            </Box>
+        </KeyboardAvoidingView>
     );
 }

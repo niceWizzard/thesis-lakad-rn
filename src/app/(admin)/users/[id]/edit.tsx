@@ -1,13 +1,12 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
-    ArrowLeft,
     Mail,
     ShieldCheck,
     ShieldOff,
     User as UserIcon
 } from 'lucide-react-native';
 import React from 'react';
-import { Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
@@ -111,16 +110,7 @@ export default function AdminUserEditScreen() {
 
     return (
         <Box className="flex-1 bg-background-0">
-            <Stack.Screen
-                options={{
-                    headerTitle: "Edit User Permissions",
-                    headerLeft: () => (
-                        <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                            <ArrowLeft color="black" size={24} />
-                        </TouchableOpacity>
-                    )
-                }}
-            />
+
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 <VStack className="p-6 gap-8">

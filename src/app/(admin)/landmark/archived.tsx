@@ -123,8 +123,6 @@ export default function AdminArchivedLandmarksScreen() {
 
     return (
         <Box className="flex-1 bg-background-0">
-            <Stack.Screen options={{ headerTitle: "Admin Panel" }} />
-
             <FlatList
                 data={processedLandmarks}
                 keyExtractor={(item) => `landmark-${item.id}`}
