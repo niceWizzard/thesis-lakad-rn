@@ -74,11 +74,13 @@ export type Database = {
           created_at: string
           created_by_user: boolean
           description: string | null
+          district: Database["public"]["Enums"]["district"]
           gmaps_rating: number
           id: number
           image_url: string | null
           latitude: number
           longitude: number
+          municipality: Database["public"]["Enums"]["municipality"]
           name: string
           updated_at: string
         }
@@ -87,11 +89,13 @@ export type Database = {
           created_at?: string
           created_by_user?: boolean
           description?: string | null
+          district: Database["public"]["Enums"]["district"]
           gmaps_rating?: number
           id?: number
           image_url?: string | null
           latitude: number
           longitude: number
+          municipality: Database["public"]["Enums"]["municipality"]
           name?: string
           updated_at?: string
         }
@@ -100,11 +104,13 @@ export type Database = {
           created_at?: string
           created_by_user?: boolean
           description?: string | null
+          district?: Database["public"]["Enums"]["district"]
           gmaps_rating?: number
           id?: number
           image_url?: string | null
           latitude?: number
           longitude?: number
+          municipality?: Database["public"]["Enums"]["municipality"]
           name?: string
           updated_at?: string
         }
@@ -192,6 +198,32 @@ export type Database = {
           }
     }
     Enums: {
+      district: "1" | "2" | "3" | "4" | "5" | "6" | "Lone"
+      municipality:
+        | "Bulakan"
+        | "Calumpit"
+        | "Hagonoy"
+        | "Malolos"
+        | "Paombong"
+        | "Pulilan"
+        | "Baliwag"
+        | "Bustos"
+        | "Plaridel"
+        | "DRT"
+        | "San_Ildefonso"
+        | "San_Miguel"
+        | "San_Rafael"
+        | "Marilao"
+        | "Meycauayan"
+        | "Obando"
+        | "Balagtas"
+        | "Bocaue"
+        | "Guiguinto"
+        | "Pandi"
+        | "Angat"
+        | "Norzagaray"
+        | "Santa_Maria"
+        | "SJDM"
       poi_category: "Church" | "Historical" | "Nature" | "Museum" | "Landmark"
       user_type: "Regular" | "Admin" | "SuperAdmin"
     }
@@ -321,6 +353,33 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      district: ["1", "2", "3", "4", "5", "6", "Lone"],
+      municipality: [
+        "Bulakan",
+        "Calumpit",
+        "Hagonoy",
+        "Malolos",
+        "Paombong",
+        "Pulilan",
+        "Baliwag",
+        "Bustos",
+        "Plaridel",
+        "DRT",
+        "San_Ildefonso",
+        "San_Miguel",
+        "San_Rafael",
+        "Marilao",
+        "Meycauayan",
+        "Obando",
+        "Balagtas",
+        "Bocaue",
+        "Guiguinto",
+        "Pandi",
+        "Angat",
+        "Norzagaray",
+        "Santa_Maria",
+        "SJDM",
+      ],
       poi_category: ["Church", "Historical", "Nature", "Museum", "Landmark"],
       user_type: ["Regular", "Admin", "SuperAdmin"],
     },

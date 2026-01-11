@@ -6,9 +6,12 @@ import {
     ChevronRight,
     Clock,
     Filter,
+    Map as MapIcon,
+    MapPin,
     Plus,
     Search,
     SortAsc,
+    Star, // Added Star icon
     X
 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
@@ -36,27 +39,29 @@ import { Badge, BadgeText } from '@/components/ui/badge';
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
-import { Landmark } from '@/src/model/landmark.types';
+import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
+import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
 import { useQuery } from '@tanstack/react-query';
 
-type SortKey = 'id' | 'name';
+// --- Updated SortKey Type ---
+type SortKey = 'id' | 'name' | 'rating';
 type SortOrder = 'asc' | 'desc';
-const CATEGORIES = LANDMARK_CATEGORIES;
 
 export default function AdminLandmarksScreen() {
+    const router = useRouter();
+    const auth = useAuthStore();
+    const userId = auth.session?.user?.id;
+
     const [searchString, setSearchString] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);
 
-    // Sort & Filter State
     const [sortKey, setSortKey] = useState<SortKey>('id');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-
-    const auth = useAuthStore();
-    const userId = auth.session?.user?.id;
-    const router = useRouter();
+    const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+    const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
     const {
         data: landmarks = [],
@@ -69,19 +74,25 @@ export default function AdminLandmarksScreen() {
         enabled: !!userId,
     });
 
-    // --- ENHANCED FILTERING & SORTING ---
+    // --- ENHANCED FILTERING & SORTING LOGIC ---
     const processedLandmarks = useMemo(() => {
         let result = landmarks.filter(landmark => {
             const matchesSearch = landmark.name.toLowerCase().includes(searchString.toLowerCase());
-            // Assuming your landmark model has a 'category' field
-            const matchesCategory = selectedCategories.length === 0 || selectedCategories.every(v => landmark.categories.includes(v as any));
-            return matchesSearch && matchesCategory;
+            const matchesCategory = selectedCategories.length === 0 ||
+                selectedCategories.every(v => landmark.categories.includes(v as any));
+            const matchesDistrict = !selectedDistrict || landmark.district === selectedDistrict;
+            const matchesMuni = !selectedMunicipality || landmark.municipality === selectedMunicipality;
+
+            return matchesSearch && matchesCategory && matchesDistrict && matchesMuni;
         });
 
         result.sort((a, b) => {
             let comparison = 0;
             if (sortKey === 'name') {
                 comparison = a.name.localeCompare(b.name);
+            } else if (sortKey === 'rating') {
+                // Sort by gmaps_rating (defaulting to 0 if null/undefined)
+                comparison = (a.gmaps_rating ?? 0) - (b.gmaps_rating ?? 0);
             } else {
                 comparison = a.id - b.id;
             }
@@ -89,15 +100,16 @@ export default function AdminLandmarksScreen() {
         });
 
         return result;
-    }, [landmarks, searchString, sortKey, sortOrder, selectedCategories]);
+    }, [landmarks, searchString, sortKey, sortOrder, selectedCategories, selectedDistrict, selectedMunicipality]);
 
-    const toggleCategory = (cat: string) => {
-        setSelectedCategories(prev =>
-            prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-        );
+    const resetFilters = () => {
+        setSearchString('');
+        setSelectedCategories([]);
+        setSelectedDistrict(null);
+        setSelectedMunicipality(null);
+        setSortKey('id');
+        setSortOrder('desc');
     };
-
-    const handleCreatePress = () => router.navigate('/(admin)/landmark/create');
 
     if (isLoading && landmarks.length === 0) {
         return (
@@ -113,44 +125,44 @@ export default function AdminLandmarksScreen() {
 
     return (
         <Box className="flex-1 bg-background-0">
-            <Stack.Screen options={{ headerTitle: "Manage Landmarks" }} />
+            <Stack.Screen options={{ headerTitle: "Admin Panel" }} />
 
             <FlatList
                 data={processedLandmarks}
                 keyExtractor={(item) => `landmark-${item.id}`}
                 showsVerticalScrollIndicator={false}
                 contentContainerClassName="p-6 pb-32 gap-4"
-                refreshControl={
-                    <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#4f46e5" />
-                }
+                refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#4f46e5" />}
                 ListHeaderComponent={
                     <VStack className="mb-2 gap-4">
                         <Input variant="rounded" size="lg" className="border-none bg-background-100 h-12 rounded-2xl">
-                            <InputSlot className="pl-4">
-                                <InputIcon as={Search} className="text-typography-400" />
-                            </InputSlot>
-                            <InputField
-                                placeholder="Search landmarks..."
-                                value={searchString}
-                                onChangeText={setSearchString}
-                            />
+                            <InputSlot className="pl-4"><InputIcon as={Search} className="text-typography-400" /></InputSlot>
+                            <InputField placeholder="Search name..." value={searchString} onChangeText={setSearchString} />
                             {searchString.length > 0 && (
-                                <InputSlot className="pr-4" onPress={() => setSearchString('')}>
-                                    <InputIcon as={X} size="sm" />
-                                </InputSlot>
+                                <InputSlot className="pr-4" onPress={() => setSearchString('')}><InputIcon as={X} size="sm" /></InputSlot>
                             )}
                         </Input>
 
                         <HStack className="justify-between items-center px-1">
-                            <Text size="xs" className="text-typography-500 font-bold uppercase tracking-wider">
-                                {processedLandmarks.length} Results
-                            </Text>
+                            <VStack>
+                                <Text size="xs" className="text-typography-500 font-bold uppercase tracking-wider">
+                                    {processedLandmarks.length} Results
+                                </Text>
+                                {(selectedDistrict || selectedMunicipality || selectedCategories.length > 0) && (
+                                    <Text size="xs" className="text-primary-600 font-medium">Filters Active</Text>
+                                )}
+                            </VStack>
                             <TouchableOpacity
                                 onPress={() => setShowFilterModal(true)}
-                                className="flex-row items-center gap-2 bg-primary-50 px-4 py-2 rounded-full border border-primary-100"
+                                className={`flex-row items-center gap-2 px-4 py-2 rounded-full border ${(selectedDistrict || selectedMunicipality || selectedCategories.length > 0)
+                                    ? 'bg-primary-600 border-primary-600'
+                                    : 'bg-primary-50 border-primary-100'
+                                    }`}
                             >
-                                <Icon as={Filter} size="xs" className="text-primary-600" />
-                                <Text size="xs" className="text-primary-600 font-bold">Filters & Sort</Text>
+                                <Icon as={Filter} size="xs" color={(selectedDistrict || selectedMunicipality || selectedCategories.length > 0) ? "white" : "#4f46e5"} />
+                                <Text size="xs" className={`font-bold ${(selectedDistrict || selectedMunicipality || selectedCategories.length > 0) ? "text-white" : "text-primary-600"}`}>
+                                    Filters
+                                </Text>
                             </TouchableOpacity>
                         </HStack>
                     </VStack>
@@ -162,23 +174,32 @@ export default function AdminLandmarksScreen() {
                         className="bg-background-50 rounded-3xl border border-outline-100 shadow-soft-1 overflow-hidden"
                     >
                         <HStack className="p-4 items-center gap-4">
-                            <Box className="w-16 h-16 bg-background-200 rounded-2xl overflow-hidden">
+                            <Box className="w-20 h-20 bg-background-200 rounded-2xl overflow-hidden">
                                 <Image source={{ uri: landmark.image_url || "https://via.placeholder.com/150" }} className="w-full h-full" resizeMode="cover" />
                             </Box>
-                            <VStack className='flex-1 gap-2'>
-                                <View className=" flex-row flex-wrap gap-0.5">
-                                    {
-                                        landmark.categories.map(category => (
-                                            <Badge
-                                                key={`landmark-${landmark.id}-category-${category}`}
-                                                action="info" variant="outline" className="self-start rounded-md border-primary-200">
-                                                <BadgeText className="text-[10px] uppercase font-bold text-primary-600">{category || 'Uknown'}</BadgeText>
+                            <VStack className='flex-1 gap-1'>
+                                <HStack className="justify-between items-start">
+                                    <HStack className="flex-wrap gap-1 flex-1">
+                                        {landmark.categories.slice(0, 2).map(cat => (
+                                            <Badge key={cat} action="info" variant="outline" className="rounded-md px-1">
+                                                <BadgeText className="text-[9px] uppercase font-bold">{cat}</BadgeText>
                                             </Badge>
-                                        ))
-                                    }
-                                </View>
-                                <Heading size="sm" className="text-typography-900 flex-shrink" numberOfLines={1}>{landmark.name}</Heading>
-                                <Text size="xs" className="text-typography-500 flex-grow">ID: #{landmark.id}</Text>
+                                        ))}
+                                        {landmark.categories.length > 2 && <Text size="xs">+{landmark.categories.length - 2}</Text>}
+                                    </HStack>
+
+                                    {/* --- Rating Badge on Card --- */}
+                                    <HStack className="items-center bg-warning-50 px-1.5 py-0.5 rounded-lg border border-warning-100">
+                                        <Icon as={Star} size='sm' fill="#d97706" color="#d97706" className="mr-1" />
+                                        <Text size="xs" className="font-bold text-warning-700">{landmark.gmaps_rating ?? '0'}</Text>
+                                    </HStack>
+                                </HStack>
+
+                                <Heading size="sm" className="text-typography-900" numberOfLines={1}>{landmark.name}</Heading>
+                                <HStack space="xs" className="items-center">
+                                    <Icon as={MapPin} size="xs" className="text-typography-400" />
+                                    <Text size="xs" className="text-typography-500">{landmark.municipality.replace('_', ' ')} - District {landmark.district}</Text>
+                                </HStack>
                             </VStack>
                             <Icon as={ChevronRight} className="text-typography-300 mr-1" />
                         </HStack>
@@ -187,10 +208,8 @@ export default function AdminLandmarksScreen() {
                 ListEmptyComponent={
                     <VStack className="items-center justify-center py-20 gap-4">
                         <Icon as={Search} size="xl" className="text-typography-200" />
-                        <Text className="text-typography-400">No matches found.</Text>
-                        <Button variant="link" onPress={() => { setSearchString(''); setSelectedCategories([]); setSortKey('id'); setSortOrder('desc'); }}>
-                            <ButtonText>Reset Filters</ButtonText>
-                        </Button>
+                        <Text className="text-typography-400">No matching landmarks.</Text>
+                        <Button variant="link" onPress={resetFilters}><ButtonText>Reset All Filters</ButtonText></Button>
                     </VStack>
                 }
             />
@@ -198,86 +217,137 @@ export default function AdminLandmarksScreen() {
             {/* --- FILTER & SORT MODAL --- */}
             <Modal isOpen={showFilterModal} onClose={() => setShowFilterModal(false)}>
                 <ModalBackdrop />
-                <ModalContent className="rounded-[32px] p-2">
-                    <ModalHeader className="p-4">
-                        <Heading size="lg">Refine List</Heading>
+                <ModalContent className="rounded-[32px] max-h-[90%]">
+                    <ModalHeader className="p-4 border-b border-outline-50">
+                        <VStack>
+                            <Heading size="lg">Refine List</Heading>
+                            <Text size="xs" className="text-typography-500">Apply sorting and geographic filters</Text>
+                        </VStack>
                         <ModalCloseButton><Icon as={X} /></ModalCloseButton>
                     </ModalHeader>
-                    <ModalBody >
-                        <VStack
-                            className="p-4 gap-6"
-                        >
-                            {/* Sort Section */}
-                            <VStack className='gap-3'>
-                                <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Sort By</Text>
-                                <HStack className='gap-2'>
-                                    <Button
-                                        className={`flex-1 rounded-xl h-12 ${sortKey === 'id' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                        onPress={() => setSortKey('id')}
-                                    >
-                                        <ButtonIcon as={Clock} className="mr-2" color={sortKey === 'id' ? 'white' : '#6b7280'} />
-                                        <ButtonText className={sortKey === 'id' ? 'text-white' : 'text-typography-600'}>Date</ButtonText>
-                                    </Button>
-                                    <Button
-                                        className={`flex-1 rounded-xl h-12 ${sortKey === 'name' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                        onPress={() => setSortKey('name')}
-                                    >
-                                        <ButtonIcon as={SortAsc} className="mr-2" color={sortKey === 'name' ? 'white' : '#6b7280'} />
-                                        <ButtonText className={sortKey === 'name' ? 'text-white' : 'text-typography-600'}>Name</ButtonText>
-                                    </Button>
-                                </HStack>
-
-                                <HStack className='gap-2'>
-                                    <Button
-                                        variant="outline"
-                                        className={`flex-1 rounded-xl h-12 border-2 ${sortOrder === 'asc' ? 'border-primary-500 bg-primary-50' : 'border-outline-100'}`}
-                                        onPress={() => setSortOrder('asc')}
-                                    >
-                                        <ButtonIcon as={ArrowUp} className="mr-2 text-primary-600" />
-                                        <ButtonText className="text-primary-700 font-bold">Ascending</ButtonText>
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className={`flex-1 rounded-xl h-12 border-2 ${sortOrder === 'desc' ? 'border-primary-500 bg-primary-50' : 'border-outline-100'}`}
-                                        onPress={() => setSortOrder('desc')}
-                                    >
-                                        <ButtonIcon as={ArrowDown} className="mr-2 text-primary-600" />
-                                        <ButtonText className="text-primary-700 font-bold">Descending</ButtonText>
-                                    </Button>
-                                </HStack>
-                            </VStack>
-
-                            {/* Category Filter Section */}
-                            <VStack className='gap-3'>
-                                <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Filter Category</Text>
-                                <View className="flex-row flex-wrap gap-2 ">
-                                    {CATEGORIES.map(cat => (
-                                        <TouchableOpacity
-                                            key={cat}
-                                            onPress={() => toggleCategory(cat)}
-                                            className={`px-4 py-2.5 rounded-full border-2 ${selectedCategories.includes(cat) ? 'bg-primary-500 border-primary-500' : 'bg-background-50 border-outline-100'}`}
+                    <ModalBody>
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            <VStack className="p-4 gap-8">
+                                {/* 1. Sort Section */}
+                                <VStack className='gap-3'>
+                                    <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Sort By</Text>
+                                    <HStack className='gap-2'>
+                                        <Button
+                                            className={`flex-1 rounded-xl h-11 ${sortKey === 'id' ? 'bg-primary-600' : 'bg-background-100'}`}
+                                            onPress={() => setSortKey('id')}
                                         >
-                                            <HStack space="xs" className="items-center">
-                                                {selectedCategories.includes(cat) && <Icon as={Check} size="xs" color="white" />}
-                                                <Text size="sm" className={`font-bold ${selectedCategories.includes(cat) ? 'text-white' : 'text-typography-600'}`}>
-                                                    {cat}
-                                                </Text>
-                                            </HStack>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
+                                            <ButtonIcon as={Clock} color={sortKey === 'id' ? 'white' : '#6b7280'} />
+                                            <ButtonText className={sortKey === 'id' ? 'text-white' : 'text-typography-600'}>Recent</ButtonText>
+                                        </Button>
+                                        <Button
+                                            className={`flex-1 rounded-xl h-11 ${sortKey === 'name' ? 'bg-primary-600' : 'bg-background-100'}`}
+                                            onPress={() => setSortKey('name')}
+                                        >
+                                            <ButtonIcon as={SortAsc} color={sortKey === 'name' ? 'white' : '#6b7280'} />
+                                            <ButtonText className={sortKey === 'name' ? 'text-white' : 'text-typography-600'}>A-Z</ButtonText>
+                                        </Button>
+
+                                        {/* --- New Rating Sort Button --- */}
+                                        <Button
+                                            className={`flex-1 rounded-xl h-11 ${sortKey === 'rating' ? 'bg-primary-600' : 'bg-background-100'}`}
+                                            onPress={() => setSortKey('rating')}
+                                        >
+                                            <ButtonIcon as={Star} color={sortKey === 'rating' ? 'white' : '#6b7280'} />
+                                            <ButtonText className={sortKey === 'rating' ? 'text-white' : 'text-typography-600'}>Rating</ButtonText>
+                                        </Button>
+                                    </HStack>
+                                    <HStack className='gap-2'>
+                                        <Button variant="outline" className={`flex-1 rounded-xl h-11 ${sortOrder === 'asc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setSortOrder('asc')}>
+                                            <ButtonIcon as={ArrowUp} className="text-primary-600" /><ButtonText className="text-primary-700 font-bold">Asc</ButtonText>
+                                        </Button>
+                                        <Button variant="outline" className={`flex-1 rounded-xl h-11 ${sortOrder === 'desc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setSortOrder('desc')}>
+                                            <ButtonIcon as={ArrowDown} className="text-primary-600" /><ButtonText className="text-primary-700 font-bold">Desc</ButtonText>
+                                        </Button>
+                                    </HStack>
+                                </VStack>
+
+                                {/* 2. Jurisdiction Filter */}
+                                <VStack className='gap-3'>
+                                    <HStack className="items-center gap-2">
+                                        <Icon as={MapIcon} size="xs" className="text-typography-500" />
+                                        <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Jurisdiction</Text>
+                                    </HStack>
+                                    <VStack className="gap-2">
+                                        <Text size="xs" className="font-bold text-typography-400">DISTRICT</Text>
+                                        <HStack className="gap-2 flex-wrap">
+                                            <TouchableOpacity
+                                                onPress={() => { setSelectedDistrict(null); setSelectedMunicipality(null); }}
+                                                className={`px-4 py-2 rounded-xl border ${!selectedDistrict ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                            >
+                                                <Text className={`text-xs font-bold ${!selectedDistrict ? 'text-white' : 'text-typography-600'}`}>All</Text>
+                                            </TouchableOpacity>
+                                            {Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map(dist => (
+                                                <TouchableOpacity
+                                                    key={dist}
+                                                    onPress={() => { setSelectedDistrict(dist); setSelectedMunicipality(null); }}
+                                                    className={`px-4 py-2 rounded-xl border mr-2 ${selectedDistrict === dist ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                                >
+                                                    <Text className={`text-xs font-bold ${selectedDistrict === dist ? 'text-white' : 'text-typography-600'}`}>D-{dist}</Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </HStack>
+                                    </VStack>
+
+                                    {selectedDistrict && (
+                                        <VStack className="gap-2 mt-2">
+                                            <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
+                                            <View className="flex-row flex-wrap gap-2">
+                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict].map(muni => (
+                                                    <TouchableOpacity
+                                                        key={muni}
+                                                        onPress={() => setSelectedMunicipality(prev => prev === muni ? null : muni)}
+                                                        className={`px-3 py-1.5 rounded-lg border ${selectedMunicipality === muni ? 'bg-secondary-500 border-secondary-500' : 'bg-background-50 border-outline-200'}`}
+                                                    >
+                                                        <Text className={`text-[11px] font-bold ${selectedMunicipality === muni ? 'text-white' : 'text-typography-600'}`}>
+                                                            {muni.replace('_', ' ')}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        </VStack>
+                                    )}
+                                </VStack>
+
+                                {/* 3. Category Filter Section */}
+                                <VStack className='gap-3'>
+                                    <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Filter Category</Text>
+                                    <View className="flex-row flex-wrap gap-2 ">
+                                        {LANDMARK_CATEGORIES.map(cat => (
+                                            <TouchableOpacity
+                                                key={cat}
+                                                onPress={() => setSelectedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
+                                                className={`px-4 py-2 rounded-full border ${selectedCategories.includes(cat) ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                            >
+                                                <HStack space="xs" className="items-center">
+                                                    {selectedCategories.includes(cat) && <Icon as={Check} size="xs" color="white" />}
+                                                    <Text size="xs" className={`font-bold ${selectedCategories.includes(cat) ? 'text-white' : 'text-typography-600'}`}>{cat}</Text>
+                                                </HStack>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                </VStack>
                             </VStack>
-                        </VStack>
+                        </ScrollView>
                     </ModalBody>
-                    <ModalFooter className="p-4">
-                        <Button onPress={() => setShowFilterModal(false)} className="w-full rounded-2xl h-14 bg-primary-600">
-                            <ButtonText className="font-bold">Show Results</ButtonText>
-                        </Button>
+                    <ModalFooter className="p-4 border-t border-outline-50">
+                        <HStack space="md" className="w-full">
+                            <Button variant="outline" action="secondary" className="flex-1 rounded-2xl h-12" onPress={resetFilters}>
+                                <ButtonText>Clear All</ButtonText>
+                            </Button>
+                            <Button onPress={() => setShowFilterModal(false)} className="flex-[2] rounded-2xl h-12 bg-primary-600">
+                                <ButtonText className="font-bold">Apply Filters</ButtonText>
+                            </Button>
+                        </HStack>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
 
-            <Fab size="lg" placement="bottom right" onPress={handleCreatePress} className="bg-primary-600 mb-4 mr-2 shadow-lg">
+            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
                 <FabIcon as={Plus} />
                 <FabLabel className="font-bold">Add New</FabLabel>
             </Fab>

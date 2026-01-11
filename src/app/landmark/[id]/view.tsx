@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
     ArrowLeft,
     Info,
+    LocateIcon,
     MapPin,
     Share2,
     Star
@@ -102,6 +103,12 @@ export default function LandmarkViewerScreen() {
                             <Text size="xs" className="font-bold">{landmark.gmaps_rating}/5</Text>
                             <Text size="xs" className="text-typography-400">Gmaps Rating</Text>
                         </VStack>
+                        <Divider orientation='vertical' />
+                        <VStack className="items-center flex-1">
+                            <Icon as={LocateIcon} className="text-warning-500 mb-1" size="sm" />
+                            <Text size="xs" className="font-bold">District {landmark.district}  {landmark.municipality}</Text>
+                            <Text size="xs" className="text-typography-400">District / Municipality</Text>
+                        </VStack>
                     </HStack>
 
                     {/* Description */}
@@ -143,7 +150,7 @@ export default function LandmarkViewerScreen() {
                             size="lg"
                             className="rounded-2xl h-14 bg-primary-600 shadow-soft-2"
                         >
-                            <ButtonText className="font-bold">Add to My Itinerary</ButtonText>
+                            <ButtonText className="font-bold">Add to My Itinerary </ButtonText>
                         </Button>
                     </Box>
                 )
