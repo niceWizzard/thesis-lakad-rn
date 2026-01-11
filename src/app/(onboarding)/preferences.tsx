@@ -2,17 +2,16 @@ import { Button, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
 import { StorageKey } from '@/src/constants/Key'
+import { LandmarkCategory } from '@/src/model/landmark.types'
 import { mmkvStorage } from '@/src/utils/mmkv'
 import { getCategoryPreferences, setCategoryPreferences } from '@/src/utils/preferencesManager'
 import { Stack, useRouter } from 'expo-router'
 import {
-    Camera,
     Check,
     History,
     Mountain,
     Music,
     Palmtree,
-    ShoppingBag,
     Utensils
 } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
@@ -21,14 +20,18 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 // 1. Define the categories
 const CATEGORIES = [
-    { id: 'nature', label: 'Nature', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
-    { id: 'food', label: 'Foodie', icon: Utensils, color: 'bg-orange-100', text: 'text-orange-700' },
-    { id: 'culture', label: 'Culture', icon: History, color: 'bg-amber-100', text: 'text-amber-700' },
-    { id: 'nightlife', label: 'Nightlife', icon: Music, color: 'bg-purple-100', text: 'text-purple-700' },
-    { id: 'adventure', label: 'Adventure', icon: Mountain, color: 'bg-blue-100', text: 'text-blue-700' },
-    { id: 'photography', label: 'Photo', icon: Camera, color: 'bg-pink-100', text: 'text-pink-700' },
-    { id: 'shopping', label: 'Shopping', icon: ShoppingBag, color: 'bg-slate-100', text: 'text-slate-700' },
-]
+    { id: 'Church', label: 'Church', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
+    { id: 'Historical', label: 'Historical', icon: Utensils, color: 'bg-orange-100', text: 'text-orange-700' },
+    { id: 'Landmark', label: 'Landmark', icon: History, color: 'bg-amber-100', text: 'text-amber-700' },
+    { id: 'Museum', label: 'Museum', icon: Music, color: 'bg-purple-100', text: 'text-purple-700' },
+    { id: 'Nature', label: 'Nature', icon: Mountain, color: 'bg-blue-100', text: 'text-blue-700' },
+] satisfies {
+    id: LandmarkCategory,
+    label: string,
+    icon: React.FC<any>,
+    color: string,
+    text: string
+}[]
 
 const OnboardingPreferences = () => {
     const router = useRouter()

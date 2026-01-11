@@ -35,6 +35,7 @@ import { VStack } from '@/components/ui/vstack';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
+import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
 import { Landmark } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
@@ -42,7 +43,7 @@ import { useQuery } from '@tanstack/react-query';
 
 type SortKey = 'id' | 'name';
 type SortOrder = 'asc' | 'desc';
-const CATEGORIES = ['Historical', 'Nature', 'Food', 'Culture'];
+const CATEGORIES = LANDMARK_CATEGORIES;
 
 export default function AdminLandmarksScreen() {
     const [searchString, setSearchString] = useState('');
