@@ -74,6 +74,7 @@ export type Database = {
           created_at: string
           created_by_user: boolean
           description: string | null
+          gmaps_rating: number
           id: number
           image_url: string | null
           latitude: number
@@ -86,6 +87,7 @@ export type Database = {
           created_at?: string
           created_by_user?: boolean
           description?: string | null
+          gmaps_rating?: number
           id?: number
           image_url?: string | null
           latitude: number
@@ -98,6 +100,7 @@ export type Database = {
           created_at?: string
           created_by_user?: boolean
           description?: string | null
+          gmaps_rating?: number
           id?: number
           image_url?: string | null
           latitude?: number

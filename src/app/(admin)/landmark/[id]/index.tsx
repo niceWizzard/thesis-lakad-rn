@@ -1,73 +1,92 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ArrowLeft,
-  Database,
   Edit2,
   Eye,
   History,
+  Navigation2,
+  Star // Added Star icon
+  ,
+  Tag,
   Trash2
 } from 'lucide-react-native';
-import React from 'react';
-import { Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, TouchableOpacity } from 'react-native';
 
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from '@/components/ui/alert-dialog';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { Button, ButtonGroup, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
+import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
-import { fetchLandmarkById } from '@/src/utils/fetchLandmarks';
-import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/src/utils/supabase';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function AdminLandmarkDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
+  // --- 1. DATA FETCHING ---
   const { data: landmark, isLoading } = useQuery({
     queryKey: ['landmark', id],
-    queryFn: () => fetchLandmarkById(Number.parseInt(id!.toString())),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('landmark')
+        .select('*')
+        .eq('id', id as any)
+        .single();
+      if (error) throw error;
+      return data;
+    },
     enabled: !!id,
   });
 
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Landmark",
-      "This action is permanent and will remove it for all users. Are you sure?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => console.log("Deleting...") }
-      ]
-    );
-  };
+  // --- 2. DELETE MUTATION ---
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (landmark?.image_url) {
+        const path = landmark.image_url.split('/public/landmark_images/')[1];
+        if (path) {
+          await supabase.storage.from('landmark_images').remove([path]);
+        }
+      }
+      const { error } = await supabase.from('landmark').delete().eq('id', id as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['landmarks'] });
+      toast.show({
+        placement: "top",
+        render: ({ id }) => (
+          <Toast nativeID={id} action="success" variant="solid">
+            <ToastTitle>Landmark Deleted Successfully</ToastTitle>
+          </Toast>
+        ),
+      });
+      router.back();
+    },
+  });
 
-  if (isLoading) return <Box className="flex-1 justify-center items-center"><Text>Loading Admin Data...</Text></Box>;
+  if (isLoading) return <Box className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></Box>;
   if (!landmark) return <Box className="flex-1 justify-center"><Text className="text-center">Landmark not found</Text></Box>;
 
-  const handlePreviewAsUser = () => {
-    router.navigate({
-      pathname: '/landmark/[id]/view',
-      params: {
-        id: landmark.id.toString(),
-        previewMode: 'true',
-      }
-    })
-  }
-
-  const handleEditPress = () => {
-    router.navigate({
-      pathname: '/(admin)/landmark/[id]/edit',
-      params: {
-        id: landmark.id.toString(),
-      }
-    })
-  }
-
   return (
-    // flex-1 is required here to allow children to fill the screen
     <Box className="flex-1 bg-background-0">
       <Stack.Screen options={{
         headerTitle: "Admin View",
@@ -78,8 +97,39 @@ export default function AdminLandmarkDetailScreen() {
         )
       }} />
 
-      {/* 1. Admin Status Header (Fixed at top) */}
-      <Box className="bg-background-50 p-4 border-b border-outline-100 z-10">
+      {/* DELETE CONFIRMATION DIALOG */}
+      <AlertDialog isOpen={showDeleteAlert} onClose={() => setShowDeleteAlert(false)}>
+        <AlertDialogBackdrop />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <Heading size="lg" className="text-error-600">Delete Landmark?</Heading>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <Text size="sm">
+              This action is permanent. It will remove "{landmark.name}" and its associated image from the database.
+            </Text>
+          </AlertDialogBody>
+          <AlertDialogFooter className='mt-3' >
+            <ButtonGroup space="lg" flexDirection='row'>
+              <Button variant="outline" action="secondary" onPress={() => setShowDeleteAlert(false)}>
+                <ButtonText>Cancel</ButtonText>
+              </Button>
+              <Button
+                action="negative"
+                onPress={() => {
+                  setShowDeleteAlert(false);
+                  deleteMutation.mutate();
+                }}
+              >
+                <ButtonText>{deleteMutation.isPending ? "Deleting..." : "Delete"}</ButtonText>
+              </Button>
+            </ButtonGroup>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Admin Status Header */}
+      <Box className="bg-background-50 p-4 border-b border-outline-100">
         <HStack className="justify-between items-center">
           <VStack>
             <Text size="xs" className="uppercase font-bold text-typography-400">Content Status</Text>
@@ -87,44 +137,67 @@ export default function AdminLandmarkDetailScreen() {
               <BadgeText>ACTIVE / PUBLISHED</BadgeText>
             </Badge>
           </VStack>
-          <Button variant="outline" action="secondary" size="xs" onPress={handlePreviewAsUser}>
+          <Button
+            variant="outline"
+            action="secondary"
+            size="xs"
+            onPress={() => router.navigate(`/landmark/${landmark.id}/view`)}
+          >
             <ButtonText>Preview as User</ButtonText>
             <ButtonIcon as={Eye} className="ml-1" />
           </Button>
         </HStack>
       </Box>
 
-      {/* 2. Scrollable Area */}
-      {/* We use flex-1 to make the ScrollView take up all space between Header and Footer */}
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        // contentContainerStyle ensures padding at the bottom so content isn't hidden by the fixed footer
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <VStack className="p-6 gap-8">
 
-          {/* Visual Content Check */}
-          <VStack className="gap-4">
+          {/* Visual Preview */}
+          <Box className="relative">
             <Image
               source={{ uri: landmark.image_url || 'https://via.placeholder.com/600x400' }}
               className="w-full h-64 rounded-3xl bg-background-100"
               resizeMode="cover"
             />
-          </VStack>
+          </Box>
 
-          {/* Data Integrity Section */}
+          {/* Core Information */}
           <VStack className="gap-4">
             <Heading size="md">Core Information</Heading>
             <VStack space="md" className="bg-background-50 p-5 rounded-3xl border border-outline-100">
-              <HStack className="justify-between">
-                <Text size="sm" className="font-bold text-typography-500">Landmark ID</Text>
-                <Text size="sm" className="font-mono text-primary-600 font-bold">#{landmark.id}</Text>
+              <HStack className="justify-between items-start">
+                <VStack className="gap-1 flex-1">
+                  <Text size="xs" className="font-bold text-typography-400 uppercase">Official Name</Text>
+                  <Text size="xl" className="font-bold text-typography-900">{landmark.name}</Text>
+                </VStack>
+
+                {/* GMaps Rating Badge */}
+                <VStack className="items-end">
+                  <Text size="xs" className="font-bold text-typography-400 uppercase mb-1">Rating</Text>
+                  <HStack className="items-center bg-warning-50 px-3 py-1 rounded-full border border-warning-100">
+                    <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
+                    <Text size="sm" className="font-bold text-warning-700">
+                      {landmark.gmaps_rating ? landmark.gmaps_rating.toFixed(1) : '0.0'}
+                    </Text>
+                  </HStack>
+                </VStack>
               </HStack>
+
               <Divider />
-              <VStack className="gap-1">
-                <Text size="xs" className="font-bold text-typography-400 uppercase">Display Name</Text>
-                <Text size="lg" className="font-semibold text-typography-900">{landmark.name}</Text>
+
+              {/* Categories Display */}
+              <VStack className="gap-2">
+                <HStack className="items-center gap-2">
+                  <Icon as={Tag} size="xs" className="text-primary-600" />
+                  <Text size="xs" className="font-bold text-typography-400 uppercase">Categories</Text>
+                </HStack>
+                <HStack space="xs" className="flex-wrap">
+                  {landmark.categories?.map((cat: string) => (
+                    <Badge key={cat} size="sm" variant="outline" action='info' className="rounded-lg">
+                      <BadgeText>{cat}</BadgeText>
+                    </Badge>
+                  ))}
+                </HStack>
               </VStack>
             </VStack>
           </VStack>
@@ -132,41 +205,51 @@ export default function AdminLandmarkDetailScreen() {
           {/* Technical Metadata */}
           <VStack className="gap-4">
             <HStack className="items-center gap-2">
-              <Icon as={Database} size="sm" className="text-primary-600" />
-              <Heading size="md">Technical Details</Heading>
+              <Icon as={Navigation2} size="sm" className="text-primary-600" />
+              <Heading size="md">Geographic Data</Heading>
             </HStack>
 
             <HStack space="md">
               <VStack className="flex-1 bg-background-50 p-5 rounded-3xl border border-outline-100">
                 <Text size="xs" className="text-typography-400 font-bold uppercase mb-1">Latitude</Text>
-                <Text size="md" className="font-medium">{landmark.latitude.toFixed(6)}</Text>
+                <Text size="md" className="font-medium font-mono">{landmark.latitude}</Text>
               </VStack>
               <VStack className="flex-1 bg-background-50 p-5 rounded-3xl border border-outline-100">
                 <Text size="xs" className="text-typography-400 font-bold uppercase mb-1">Longitude</Text>
-                <Text size="md" className="font-medium">{landmark.longitude.toFixed(6)}</Text>
+                <Text size="md" className="font-medium font-mono">{landmark.longitude}</Text>
               </VStack>
             </HStack>
           </VStack>
 
-          {/* Audit Logs / Timestamp */}
-          <Box className="bg-secondary-50 p-5 rounded-3xl border border-secondary-100">
+          {/* Description Preview */}
+          <VStack className="gap-4">
+            <Heading size="md">Description Preview</Heading>
+            <Box className="bg-background-50 p-5 rounded-3xl border border-outline-100">
+              <Text size="sm" className="leading-relaxed text-typography-700">{landmark.description}</Text>
+            </Box>
+          </VStack>
+
+          {/* Audit Logs */}
+          <Box className="bg-secondary-50 p-5 rounded-3xl border border-secondary-100 mb-10">
             <HStack space="sm" className="items-center">
               <Icon as={History} size="sm" className="text-secondary-600" />
               <VStack>
-                <Text size="xs" className="text-secondary-700 font-bold">Audit Log</Text>
-                <Text size="xs" className="text-secondary-600">Last modified by Admin on Jan 10, 2026</Text>
+                <Text size="xs" className="text-secondary-700 font-bold uppercase">System Audit</Text>
+                <Text size="xs" className="text-secondary-600">
+                  ID: {landmark.id} • Created: {new Date(landmark.created_at).toLocaleDateString()}
+                </Text>
               </VStack>
             </HStack>
           </Box>
         </VStack>
       </ScrollView>
 
-      {/* 3. Fixed Admin Action Bar (Outside ScrollView) */}
-      <Box className="p-6 bg-background-0 border-t border-outline-50 shadow-lg">
+      {/* Admin Actions Bar */}
+      <Box className="p-6 bg-white border-t border-outline-50">
         <HStack space="md">
           <Button
-            className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-            onPress={handleEditPress}
+            className="flex-1 rounded-2xl h-14 bg-primary-600"
+            onPress={() => router.push(`/(admin)/landmark/${landmark.id}/edit`)}
           >
             <ButtonIcon as={Edit2} className="mr-2" />
             <ButtonText className="font-bold">Edit Details</ButtonText>
@@ -175,8 +258,8 @@ export default function AdminLandmarkDetailScreen() {
           <Button
             variant="outline"
             action="negative"
-            className="w-16 rounded-2xl h-14 border-error-300"
-            onPress={handleDelete}
+            className="w-16 rounded-2xl h-14 border-error-200"
+            onPress={() => setShowDeleteAlert(true)}
           >
             <ButtonIcon as={Trash2} className="text-error-600" />
           </Button>

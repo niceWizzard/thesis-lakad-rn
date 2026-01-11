@@ -1,8 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
     ArrowLeft,
-    Calendar,
-    Clock,
     Info,
     MapPin,
     Share2,
@@ -101,20 +99,8 @@ export default function LandmarkViewerScreen() {
                     <HStack className="justify-between bg-background-50 p-4 rounded-3xl border border-outline-50">
                         <VStack className="items-center flex-1">
                             <Icon as={Star} className="text-warning-500 mb-1" size="sm" />
-                            <Text size="xs" className="font-bold">4.8/5</Text>
-                            <Text size="xs" className="text-typography-400">Rating</Text>
-                        </VStack>
-                        <Divider orientation="vertical" className="bg-outline-100" />
-                        <VStack className="items-center flex-1">
-                            <Icon as={Clock} className="text-primary-500 mb-1" size="sm" />
-                            <Text size="xs" className="font-bold">20-30m</Text>
-                            <Text size="xs" className="text-typography-400">Duration</Text>
-                        </VStack>
-                        <Divider orientation="vertical" className="bg-outline-100" />
-                        <VStack className="items-center flex-1">
-                            <Icon as={Calendar} className="text-secondary-500 mb-1" size="sm" />
-                            <Text size="xs" className="font-bold">1880s</Text>
-                            <Text size="xs" className="text-typography-400">Established</Text>
+                            <Text size="xs" className="font-bold">{landmark.gmaps_rating}/5</Text>
+                            <Text size="xs" className="text-typography-400">Gmaps Rating</Text>
                         </VStack>
                     </HStack>
 

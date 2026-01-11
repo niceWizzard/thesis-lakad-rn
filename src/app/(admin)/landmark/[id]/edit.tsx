@@ -1,13 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { decode } from 'base64-arraybuffer';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import {
+    AlertCircle,
     ArrowLeft,
     Camera,
     CheckCircle2,
     Globe,
+    MapPin,
+    Navigation2,
     Save,
+    Star,
+    Tag,
     Type
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -22,28 +27,57 @@ import {
 } from 'react-native';
 import * as z from 'zod';
 
+import {
+    AlertDialog,
+    AlertDialogBackdrop,
+    AlertDialogBody,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+} from '@/components/ui/alert-dialog';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonGroup, ButtonIcon, ButtonText } from '@/components/ui/button';
 import {
-    FormControl
+    Checkbox,
+    CheckboxGroup,
+    CheckboxIcon,
+    CheckboxIndicator,
+    CheckboxLabel,
+} from '@/components/ui/checkbox';
+import {
+    FormControl,
+    FormControlError,
+    FormControlErrorIcon,
+    FormControlErrorText,
 } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
+import { CheckIcon, Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
+import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+// --- VALIDATION SCHEMA ---
 const landmarkSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters"),
+    categories: z.array(z.enum(LANDMARK_CATEGORIES)).min(1, "Select at least one category"),
     description: z.string().min(10, "Description must be at least 10 characters"),
     latitude: z.string().regex(/^-?\d*\.?\d*$/, "Must be a valid number"),
     longitude: z.string().regex(/^-?\d*\.?\d*$/, "Must be a valid number"),
+    gmaps_rating: z.string()
+        .optional()
+        .refine(val => !val || /^\d*\.?\d*$/.test(val), "Rating must be a valid number")
+        .refine(val => {
+            if (!val) return true;
+            const num = parseFloat(val);
+            return !isNaN(num) && num >= 0 && num <= 5;
+        }, "Rating must be between 0 and 5"),
 });
 
 type LandmarkFormData = z.infer<typeof landmarkSchema>;
@@ -51,17 +85,18 @@ type LandmarkFormData = z.infer<typeof landmarkSchema>;
 export default function AdminLandmarkEditScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const navigation = useNavigation();
     const toast = useToast();
     const queryClient = useQueryClient();
 
-    // Image Management State
+    // UI States
     const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file');
     const [externalUrlInput, setExternalUrlInput] = useState('');
-
-    // This holds the preview. It could be a remote URL, a local 'file://' URI, or a base64 string.
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [pendingImageData, setPendingImageData] = useState<{ base64?: string, remoteUrl?: string } | null>(null);
+    const [showDiscardAlert, setShowDiscardAlert] = useState(false);
 
+    // --- 1. DATA FETCHING ---
     const { data: landmark, isLoading } = useQuery({
         queryKey: ['landmark', id],
         queryFn: async () => {
@@ -72,24 +107,48 @@ export default function AdminLandmarkEditScreen() {
         enabled: !!id,
     });
 
-    const { control, handleSubmit, reset, formState: { errors, isDirty } } = useForm<LandmarkFormData>({
+    // --- 2. FORM SETUP ---
+    const { control, handleSubmit, reset, formState: { errors, isDirty, isValid } } = useForm<LandmarkFormData>({
         resolver: zodResolver(landmarkSchema),
-        defaultValues: { name: '', description: '', latitude: '', longitude: '' }
+        mode: "onChange",
+        defaultValues: {
+            name: '',
+            categories: landmark?.categories ?? [],
+            description: '',
+            latitude: '',
+            longitude: '',
+            gmaps_rating: '0'
+        }
     });
 
+    const hasUnsavedChanges = isDirty || !!pendingImageData;
+
+    // Intercept Back Navigation
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+            if (!hasUnsavedChanges) return;
+            e.preventDefault();
+            setShowDiscardAlert(true);
+        });
+        return unsubscribe;
+    }, [navigation, hasUnsavedChanges]);
+
+    // Sync form with fetched data
     useEffect(() => {
         if (landmark) {
             reset({
                 name: landmark.name,
+                categories: landmark.categories || [],
                 description: landmark.description || '',
                 latitude: landmark.latitude.toString(),
                 longitude: landmark.longitude.toString(),
+                gmaps_rating: (landmark.gmaps_rating ?? 0).toString(),
             });
             setImagePreview(landmark.image_url);
         }
     }, [landmark]);
 
-    // --- 1. PREPARE LOCAL IMAGE ---
+    // --- 3. IMAGE HANDLERS ---
     const handlePickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
@@ -105,7 +164,6 @@ export default function AdminLandmarkEditScreen() {
         }
     };
 
-    // --- 2. PREPARE REMOTE URL ---
     const handleApplyUrl = () => {
         if (externalUrlInput) {
             setImagePreview(externalUrlInput);
@@ -114,24 +172,21 @@ export default function AdminLandmarkEditScreen() {
         }
     };
 
-    // --- 3. THE UNIFIED SAVE LOGIC ---
+    // --- 4. UPDATE MUTATION ---
     const updateMutation = useMutation({
         mutationFn: async (formData: LandmarkFormData) => {
             let finalImageUrl = landmark?.image_url;
 
-            // Only upload if the user changed the image
             if (pendingImageData) {
                 let arrayBuffer: ArrayBuffer;
                 let contentType: string;
                 let fileExt: string;
 
                 if (pendingImageData.base64) {
-                    // Handling local file
                     arrayBuffer = decode(pendingImageData.base64);
                     contentType = 'image/jpeg';
                     fileExt = 'jpg';
                 } else {
-                    // Handling external URL
                     const response = await fetch(pendingImageData.remoteUrl!);
                     const blob = await response.blob();
                     arrayBuffer = await new Response(blob).arrayBuffer();
@@ -151,19 +206,13 @@ export default function AdminLandmarkEditScreen() {
                 const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
                 finalImageUrl = publicUrl;
 
-
-                // Delete old image
+                // Cleanup old image
                 if (landmark?.image_url) {
-                    const { error: deleteError } = await supabase.storage
-                        .from('landmark_images')
-                        .remove([
-                            landmark.image_url.replace('https://sjvzaxmomkubtnshjsni.supabase.co/storage/v1/object/public/', "")
-                        ]);
-                    if (deleteError)
-                        throw deleteError;
+                    const pathToDelete = landmark.image_url.split('/public/landmark_images/')[1];
+                    if (pathToDelete) {
+                        await supabase.storage.from('landmark_images').remove([pathToDelete]);
+                    }
                 }
-
-
             }
 
             const { error } = await supabase
@@ -172,6 +221,7 @@ export default function AdminLandmarkEditScreen() {
                     ...formData,
                     latitude: parseFloat(formData.latitude),
                     longitude: parseFloat(formData.longitude),
+                    gmaps_rating: parseFloat(formData.gmaps_rating || '0'),
                     image_url: finalImageUrl,
                     updated_at: new Date().toISOString(),
                 })
@@ -181,11 +231,13 @@ export default function AdminLandmarkEditScreen() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['landmarks'] });
+            setPendingImageData(null);
+            reset();
             toast.show({
                 placement: "top",
                 render: ({ id }) => (
                     <Toast nativeID={id} action="success" variant="solid">
-                        <ToastTitle>Landmark Saved Successfully</ToastTitle>
+                        <ToastTitle>Landmark Updated Successfully</ToastTitle>
                     </Toast>
                 ),
             });
@@ -206,6 +258,21 @@ export default function AdminLandmarkEditScreen() {
                 )
             }} />
 
+            {/* DISCARD ALERT */}
+            <AlertDialog isOpen={showDiscardAlert} onClose={() => setShowDiscardAlert(false)}>
+                <AlertDialogBackdrop />
+                <AlertDialogContent className='gap-4'>
+                    <AlertDialogHeader><Heading size="lg">Unsaved Changes</Heading></AlertDialogHeader>
+                    <AlertDialogBody><Text size="sm">Are you sure you want to discard your edits?</Text></AlertDialogBody>
+                    <AlertDialogFooter>
+                        <ButtonGroup space="lg" flexDirection='row'>
+                            <Button variant="outline" action="secondary" onPress={() => setShowDiscardAlert(false)}><ButtonText>Stay</ButtonText></Button>
+                            <Button action="negative" onPress={() => { setShowDiscardAlert(false); setPendingImageData(null); reset(); router.back(); }}><ButtonText>Discard</ButtonText></Button>
+                        </ButtonGroup>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 <VStack className="p-6 gap-8">
 
@@ -214,21 +281,13 @@ export default function AdminLandmarkEditScreen() {
                         <HStack className="justify-between items-center">
                             <Heading size="md">Visual Content</Heading>
                             <ButtonGroup isAttached flexDirection='row'>
-                                <Button size="xs" variant={uploadMode === 'file' ? 'solid' : 'outline'} onPress={() => setUploadMode('file')}>
-                                    <ButtonText>Gallery</ButtonText>
-                                </Button>
-                                <Button size="xs" variant={uploadMode === 'url' ? 'solid' : 'outline'} onPress={() => setUploadMode('url')}>
-                                    <ButtonText>URL</ButtonText>
-                                </Button>
+                                <Button size="xs" variant={uploadMode === 'file' ? 'solid' : 'outline'} onPress={() => setUploadMode('file')}><ButtonText>Gallery</ButtonText></Button>
+                                <Button size="xs" variant={uploadMode === 'url' ? 'solid' : 'outline'} onPress={() => setUploadMode('url')}><ButtonText>URL</ButtonText></Button>
                             </ButtonGroup>
                         </HStack>
 
                         <Box className="relative w-full h-64 rounded-3xl bg-background-100 overflow-hidden border border-outline-200">
-                            <Image
-                                source={{ uri: imagePreview || 'https://via.placeholder.com/600x400' }}
-                                className="w-full h-full"
-                                resizeMode="cover"
-                            />
+                            <Image source={{ uri: imagePreview || 'https://via.placeholder.com/600x400' }} className="w-full h-full" resizeMode="cover" />
                             {uploadMode === 'file' && (
                                 <Button onPress={handlePickImage} className="absolute bottom-4 right-4 rounded-2xl shadow-xl" action="primary">
                                     <ButtonIcon as={Camera} className="mr-2" />
@@ -238,32 +297,20 @@ export default function AdminLandmarkEditScreen() {
                         </Box>
 
                         {uploadMode === 'url' && (
-                            <VStack className="gap-2">
-                                <Input variant="outline" size="lg" className="rounded-xl overflow-hidden">
-                                    <InputSlot className="pl-3"><Icon as={Globe} /></InputSlot>
-                                    <InputField
-                                        placeholder="Enter image URL..."
-                                        value={externalUrlInput}
-                                        onChangeText={setExternalUrlInput}
-                                    />
-                                    <Button onPress={handleApplyUrl} isDisabled={!externalUrlInput} className="rounded-none h-full">
-                                        <ButtonIcon as={CheckCircle2} />
-                                    </Button>
-                                </Input>
-                            </VStack>
-                        )}
-                        {pendingImageData && (
-                            <Text size="xs" className="text-info-600 font-medium italic">
-                                * New image selected. Changes will be uploaded upon saving.
-                            </Text>
+                            <Input variant="outline" size="lg" className="rounded-xl overflow-hidden">
+                                <InputSlot className="pl-3"><Icon as={Globe} /></InputSlot>
+                                <InputField placeholder="Enter image URL..." value={externalUrlInput} onChangeText={setExternalUrlInput} />
+                                <Button onPress={handleApplyUrl} isDisabled={!externalUrlInput} className="rounded-none h-full"><ButtonIcon as={CheckCircle2} /></Button>
+                            </Input>
                         )}
                     </VStack>
 
-                    {/* Core Information */}
+                    {/* Details Section */}
                     <VStack className="gap-5">
-                        <Heading size="md">Details</Heading>
+                        <Heading size="md">Landmark Details</Heading>
+
                         <FormControl isInvalid={!!errors.name}>
-                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1">NAME</Text>
+                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1">OFFICIAL NAME</Text>
                             <Controller control={control} name="name" render={({ field: { onChange, value } }) => (
                                 <Input size="lg" className="rounded-xl">
                                     <InputSlot className="pl-3"><InputIcon as={Type} /></InputSlot>
@@ -272,12 +319,42 @@ export default function AdminLandmarkEditScreen() {
                             )} />
                         </FormControl>
 
+                        <FormControl isInvalid={!!errors.gmaps_rating}>
+                            <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1">GOOGLE MAPS RATING (0-5)</Text>
+                            <Controller control={control} name="gmaps_rating" render={({ field: { onChange, value } }) => (
+                                <Input size="lg" className="rounded-xl">
+                                    <InputSlot className="pl-3"><Icon as={Star} size="sm" className="text-warning-500" /></InputSlot>
+                                    <InputField value={value} onChangeText={onChange} keyboardType="numeric" placeholder="e.g. 4.8" />
+                                </Input>
+                            )} />
+                            <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.gmaps_rating?.message}</FormControlErrorText></FormControlError>
+                        </FormControl>
+
+                        <FormControl isInvalid={!!errors.categories}>
+                            <HStack className="items-center gap-2 mb-2 ml-1">
+                                <Icon as={Tag} size="xs" className="text-typography-500" />
+                                <Text size="xs" className="font-bold text-typography-500 uppercase">Categories</Text>
+                            </HStack>
+                            <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                <Controller control={control} name="categories" render={({ field: { onChange, value } }) => (
+                                    <CheckboxGroup value={value} onChange={onChange}>
+                                        <VStack className="gap-3">
+                                            {LANDMARK_CATEGORIES.map((cat) => (
+                                                <Checkbox key={cat} value={cat} size="md" aria-label={cat}>
+                                                    <CheckboxIndicator><CheckboxIcon as={CheckIcon} /></CheckboxIndicator>
+                                                    <CheckboxLabel className="ml-2">{cat}</CheckboxLabel>
+                                                </Checkbox>
+                                            ))}
+                                        </VStack>
+                                    </CheckboxGroup>
+                                )} />
+                            </Box>
+                        </FormControl>
+
                         <FormControl isInvalid={!!errors.description}>
                             <Text size="xs" className="font-bold text-typography-500 mb-1 ml-1">DESCRIPTION</Text>
                             <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
-                                <Textarea className="rounded-xl">
-                                    <TextareaInput value={value} onChangeText={onChange} multiline className="h-32" />
-                                </Textarea>
+                                <Textarea className="rounded-xl"><TextareaInput value={value} onChangeText={onChange} multiline className="h-32" /></Textarea>
                             )} />
                         </FormControl>
 
@@ -286,7 +363,10 @@ export default function AdminLandmarkEditScreen() {
                                 <FormControl isInvalid={!!errors.latitude}>
                                     <Text size="xs" className="font-bold text-typography-500 mb-1">LATITUDE</Text>
                                     <Controller control={control} name="latitude" render={({ field: { onChange, value } }) => (
-                                        <Input size="md" className="rounded-xl"><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>
+                                        <Input size="md" className="rounded-xl">
+                                            <InputSlot className="pl-3"><Icon as={Navigation2} size="sm" /></InputSlot>
+                                            <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                        </Input>
                                     )} />
                                 </FormControl>
                             </Box>
@@ -294,7 +374,10 @@ export default function AdminLandmarkEditScreen() {
                                 <FormControl isInvalid={!!errors.longitude}>
                                     <Text size="xs" className="font-bold text-typography-500 mb-1">LONGITUDE</Text>
                                     <Controller control={control} name="longitude" render={({ field: { onChange, value } }) => (
-                                        <Input size="md" className="rounded-xl"><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>
+                                        <Input size="md" className="rounded-xl">
+                                            <InputSlot className="pl-3"><Icon as={MapPin} size="sm" /></InputSlot>
+                                            <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                        </Input>
                                     )} />
                                 </FormControl>
                             </Box>
@@ -303,22 +386,15 @@ export default function AdminLandmarkEditScreen() {
                 </VStack>
             </ScrollView>
 
-            {/* Save Button with Mutation State */}
             <Box className="p-6 bg-white border-t border-outline-50">
                 <Button
                     onPress={handleSubmit((data) => updateMutation.mutate(data))}
                     size="lg"
-                    isDisabled={(!isDirty && !pendingImageData) || updateMutation.isPending}
+                    isDisabled={(!isDirty && !pendingImageData) || !isValid || updateMutation.isPending}
                     className="rounded-2xl h-14"
                 >
-                    {updateMutation.isPending ? (
-                        <ActivityIndicator color="white" className="mr-2" />
-                    ) : (
-                        <ButtonIcon as={Save} className="mr-2" />
-                    )}
-                    <ButtonText className="font-bold">
-                        {updateMutation.isPending ? 'Uploading & Saving...' : 'Save Changes'}
-                    </ButtonText>
+                    {updateMutation.isPending ? <ActivityIndicator color="white" className="mr-2" /> : <ButtonIcon as={Save} className="mr-2" />}
+                    <ButtonText className="font-bold">{updateMutation.isPending ? 'Saving...' : 'Save Changes'}</ButtonText>
                 </Button>
             </Box>
         </KeyboardAvoidingView>
