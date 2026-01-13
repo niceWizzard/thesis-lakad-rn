@@ -42,14 +42,18 @@ import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import {
     ArrowDownUp,
     ArrowUp,
+    ArrowUpLeft,
+    ArrowUpRight,
     Check,
     CheckCircle,
     Clock,
     GripVertical,
     LocateFixed,
+    MapPin,
     Navigation,
     Navigation2,
-    PlusCircle
+    PlusCircle,
+    RotateCcw
 } from 'lucide-react-native';
 
 const poiIcon = require('@/assets/images/red_marker.png');
@@ -59,6 +63,15 @@ enum Mode {
     Viewing,
     Navigating,
 }
+
+const getStepIcon = (instruction: string) => {
+    const text = instruction.toLowerCase();
+    if (text.includes('left')) return ArrowUpLeft;
+    if (text.includes('right')) return ArrowUpRight;
+    if (text.includes('u-turn')) return RotateCcw;
+    if (text.includes('destination') || text.includes('arrive')) return MapPin;
+    return ArrowUp; // Default to straight
+};
 
 export default function ItineraryView() {
     const { id } = useLocalSearchParams();
@@ -161,10 +174,10 @@ export default function ItineraryView() {
         setIsSheetOpen(true);
         camera.current?.setCamera({
             centerCoordinate: userLocation || [120.8092, 14.8605],
-            zoomLevel: 19,
-            pitch: 60,
+            zoomLevel: 18,
+            pitch: 55, // 3D perspective
             heading: data.routes[0].legs[0].steps[0].maneuver.bearing_after,
-            animationDuration: 1000
+            animationDuration: 1500,
         });
     };
 
@@ -474,26 +487,71 @@ export default function ItineraryView() {
                             />
                         </VStack>
                     ) : (
-                        <ScrollView>
-                            <VStack space='md' className='pb-6 px-4'>
-                                <VStack className="bg-primary-50 p-4 rounded-2xl border border-primary-100">
-                                    <Text size="xs" className="uppercase font-bold text-primary-600">Heading To</Text>
-                                    <Heading size='md'>{nextUnvisitedStop?.landmark.name}</Heading>
-                                    <Text className='font-bold text-primary-700'>{navigationRoute[0]?.distance.toFixed(0)}m remaining</Text>
-                                </VStack>
-                                <VStack space='xs'>
-                                    {navigationRoute[0]?.legs[0]?.steps.map((step, i) => (
-                                        <HStack key={i} space="md" className='bg-background-50 p-3 rounded-xl items-center'>
-                                            <Box className="bg-background-100 p-2 rounded-full shadow-sm"><Icon as={Navigation2} size="xs" className="text-primary-500" /></Box>
-                                            <Text size='sm' className="flex-1">{step.maneuver.instruction}</Text>
+                        <VStack className='h-full bg-background-0'>
+                            {/* Primary Instruction Card */}
+                            <Box className="mx-4 mt-2 p-5 bg-background-100 rounded-3xl shadow-xl">
+                                <HStack space="lg" className="items-center">
+                                    <Box className="bg-primary-500 p-4 rounded-2xl">
+                                        <Icon
+                                            as={Navigation2}
+                                            size="xl"
+                                            style={{ transform: [{ rotate: '45deg' }] }}
+                                        />
+                                    </Box>
+                                    <VStack className="flex-1">
+                                        <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
+                                            {navigationRoute[0]?.distance > 1000
+                                                ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
+                                                : `${navigationRoute[0]?.distance.toFixed(0)} m`}
+                                        </Text>
+                                        <Heading size='lg' className=" leading-tight">
+                                            {navigationRoute[0]?.legs[0]?.steps[0]?.maneuver.instruction}
+                                        </Heading>
+                                    </VStack>
+                                </HStack>
+                            </Box>
+
+                            {/* Destination Target */}
+                            <HStack className="px-6 py-4 items-center" space="sm">
+                                <Icon as={CheckCircle} size="sm" className="text-success-500" />
+                                <Text size="sm" className="text-typography-500 font-medium">
+                                    Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
+                                </Text>
+                            </HStack>
+
+                            <Divider className="mx-4" />
+
+                            {/* Upcoming Steps List */}
+                            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
+                                <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
+                                <VStack space='sm' className="pb-20">
+                                    {navigationRoute[0]?.legs[0]?.steps.slice(1).map((step, i) => (
+                                        <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
+                                            <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
+                                                {/* You can replace this with a dynamic icon library like Lucide arrow icons */}
+                                                <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />
+                                            </Box>
+                                            <VStack className="flex-1">
+                                                <Text size='md' className="text-typography-800 font-medium">{step.maneuver.instruction}</Text>
+                                                <Text size='xs' className="text-typography-400">{step.distance.toFixed(0)} m</Text>
+                                            </VStack>
                                         </HStack>
                                     ))}
                                 </VStack>
-                                <Button action='negative' variant='outline' className='rounded-xl mt-4' onPress={() => setMode(Mode.Viewing)}>
-                                    <ButtonText>Cancel Navigation</ButtonText>
+                            </ScrollView>
+
+                            {/* Controls Overlay */}
+                            <Box className="absolute bottom-6 left-4 right-4">
+                                <Button
+                                    action='negative'
+                                    variant='solid'
+                                    className='rounded-2xl h-14 shadow-lg bg-error-600'
+                                    onPress={() => setMode(Mode.Viewing)}
+                                >
+                                    <ButtonText className="font-bold">Exit Navigation</ButtonText>
                                 </Button>
-                            </VStack>
-                        </ScrollView>
+                            </Box>
+                        </VStack>
                     )}
                 </CustomLocalSheet>
 
