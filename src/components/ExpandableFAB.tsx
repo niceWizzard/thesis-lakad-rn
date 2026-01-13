@@ -6,16 +6,31 @@ import { Icon } from '@/components/ui/icon';
 import { useRouter } from 'expo-router';
 import { Plus, Wand2 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useAuthStore } from '../stores/useAuth';
+import { createItineraryOnly } from '../utils/fetchItineraries';
 
 
 const ExpandableFab = () => {
     const [showMenu, setShowMenu] = useState(false);
     const router = useRouter();
+    const { session } = useAuthStore()
 
     const handleClose = () => setShowMenu(false);
 
-    const handleManual = () => {
-
+    const handleManual = async () => {
+        try {
+            const id = await createItineraryOnly({
+                userId: session!.user.id
+            })
+            router.navigate({
+                pathname: '/itinerary/[id]',
+                params: { id }
+            })
+        } catch (e) {
+            console.error(e)
+        } finally {
+            handleClose()
+        }
     }
 
     const handleSmartGenerate = () => {

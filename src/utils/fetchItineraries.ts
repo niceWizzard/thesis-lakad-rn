@@ -82,3 +82,16 @@ export async function createItinerary({ itineraryName, poiIds }: { itineraryName
 
   return newId;
 }
+
+
+export async function createItineraryOnly({ itineraryName, userId }: { itineraryName?: string, userId: string }): Promise<number> {
+  const dateStr = new Date().toLocaleDateString();
+  const { error, data: itinerary } = await supabase.from('itinerary').insert({
+    name: itineraryName ?? `Adventure ${dateStr}`,
+    user_id: userId,
+  }).select('id').single()
+
+  if (error) throw error
+  if (!itinerary) throw new Error("Itinerary was not created.")
+  return itinerary.id
+}
