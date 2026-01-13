@@ -14,7 +14,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, ToastAndroid } from 'react-native';
 import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { FlatList, GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
 // UI Components
 import { Box } from '@/components/ui/box';
@@ -80,6 +80,8 @@ export default function ItineraryView() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const camera = useRef<Camera>(null);
+    // Inside your component
+    const flatListRef = useRef<FlatList>(null);
 
     const [mode, setMode] = useState<Mode>(Mode.Viewing);
     const [isSheetOpen, setIsSheetOpen] = useState(true);
@@ -132,6 +134,22 @@ export default function ItineraryView() {
             }))
         );
     }, [itinerary, nextUnvisitedStop]);
+
+
+    useEffect(() => {
+        if (mode === Mode.Viewing && isSheetOpen) {
+            const timer = setTimeout(() => {
+                if (flatListRef.current) {
+                    flatListRef.current.scrollToIndex({
+                        index: 0,
+                        animated: true,
+                    });
+                }
+            }, 300);
+
+            return () => clearTimeout(timer);
+        }
+    }, [mode, isSheetOpen, itinerary]);
 
     const handleFocusStop = (stop: any) => {
         camera.current?.setCamera({
@@ -459,10 +477,14 @@ export default function ItineraryView() {
                                 <Divider />
 
                                 <DraggableFlatList
+                                    ref={flatListRef}
                                     data={pendingStops}
                                     keyExtractor={(item) => item.id.toString()}
                                     onDragEnd={handleDragEnd}
                                     contentContainerStyle={{ paddingBottom: 100 }}
+                                    onScrollToIndexFailed={(info) => {
+                                        flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
+                                    }}
                                     ListHeaderComponent={
                                         <VStack>
                                             {completedStops
