@@ -6,6 +6,13 @@ declare class AlgorithmModule extends NativeModule<AlgorithmModuleEvents> {
   PI: number;
   hello(): string;
   setValueAsync(value: string): Promise<void>;
+
+  calculateOptimizedItinerary(data: {
+    [key: string]: {
+      [key: string]: number
+    }
+  }): Promise<string[]>
+
 }
 
 // This call loads the native module object from the JSI.

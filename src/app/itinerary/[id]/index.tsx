@@ -33,6 +33,8 @@ import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
 
 // Icons
+import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
+import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import {
     ArrowDownUp,
     ArrowUp,
@@ -149,6 +151,37 @@ export default function ItineraryView() {
             animationDuration: 1000
         });
     };
+
+    const handleOptimizePress = async () => {
+        const onGoingStops = itinerary.stops.filter(stop => !stop.visited_at);
+        const distanceMatrix = await fetchDistanceMatrix({
+            waypoints: onGoingStops.map(v => [v.landmark.longitude, v.landmark.latitude])
+        })
+
+        const landmarkDistanceMap: Record<string, Record<string, number>> = {};
+
+        onGoingStops.forEach((sourceStop, i) => {
+            const sourceId = sourceStop.id;
+            landmarkDistanceMap[sourceId] = {};
+
+            onGoingStops.forEach((targetStop, j) => {
+                const targetId = targetStop.id;
+                landmarkDistanceMap[sourceId][targetId] = distanceMatrix[i][j];
+            });
+        });
+
+        const optimizedItinerary = await AlgorithmModule.calculateOptimizedItinerary(landmarkDistanceMap)
+        const updates = optimizedItinerary.map((id, index) => {
+            return supabase.from('poi').update({
+                visit_order: index,
+            }).eq('id', Number.parseInt(id))
+        })
+        await Promise.allSettled(updates)
+
+        console.log(optimizedItinerary)
+
+        refetch()
+    }
 
     const handleVisitedPress = async (poi: POI) => {
         try {
@@ -324,7 +357,9 @@ export default function ItineraryView() {
 
                 {mode === Mode.Viewing && (
                     <HStack space='md' className='w-full justify-center pr-4 bg-red-500'>
-                        <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1'>
+                        <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1'
+                            onPress={handleOptimizePress}
+                        >
                             <ButtonIcon as={ArrowDownUp} className='mr-2' />
                             <ButtonText>Optimize</ButtonText>
                         </Button>

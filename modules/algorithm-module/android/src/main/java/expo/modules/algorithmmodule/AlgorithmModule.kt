@@ -1,5 +1,6 @@
 package expo.modules.algorithmmodule
 
+import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.net.URL
@@ -35,6 +36,14 @@ class AlgorithmModule : Module() {
         "value" to value
       ))
     }
+
+    AsyncFunction("calculateOptimizedItinerary") Coroutine { value : Map<String,Map<String, Double>>  ->
+      simulatedAnnealingImproved(
+        value,
+      ).second
+    }
+
+
 
     // Enables the module to be used as a native view. Definition components that are accepted as part of
     // the view definition: Prop, Events.
