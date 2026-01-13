@@ -318,7 +318,9 @@ export default function ItineraryView() {
                         ref={camera}
                         followUserLocation={mode === Mode.Navigating}
                         defaultSettings={{
-                            centerCoordinate: [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude],
+                            centerCoordinate: itinerary.stops.length > 0 ?
+                                [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude] :
+                                [120.8092, 14.8605],
                             zoomLevel: 14
                         }}
                     />
