@@ -16,6 +16,12 @@ const ItineraryLayout = () => {
                     headerTitle: ''
                 }}
             />
+            <Stack.Screen
+                name='[id]/add-poi'
+                options={{
+                    headerTitle: 'Add POI'
+                }}
+            />
         </Stack>
     )
 }

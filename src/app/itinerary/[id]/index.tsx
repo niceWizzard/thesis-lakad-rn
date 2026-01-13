@@ -365,6 +365,13 @@ export default function ItineraryView() {
         }
     };
 
+    const handleAddPoi = async () => {
+        router.navigate({
+            pathname: '/itinerary/[id]/add-poi',
+            params: { id: itinerary.id, currentCount: itinerary.stops.length },
+        })
+    }
+
     // 1. Get the actual count of completed (visited) stops
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
 
@@ -470,7 +477,7 @@ export default function ItineraryView() {
                                             </Text>
                                         </HStack>
                                     </VStack>
-                                    <Pressable onPress={() => ToastAndroid.show('Feature coming soon', 2000)}>
+                                    <Pressable onPress={handleAddPoi}>
                                         <Icon as={PlusCircle} size='xl' className='text-primary-600' />
                                     </Pressable>
                                 </HStack>
