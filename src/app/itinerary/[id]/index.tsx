@@ -153,45 +153,103 @@ export default function ItineraryView() {
     };
 
     const handleOptimizePress = async () => {
+        // 1. Separate visited and unvisited stops
+        const visitedStops = itinerary.stops.filter(stop => !!stop.visited_at);
         const onGoingStops = itinerary.stops.filter(stop => !stop.visited_at);
+
+        if (onGoingStops.length === 0) return;
+
+        // 2. Fetch distances only for remaining stops
         const distanceMatrix = await fetchDistanceMatrix({
             waypoints: onGoingStops.map(v => [v.landmark.longitude, v.landmark.latitude])
-        })
+        });
 
         const landmarkDistanceMap: Record<string, Record<string, number>> = {};
-
         onGoingStops.forEach((sourceStop, i) => {
             const sourceId = sourceStop.id;
             landmarkDistanceMap[sourceId] = {};
-
             onGoingStops.forEach((targetStop, j) => {
                 const targetId = targetStop.id;
                 landmarkDistanceMap[sourceId][targetId] = distanceMatrix[i][j];
             });
         });
 
-        const optimizedItinerary = await AlgorithmModule.calculateOptimizedItinerary(landmarkDistanceMap)
-        const updates = optimizedItinerary.map((id, index) => {
-            return supabase.from('poi').update({
-                visit_order: index,
-            }).eq('id', Number.parseInt(id))
-        })
-        await Promise.allSettled(updates)
+        // 3. Get the optimized order (returns array of IDs)
+        const optimizedIds = await AlgorithmModule.calculateOptimizedItinerary(landmarkDistanceMap);
 
-        console.log(optimizedItinerary)
+        /** * 4. Calculate the starting Index.
+         * If 3 stops were already visited (indices 0, 1, 2), 
+         * the next optimized stop should be index 3.
+         */
+        const maxVisitedOrder = visitedStops.length > 0
+            ? Math.max(...visitedStops.map(s => s.visit_order ?? 0))
+            : -1;
+        const startIndex = maxVisitedOrder + 1;
 
-        refetch()
-    }
+        const updates = optimizedIds.map((id, index) => {
+            return supabase
+                .from('poi')
+                .update({
+                    visit_order: startIndex + index,
+                })
+                .eq('id', Number.parseInt(id));
+        });
+
+        await Promise.allSettled(updates);
+        refetch();
+    };
 
     const handleVisitedPress = async (poi: POI) => {
         try {
-            const { error } = await supabase
+            const isMarkingAsVisited = !poi.visited_at;
+            const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
+
+            // 1. Update the specific POI first
+            const { error: updateError } = await supabase
                 .from('poi')
-                .update({ visited_at: poi.visited_at ? null : new Date().toISOString() })
+                .update({ visited_at: newVisitedAt })
                 .eq('id', poi.id);
-            if (!error) refetch();
-        } catch (e) {
-            console.error(e);
+
+            if (updateError) throw updateError;
+
+            // 2. Fetch fresh data to ensure we have all IDs and current orders
+            const { data: allPois, error: fetchError } = await supabase
+                .from('poi')
+                .select('*')
+                .eq('itinerary_id', poi.itinerary_id);
+            console.log("WOW2 ", poi)
+            if (fetchError || !allPois) throw fetchError || new Error("No data returned");
+
+            // 3. Sort: Visited (by date) then Unvisited (by original order)
+            const sortedPois = [...allPois].sort((a, b) => {
+                if (a.visited_at && !b.visited_at) return -1;
+                if (!a.visited_at && b.visited_at) return 1;
+                if (a.visited_at && b.visited_at) {
+                    return new Date(a.visited_at).getTime() - new Date(b.visited_at).getTime();
+                }
+                return (a.visit_order ?? 0) - (b.visit_order ?? 0);
+            });
+
+            const updates = sortedPois.map((item, index) => ({
+                id: item.id,
+                itinerary_id: item.itinerary_id,
+                landmark_id: item.landmark_id,
+                visit_order: index + 1,
+                visited_at: item.visited_at
+            }));
+
+
+            const { error: bulkError } = await supabase
+                .from('poi')
+                .upsert(updates, { onConflict: 'id' });
+
+            if (bulkError) throw bulkError;
+
+            refetch();
+
+        } catch (e: any) {
+            // Detailed logging to see exactly what went wrong
+            console.error("Error updating visit status and order:", e.message, e.details);
         }
     };
 
@@ -356,7 +414,7 @@ export default function ItineraryView() {
                 </Button>
 
                 {mode === Mode.Viewing && (
-                    <HStack space='md' className='w-full justify-center pr-4 bg-red-500'>
+                    <HStack space='md' className='w-full justify-center pr-4 '>
                         <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1'
                             onPress={handleOptimizePress}
                         >
