@@ -47,7 +47,7 @@ export default function ItinerariesScreen() {
 
     const calculateProgress = (itinerary: ItineraryWithStops) => {
         if (!itinerary.stops || itinerary.stops.length === 0) return 0;
-        const completed = itinerary.stops.filter(stop => !!stop.poi.visited_at).length;
+        const completed = itinerary.stops.filter(stop => !!stop.visited_at).length;
         return (completed / itinerary.stops.length) * 100;
     };
 

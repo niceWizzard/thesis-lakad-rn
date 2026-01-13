@@ -9,31 +9,27 @@ export async function fetchItinerariesOfUser(userId: string) {
       name,
       created_at,
       user_id,
-      stops:itinerary_poi_order (
+      stops:poi (
+        id,
+        visited_at,
         visit_order,
-        poi (
+        landmark (
           id,
-          visited_at,
-          itinerary_id,
-          created_at,
-          landmark(
-            id,
-            name,
-            longitude,
-            latitude,
-            categories,
-            created_by_user
-          )
+          name,
+          longitude,
+          latitude,
+          categories,
+          created_by_user
         )
       )
     `)
     .eq('user_id', userId)
+    // Order directly on the 'stops' (poi) table
     .order('visit_order', { referencedTable: 'stops', ascending: true })
 
-  if (error)
-    throw error
+  if (error) throw error
 
-  return data as ItineraryWithStops[]
+  return data as unknown as ItineraryWithStops[]
 }
 
 export async function fetchItineraryById(userId: string, itineraryId: number) {
@@ -44,21 +40,17 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
       name,
       created_at,
       user_id,
-      stops:itinerary_poi_order (
+      stops:poi (
+        id,
+        visited_at,
         visit_order,
-        poi (
+        landmark (
           id,
-          visited_at,
-          itinerary_id,
-          created_at,
-          landmark(
-            id,
-            name,
-            longitude,
-            latitude,
-            categories,
-            created_by_user
-          )
+          name,
+          longitude,
+          latitude,
+          categories,
+          created_by_user
         )
       )
     `)
@@ -67,24 +59,22 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
     .order('visit_order', { referencedTable: 'stops', ascending: true })
     .single()
 
-  if (error)
-    throw error
+  if (error) throw error
 
-  return data as ItineraryWithStops
+  return data as unknown as ItineraryWithStops
 }
 
-
 export async function createItinerary({ itineraryName, poiIds }: { itineraryName?: string, poiIds: number[] }) {
-  const date = new Date()
+  // Use a cleaner date format for the default name
+  const dateStr = new Date().toLocaleDateString();
+
   const { data: newId, error } = await supabase.rpc('create_full_itinerary', {
-    p_name: itineraryName ?? 'My New Adventure ' + date.toString(),
-    p_landmark_list: poiIds,
+    p_name: itineraryName ?? `Adventure ${dateStr}`,
+    p_landmark_list: poiIds, // Our updated RPC handles the flat list and order
   });
 
-  if (error)
-    throw error
-  if (!newId)
-    throw new Error("Itinerary was not created.")
+  if (error) throw error
+  if (!newId) throw new Error("Itinerary was not created.")
 
   return newId;
 }
