@@ -14,6 +14,7 @@ export async function fetchItinerariesOfUser(userId: string) {
         visited_at,
         visit_order,
         itinerary_id,
+        landmark_id,
         landmark (
           id,
           name,
@@ -46,6 +47,7 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
         visited_at,
         visit_order,
         itinerary_id,
+        landmark_id,
         landmark (
           id,
           name,
