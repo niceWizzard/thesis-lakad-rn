@@ -69,6 +69,7 @@ export const fetchDirections = async ({
     overview?: 'full' | 'simplified' | 'false',
     profile?: 'driving' | 'walking' | 'cycling',
 }): Promise<MapboxResponse> => {
+    console.log(waypoints)
     const coordinates = waypoints.map(v => v.join(',')).join(';');
     const url = new URL(`${BASE_URl}/${profile}/` + coordinates)
     url.searchParams.set('geometries', 'geojson')
@@ -80,7 +81,7 @@ export const fetchDirections = async ({
         const response = await fetch(url.toString())
         const data: MapboxResponse = await response.json()
         if (data.code !== "Ok")
-            throw new Error(`Mapbox API Error code: ${data.code}`)
+            throw new Error(`Mapbox API Error code: ${data.code}. ${JSON.stringify(data, null, 2)}`)
         return data
     } catch (error) {
         console.error(error)
