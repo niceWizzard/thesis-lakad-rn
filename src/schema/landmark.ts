@@ -34,6 +34,9 @@ export const createAndEditLandmarkSchema = z.object({
             const num = parseFloat(val);
             return !isNaN(num) && num >= 0 && num <= 5;
         }, "Rating must be between 0 and 5"),
+    externalImageUrl: z.url({ message: "Please enter a valid URL (include http://)" })
+        .optional()
+        .or(z.literal(''))
 }).superRefine((data, ctx) => {
     const validMunicipalities = DISTRICT_TO_MUNICIPALITY_MAP[data.district as LandmarkDistrict] as readonly string[];
     if (!validMunicipalities.includes(data.municipality)) {
