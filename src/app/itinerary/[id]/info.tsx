@@ -93,9 +93,9 @@ const ItineraryInfoScreen = () => {
                 .eq('id', itinerary.id);
             if (error) throw error;
             console.log(form.name)
-            await refetch();
+            const { data: newData } = await refetch();
             await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
-            reset()
+            reset(newData)
             ToastAndroid.show('Itinerary updated successfully', ToastAndroid.SHORT);
         } catch (e) {
             ToastAndroid.show('Failed to update itinerary', ToastAndroid.SHORT);
