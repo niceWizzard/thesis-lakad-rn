@@ -11,7 +11,7 @@ import { feature, featureCollection } from '@turf/turf';
 import * as Location from 'expo-location';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Pressable, ToastAndroid } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Pressable, ToastAndroid, View } from 'react-native';
 import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { FlatList, GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
@@ -43,10 +43,8 @@ import {
     ArrowUp,
     ArrowUpLeft,
     ArrowUpRight,
-    Check,
     CheckCircle,
     Clock,
-    GripVertical,
     LocateFixed,
     MapPin,
     Navigation,
@@ -57,6 +55,7 @@ import {
 } from 'lucide-react-native';
 
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
+import StopListItem from '@/src/components/StopListItem';
 
 const poiIcon = require('@/assets/images/red_marker.png');
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -263,6 +262,19 @@ export default function ItineraryView() {
             setIsUpdating(false); // Stop loading
         }
     };
+
+    const handleRemoveStop = async (id: number) => {
+        setIsUpdating(true);
+        try {
+            const { error } = await supabase.from('poi').delete().eq('id', id);
+            if (error) throw error;
+            await refetch();
+        } catch (err: any) {
+            showToast("Something went wrong.", err.message, 'error')
+        } finally {
+            setIsUpdating(false);
+        }
+    }
 
     const showToast = (title: string, description?: string, action: "success" | "error" | "info" = "success") => {
         toast.show({
@@ -523,36 +535,19 @@ export default function ItineraryView() {
                                             {completedStops
                                                 .sort((a, b) => new Date(a.visited_at!).getTime() - new Date(b.visited_at!).getTime())
                                                 .map((item) => (
-                                                    <Box key={item.id} className="px-4 py-4 border-b border-outline-50 bg-background-50 opacity-70">
-                                                        <HStack className='items-center justify-between'>
-                                                            <HStack space='md' className='flex-1 items-center min-w-0'>
-                                                                <Box className="w-6" />
-                                                                <Box className="w-8 h-8 rounded-full bg-success-500 items-center justify-center">
-                                                                    <Icon as={Check} size="xs" />
-                                                                </Box>
-                                                                <VStack className='flex-1 min-w-0'>
-                                                                    <Text
-                                                                        className="font-semibold text-typography-400 line-through"
-                                                                        numberOfLines={1}
-                                                                        ellipsizeMode="tail"
-                                                                    >
-                                                                        {item.landmark.name}
-                                                                    </Text>
-                                                                    <Text
-                                                                        size="xs"
-                                                                        className="text-typography-400"
-                                                                        numberOfLines={1}
-                                                                        ellipsizeMode="tail"
-                                                                    >
-                                                                        {item.landmark.municipality}
-                                                                    </Text>
-                                                                </VStack>
-                                                            </HStack>
-                                                            <Button variant='link' onPress={() => handleVisitedPress(item)}>
-                                                                <ButtonIcon as={CheckCircle} className='text-success-500' />
-                                                            </Button>
-                                                        </HStack>
-                                                    </Box>
+                                                    <View
+                                                        className='px-4 py-4 border-b border-outline-50'
+                                                    >
+                                                        <StopListItem
+                                                            key={item.id}
+                                                            displayNumber={0}
+                                                            isVisited={!!item.visited_at}
+                                                            landmark={item.landmark}
+                                                            onVisitToggle={() => handleVisitedPress(item)}
+                                                            onDelete={() => handleRemoveStop(item.id)}
+                                                            onLocate={() => handleFocusStop(item)}
+                                                        />
+                                                    </View>
                                                 ))}
                                         </VStack>
                                     }
@@ -563,60 +558,18 @@ export default function ItineraryView() {
                                         return (
                                             <ScaleDecorator>
                                                 <Pressable
-                                                    onPress={() => handleFocusStop(item)}
-                                                    onLongPress={() => {
-                                                        if (!isVisited) {
-                                                            drag();
-                                                        } else {
-                                                            ToastAndroid.show("Visited stops cannot be reordered", ToastAndroid.SHORT);
-                                                        }
-                                                    }}
-                                                    disabled={isActive && !item.visited_at}
+                                                    onLongPress={drag}
                                                     className={`px-4 py-4 border-b border-outline-50 `}
                                                 >
-                                                    <HStack className='items-center justify-between'>
-                                                        <HStack space='md' className='flex-1 items-center min-w-0'>
-                                                            <Box className="mr-1">
-                                                                {!isVisited ? (
-                                                                    <Icon as={GripVertical} size="sm" className="text-typography-300" />
-                                                                ) : (
-                                                                    <Box className="w-4" />
-                                                                )}
-                                                            </Box>
-
-                                                            <Box className={`w-8 h-8 rounded-full items-center justify-center ${isVisited ? 'bg-success-500' : 'bg-background-100'}`}>
-                                                                {isVisited ? (
-                                                                    <Icon as={Check} size="xs" />
-                                                                ) : (
-                                                                    <Text size='xs' className='font-bold text-typography-900'>
-                                                                        {displayNumber}
-                                                                    </Text>
-                                                                )}
-                                                            </Box>
-
-                                                            <VStack className='flex-1 min-w-0'>
-                                                                <Text
-                                                                    className={`font-semibold ${isVisited ? 'text-typography-300 line-through' : 'text-typography-900'}`}
-                                                                    numberOfLines={1}
-                                                                    ellipsizeMode="tail"
-                                                                >
-                                                                    {item.landmark.name}
-                                                                </Text>
-                                                                <Text
-                                                                    size="xs"
-                                                                    className="text-typography-400"
-                                                                    numberOfLines={1}
-                                                                    ellipsizeMode="tail"
-                                                                >
-                                                                    {item.landmark.municipality}
-                                                                </Text>
-                                                            </VStack>
-                                                        </HStack>
-
-                                                        <Button variant='link' onPress={() => handleVisitedPress(item)}>
-                                                            <ButtonIcon as={CheckCircle} className={isVisited ? 'text-success-500' : 'text-typography-300'} />
-                                                        </Button>
-                                                    </HStack>
+                                                    <StopListItem
+                                                        key={item.id}
+                                                        displayNumber={displayNumber}
+                                                        isVisited={isVisited}
+                                                        landmark={item.landmark}
+                                                        onVisitToggle={() => handleVisitedPress(item)}
+                                                        onDelete={() => handleRemoveStop(item.id)}
+                                                        onLocate={() => handleFocusStop(item)}
+                                                    />
                                                 </Pressable>
                                             </ScaleDecorator>
                                         );
