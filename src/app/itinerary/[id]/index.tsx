@@ -504,9 +504,9 @@ export default function ItineraryView() {
                                                 .map((item) => (
                                                     <View
                                                         className='px-4 py-4 border-b border-outline-50'
+                                                        key={item.id}
                                                     >
                                                         <StopListItem
-                                                            key={item.id}
                                                             displayNumber={0}
                                                             isVisited={!!item.visited_at}
                                                             landmark={item.landmark}
@@ -523,13 +523,14 @@ export default function ItineraryView() {
                                         const currentIndex = getIndex() ?? 0;
                                         const displayNumber = currentIndex + completedStops.length + 1;
                                         return (
-                                            <ScaleDecorator>
+                                            <ScaleDecorator
+                                                key={item.id}
+                                            >
                                                 <Pressable
                                                     onLongPress={drag}
                                                     className={`px-4 py-4 border-b border-outline-50 `}
                                                 >
                                                     <StopListItem
-                                                        key={item.id}
                                                         displayNumber={displayNumber}
                                                         isVisited={isVisited}
                                                         landmark={item.landmark}
