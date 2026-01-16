@@ -131,7 +131,7 @@ const AdminExploreTab = () => {
                                         className="flex-1 rounded-2xl h-14 bg-primary-600"
                                         onPress={() => {
                                             const id = selectedLandmark.id;
-                                            router.push({ pathname: '/(admin)/landmark/[id]', params: { id } });
+                                            router.navigate({ pathname: '/(admin)/landmark/[id]', params: { id } });
                                         }}
                                     >
                                         <ButtonIcon as={Info} className="mr-2" />
@@ -144,7 +144,7 @@ const AdminExploreTab = () => {
                                         className="rounded-2xl h-14 w-16 border-outline-300"
                                         onPress={() => {
                                             const id = selectedLandmark.id;
-                                            router.push(`/(admin)/landmark/${id}/edit`);
+                                            router.navigate(`/(admin)/landmark/${id}/edit`);
                                         }}
                                     >
                                         <ButtonIcon as={Edit2} />

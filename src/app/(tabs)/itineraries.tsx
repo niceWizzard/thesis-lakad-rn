@@ -54,7 +54,7 @@ export default function ItinerariesScreen() {
 
     const handlePress = (id: number) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.push({ pathname: '/itinerary/[id]', params: { id } });
+        router.navigate({ pathname: '/itinerary/[id]', params: { id } });
     };
 
     // --- 1. LOADING STATE ---

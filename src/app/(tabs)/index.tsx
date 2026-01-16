@@ -139,7 +139,7 @@ const ExploreTab = () => {
                                     <Button
                                         className="flex-1 rounded-2xl h-14 bg-primary-600"
                                         onPress={() => {
-                                            router.push({
+                                            router.navigate({
                                                 pathname: '/landmark/[id]/view',
                                                 params: { id: selectedLandmark.id.toString() },
                                             });

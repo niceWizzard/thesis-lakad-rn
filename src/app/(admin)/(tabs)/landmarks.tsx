@@ -170,7 +170,7 @@ export default function AdminLandmarksScreen() {
                 renderItem={({ item: landmark }) => (
                     <TouchableOpacity
                         activeOpacity={0.7}
-                        onPress={() => router.push({ pathname: '/(admin)/landmark/[id]', params: { id: landmark.id.toString() } })}
+                        onPress={() => router.navigate({ pathname: '/(admin)/landmark/[id]', params: { id: landmark.id.toString() } })}
                         className="bg-background-50 rounded-3xl border border-outline-100 shadow-soft-1 overflow-hidden"
                     >
                         <HStack className="p-4 items-center gap-4">

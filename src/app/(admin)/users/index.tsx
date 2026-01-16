@@ -150,7 +150,7 @@ export default function AdminUserSearchScreen() {
                             return (
                                 <TouchableOpacity
                                     activeOpacity={0.7}
-                                    onPress={() => router.push(`/(admin)/users/${profile.user_id}/edit`)}
+                                    onPress={() => router.navigate(`/(admin)/users/${profile.user_id}/edit`)}
                                     className="bg-background-0 p-4 rounded-3xl border border-outline-100 shadow-soft-1"
                                 >
                                     <HStack className="justify-between items-center">

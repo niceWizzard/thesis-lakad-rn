@@ -303,7 +303,7 @@ export default function AdminLandmarkDetailScreen() {
           <HStack space="md">
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
-              onPress={() => !isArchived && router.push(`/(admin)/landmark/${landmark.id}/edit`)}
+              onPress={() => !isArchived && router.navigate(`/(admin)/landmark/${landmark.id}/edit`)}
               disabled={isArchived}
             >
               <ButtonIcon as={Edit2} className={isArchived ? "text-typography-300" : "mr-2"} />
