@@ -1,4 +1,4 @@
-import React, { ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
+import React, { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
@@ -9,7 +9,7 @@ import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import CustomMapView from '@/src/components/CustomMapView';
 import MapFabs, { MAP_STYLES } from '@/src/components/MapFabs';
-import { Camera, MarkerView } from '@rnmapbox/maps';
+import { MarkerView } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -46,13 +46,14 @@ const LandmarkMapView = ({
     overlays,
     landmarks,
     selectedLandmark,
-    setSelectedLandmark
+    setSelectedLandmark,
+    cameraRef,
 }: {
     landmarks: Landmark[]
     selectedLandmark: Landmark | null
-    setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>
-} & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'sheetContent'>) => {
-    const camera = useRef<Camera>(null);
+    setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>,
+} & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'sheetContent' | 'cameraRef'>) => {
+    const camera = cameraRef;
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard);
     const [searchString, setSearchString] = useState('');
@@ -99,7 +100,7 @@ const LandmarkMapView = ({
         };
     }, []);
 
-    const centerMap = (coords: [number, number], zoom = 15) => {
+    const centerMap = (coords: [number, number], zoom = 18) => {
         camera.current?.setCamera({
             centerCoordinate: coords,
             zoomLevel: zoom,
@@ -109,7 +110,7 @@ const LandmarkMapView = ({
 
     const handleMarkerPress = (landmark: Landmark) => {
         setSelectedLandmark(landmark);
-        centerMap([landmark.longitude, landmark.latitude], 16);
+        centerMap([landmark.longitude, landmark.latitude]);
     };
 
     const handleLocatePress = async () => {
@@ -189,11 +190,14 @@ const LandmarkMapView = ({
                         anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
                         allowOverlap={false}     // Better for readability
                     >
-                        <Pressable onPress={() => setSelectedLandmark(v)} style={{ alignItems: 'center' }}>
+                        <Pressable onPress={() => handleMarkerPress(v)} style={{ alignItems: 'center' }}>
                             {/* Avatar Container */}
                             <Box
-                                className="p-1 bg-background-900 rounded-full shadow-lg border-2 border-primary-100"
                                 style={{ elevation: 5 }}
+
+                                className={`p-1 bg-background-900 rounded-full shadow-lg 
+                                    ${selectedLandmark?.id === v.id ? 'border border-primary-500' : ''}`
+                                }
                             >
                                 <Image
                                     source={{ uri: v.image_url || "https://via.placeholder.com/150" }}

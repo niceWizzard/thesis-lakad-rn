@@ -5,7 +5,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet } from 'react-native';
 
 import { Landmark } from '@/src/model/landmark.types';
@@ -14,15 +14,17 @@ import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { MAP_STYLES } from '@/src/components/MapFabs';
+import { Camera } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import { Info, MapPin, Navigation, Star } from 'lucide-react-native';
+import { Info, MapPin, Star } from 'lucide-react-native';
 
 const ExploreTab = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard);
     const router = useRouter();
+    const camera = useRef<Camera | null>(null)
 
     const landmarks = useLandmarkStore(v => v.landmarks);
 
@@ -61,6 +63,17 @@ const ExploreTab = () => {
         };
     }, []);
 
+    function handleLandmarkLocate() {
+        if (!selectedLandmark) return;
+        const { longitude, latitude } = selectedLandmark;
+        camera.current?.setCamera({
+            zoomLevel: 20,
+            animationDuration: 500,
+            centerCoordinate: [longitude, latitude],
+        })
+        setSelectedLandmark(null);
+    }
+
     return (
         <LandmarkMapView
             mapViewProps={{
@@ -72,6 +85,7 @@ const ExploreTab = () => {
                 compassEnabled: true,
                 compassPosition: { top: 96, right: 8 },
             }}
+            cameraRef={camera}
             selectedLandmark={selectedLandmark}
             setSelectedLandmark={setSelectedLandmark}
             landmarks={landmarks}
@@ -142,11 +156,9 @@ const ExploreTab = () => {
                                         variant="outline"
                                         action="secondary"
                                         className="rounded-2xl h-14 w-16 border-outline-300"
-                                        onPress={() => {
-                                            // Logic for external maps can go here
-                                        }}
+                                        onPress={handleLandmarkLocate}
                                     >
-                                        <ButtonIcon as={Navigation} className="text-primary-600" />
+                                        <ButtonIcon as={MapPin} className="text-primary-600" />
                                     </Button>
                                 </HStack>
                             </VStack>
@@ -154,7 +166,8 @@ const ExploreTab = () => {
                     )}
                 </>
             )}
-        />
+        >
+        </LandmarkMapView>
     );
 };
 

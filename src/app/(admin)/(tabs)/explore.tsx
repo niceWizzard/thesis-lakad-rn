@@ -5,7 +5,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet } from 'react-native';
 
 import { Landmark } from '@/src/model/landmark.types';
@@ -14,6 +14,7 @@ import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { MAP_STYLES } from '@/src/components/MapFabs';
+import { Camera } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Edit2, Info, MapPin, Star } from 'lucide-react-native';
@@ -23,6 +24,8 @@ const AdminExploreTab = () => {
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard);
     const router = useRouter();
+    const camera = useRef<Camera | null>(null)
+
 
     const landmarks = useLandmarkStore(v => v.landmarks);
 
@@ -72,6 +75,7 @@ const AdminExploreTab = () => {
                 compassEnabled: true,
                 compassPosition: { top: 96, right: 8 },
             }}
+            cameraRef={camera}
             selectedLandmark={selectedLandmark}
             setSelectedLandmark={setSelectedLandmark}
             landmarks={landmarks}
