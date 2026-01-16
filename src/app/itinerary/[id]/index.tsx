@@ -34,8 +34,6 @@ import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
 
 // Icons
-import { Modal, ModalBackdrop, ModalContent } from '@/components/ui/modal';
-import { Spinner } from '@/components/ui/spinner';
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import {
@@ -55,6 +53,7 @@ import {
 } from 'lucide-react-native';
 
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
+import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 
 const poiIcon = require('@/assets/images/red_marker.png');
@@ -63,6 +62,12 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 enum Mode {
     Viewing,
     Navigating,
+}
+
+enum LoadingMode {
+    Hidden,
+    Updating,
+    Deleting,
 }
 
 const getStepIcon = (instruction: string) => {
@@ -85,7 +90,7 @@ export default function ItineraryView() {
     const [isSheetOpen, setIsSheetOpen] = useState(true);
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
-    const [isUpdating, setIsUpdating] = useState(false);
+    const [loadingMode, setLoadingMode] = useState(LoadingMode.Hidden)
 
     const { session } = useAuthStore();
     const userId = session?.user.id;
@@ -160,7 +165,7 @@ export default function ItineraryView() {
     };
 
     const handleDragEnd = async ({ data }: DragEndParams<POIWithLandmark>) => {
-        setIsUpdating(true); // Start loading
+        setLoadingMode(LoadingMode.Updating);
         try {
             const visited = data.filter(item => !!item.visited_at);
             const unvisited = data.filter(item => !item.visited_at);
@@ -183,7 +188,7 @@ export default function ItineraryView() {
             console.error("Reorder Error:", error);
             showToast("Error", "Failed to save the new order.", "error");
         } finally {
-            setIsUpdating(false); // Stop loading
+            setLoadingMode(LoadingMode.Hidden)
         }
     };
     const handleNavigationButtonClick = async () => {
@@ -210,7 +215,7 @@ export default function ItineraryView() {
     };
 
     const handleVisitedPress = async (poi: POI) => {
-        setIsUpdating(true); // Start loading
+        setLoadingMode(LoadingMode.Updating);
         try {
             const isMarkingAsVisited = !poi.visited_at;
             const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
@@ -257,12 +262,12 @@ export default function ItineraryView() {
             console.error("Error updating status:", e.message);
             showToast("Something went wrong.", e.message, 'error')
         } finally {
-            setIsUpdating(false); // Stop loading
+            setLoadingMode(LoadingMode.Hidden); // Stop loading
         }
     };
 
     const handleRemoveStop = async (id: number) => {
-        setIsUpdating(true);
+        setLoadingMode(LoadingMode.Deleting);
         try {
             const { error } = await supabase.from('poi').delete().eq('id', id);
             if (error) throw error;
@@ -270,7 +275,7 @@ export default function ItineraryView() {
         } catch (err: any) {
             showToast("Something went wrong.", err.message, 'error')
         } finally {
-            setIsUpdating(false);
+            setLoadingMode(LoadingMode.Hidden);
         }
     }
 
@@ -302,7 +307,7 @@ export default function ItineraryView() {
     }
 
     const handleOptimizePress = async () => {
-        setIsUpdating(true)
+        setLoadingMode(LoadingMode.Updating)
         try {
             // 1. Separate visited and unvisited stops
             const visitedStops = itinerary.stops.filter(stop => !!stop.visited_at);
@@ -355,7 +360,7 @@ export default function ItineraryView() {
             console.error(e)
             showToast("Optimization Failed", "Could not connect to the server.", "error");
         } finally {
-            setIsUpdating(false)
+            setLoadingMode(LoadingMode.Hidden)
         }
     };
 
@@ -390,6 +395,11 @@ export default function ItineraryView() {
                         </Button>
                     )
                 }}
+            />
+
+            <LoadingModal
+                isShown={loadingMode !== LoadingMode.Hidden}
+                loadingText={loadingMode === LoadingMode.Updating ? 'Updating stop...' : 'Removing stop...'}
             />
 
             <GestureHandlerRootView style={{ flex: 1 }}>
@@ -635,15 +645,6 @@ export default function ItineraryView() {
                             </HStack>
                         )}
                     </VStack>
-                    <Modal isOpen={isUpdating} closeOnOverlayClick={false}>
-                        <ModalBackdrop />
-                        <ModalContent className="p-8 items-center justify-center rounded-2xl w-auto">
-                            <VStack space="md" className="items-center">
-                                <Spinner size="large" color="primary" />
-                                <Text className="font-medium text-typography-700">Updating Itinerary...</Text>
-                            </VStack>
-                        </ModalContent>
-                    </Modal>
                 </VStack>
             </GestureHandlerRootView>
         </>
