@@ -255,6 +255,8 @@ export default function AdminLandmarkEditScreen() {
                 placement: "top",
                 render: ({ id }) => <Toast nativeID={id} action="success" variant="solid"><ToastTitle>Landmark Updated</ToastTitle></Toast>,
             });
+            const currentValues = getValues();
+            reset(currentValues); // This clears isDirty instantly (allows back)
             router.back();
         },
     });
