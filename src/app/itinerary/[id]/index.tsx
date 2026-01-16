@@ -6,12 +6,12 @@ import {
     MarkerView,
     ShapeSource
 } from '@rnmapbox/maps';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { feature, featureCollection } from '@turf/turf';
 import * as Location from 'expo-location';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Pressable, ToastAndroid, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Pressable, View } from 'react-native';
 import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { FlatList, GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
@@ -45,13 +45,13 @@ import {
     ArrowUpRight,
     CheckCircle,
     Clock,
+    Edit,
     LocateFixed,
     MapPin,
     Navigation,
     Navigation2,
     PlusCircle,
-    RotateCcw,
-    Trash
+    RotateCcw
 } from 'lucide-react-native';
 
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
@@ -96,14 +96,12 @@ export default function ItineraryView() {
         queryFn: async () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
     });
 
-    const queryClient = useQueryClient()
 
     const nextUnvisitedStop = useMemo(() => {
         if (!itinerary) return null;
         return itinerary.stops.find(stop => !stop.visited_at) || null;
     }, [itinerary]);
 
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isOptimizationFinished, setIsOptimizationFinished] = useState(false);
 
     const toast = useToast();
@@ -361,23 +359,7 @@ export default function ItineraryView() {
         }
     };
 
-    const confirmDelete = async () => {
-        setIsDeleteModalOpen(false);
-        setIsUpdating(true);
-        try {
-            const { error } = await supabase.from('itinerary').delete().eq('id', itinerary.id);
-            if (error) throw error;
 
-            ToastAndroid.show('Itinerary deleted successfully', ToastAndroid.SHORT);
-
-            await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
-            router.back();
-        } catch (e) {
-            ToastAndroid.show('Failed to delete itinerary', ToastAndroid.SHORT);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
 
     const handleAddPoi = async () => {
         router.navigate({
@@ -397,34 +379,19 @@ export default function ItineraryView() {
             <Stack.Screen
                 options={{
                     headerRight: () => (
-                        <Button variant="link" onPress={() => setIsDeleteModalOpen(true)}>
-                            <ButtonIcon as={Trash} className="text-error-500" />
+                        <Button variant="link"
+                            onPress={() => router.navigate({
+                                pathname: '/itinerary/[id]/info',
+                                params: { id: itinerary.id }
+                            })}
+                            action='secondary'
+                        >
+                            <ButtonIcon as={Edit} />
                         </Button>
                     )
                 }}
             />
-            <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
-                <ModalBackdrop />
-                <ModalContent>
-                    <VStack space="lg" className="p-6">
-                        <VStack space="xs">
-                            <Heading size="md">Delete Itinerary?</Heading>
-                            <Text size="sm" className="text-typography-500">
-                                This action cannot be undone. All stops and progress will be lost.
-                            </Text>
-                        </VStack>
-                        <HStack space="md" className="justify-end">
-                            <Button variant="outline" action="secondary" onPress={() => setIsDeleteModalOpen(false)}>
-                                <ButtonText>Cancel</ButtonText>
-                            </Button>
-                            <Button action="negative" onPress={confirmDelete}>
-                                <ButtonIcon as={Trash} className="mr-2" />
-                                <ButtonText>Delete</ButtonText>
-                            </Button>
-                        </HStack>
-                    </VStack>
-                </ModalContent>
-            </Modal>
+
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <VStack className='flex-1'>
                     <MapView
