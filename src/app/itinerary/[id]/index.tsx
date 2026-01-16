@@ -1,18 +1,17 @@
 import {
     Camera,
-    Images,
     LineLayer,
     LocationPuck,
     MapView,
-    ShapeSource,
-    SymbolLayer
+    MarkerView,
+    ShapeSource
 } from '@rnmapbox/maps';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { feature, featureCollection } from '@turf/turf';
 import * as Location from 'expo-location';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Pressable, ToastAndroid } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Pressable, ToastAndroid } from 'react-native';
 import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { FlatList, GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
@@ -446,25 +445,51 @@ export default function ItineraryView() {
                                 />
                             </ShapeSource>
                         )}
-                        <ShapeSource id="poi-source" shape={poiFeatures as any}>
-                            <SymbolLayer
-                                id="poi-symbols"
-                                filter={['==', ['get', 'iconType'], 'app-poi-marker']}
-                                style={{
-                                    iconImage: 'customIcon',
-                                    iconAllowOverlap: true,
-                                    iconSize: ['case', ['get', 'isTarget'], 0.6, 0.4],
-                                    textField: ['get', 'name'],
-                                    textSize: 11,
-                                    textAnchor: 'top',
-                                    textOffset: [0, 1.2],
-                                    textHaloColor: '#ffffff',
-                                    textHaloWidth: 1,
-                                    iconOpacity: ['case', ['get', 'visited'], 0.3, 1]
-                                }}
-                            />
-                            <Images images={{ customIcon: poiIcon }} />
-                        </ShapeSource>
+                        {
+                            itinerary.stops.map(stop => (
+                                <MarkerView
+                                    key={stop.id}
+                                    coordinate={[stop.landmark.longitude, stop.landmark.latitude]}
+                                    anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
+                                    allowOverlap={!stop.visited_at}     // Better for readability
+                                >
+                                    <Pressable style={{ alignItems: 'center' }}>
+                                        {/* Avatar Container */}
+                                        <Box
+                                            style={{ elevation: 5 }}
+
+                                            className={`p-1 bg-background-900 rounded-full shadow-lg 
+                                    ${stop.visited_at ? 'opacity-50' : ''}`
+                                            }
+                                        >
+                                            <Image
+                                                source={{ uri: stop.landmark.image_url || "https://via.placeholder.com/150" }}
+                                                style={{ width: 24, height: 24, borderRadius: 22 }}
+                                            />
+                                        </Box>
+
+                                        {/* The "Pointer" Triangle */}
+                                        <Box
+                                            className="bg-primary-500"
+                                            style={{
+                                                width: 12,
+                                                height: 12,
+                                                transform: [{ rotate: '45deg' }],
+                                                marginTop: -6,
+                                                zIndex: -1
+                                            }}
+                                        />
+
+                                        {/* Label with better padding */}
+                                        <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
+                                            <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
+                                                {stop.landmark.name}
+                                            </Text>
+                                        </Box>
+                                    </Pressable>
+                                </MarkerView>
+                            ))
+                        }
                     </MapView>
 
                     <CustomLocalSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)}>

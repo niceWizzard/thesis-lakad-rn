@@ -21,7 +21,8 @@ export async function fetchItinerariesOfUser(userId: string) {
           longitude,
           latitude,
           categories,
-          created_by_user
+          created_by_user,
+          image_url
         )
       )
     `)
@@ -54,7 +55,8 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
           longitude,
           latitude,
           categories,
-          created_by_user
+          created_by_user,
+          image_url
         )
       )
     `)
