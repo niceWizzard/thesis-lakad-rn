@@ -13,7 +13,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Pressable, View } from 'react-native';
 import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { FlatList, GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { FlatList, ScrollView } from 'react-native-gesture-handler';
 
 // UI Components
 import { Box } from '@/components/ui/box';
@@ -402,251 +402,249 @@ export default function ItineraryView() {
                 loadingText={loadingMode === LoadingMode.Updating ? 'Updating stop...' : 'Removing stop...'}
             />
 
-            <GestureHandlerRootView style={{ flex: 1 }}>
-                <VStack className='flex-1'>
-                    <MapView
-                        style={{ flex: 1 }}
-                        logoEnabled={false}
-                        attributionEnabled={false}
-                        onPress={() => setIsSheetOpen(false)}
-                    >
-                        <Camera
-                            ref={camera}
-                            followUserLocation={mode === Mode.Navigating}
-                            defaultSettings={{
-                                centerCoordinate: itinerary.stops.length > 0 ?
-                                    [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude] :
-                                    [120.8092, 14.8605],
-                                zoomLevel: 14
-                            }}
-                        />
-                        <LocationPuck pulsing={{ isEnabled: true, color: '#007AFF' }} />
-                        {navigationRoute.length > 0 && (
-                            <ShapeSource id="routeSource" shape={navigationRoute[0].geometry}>
-                                <LineLayer
-                                    id="routeLayer"
-                                    style={{
-                                        lineColor: mode === Mode.Navigating ? '#007AFF' : '#94a3b8',
-                                        lineWidth: 5,
-                                        lineCap: 'round',
-                                        lineJoin: 'round'
-                                    }}
-                                />
-                            </ShapeSource>
-                        )}
-                        {
-                            itinerary.stops.map(stop => (
-                                <MarkerView
-                                    key={stop.id}
-                                    coordinate={[stop.landmark.longitude, stop.landmark.latitude]}
-                                    anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
-                                    allowOverlap={!stop.visited_at}     // Better for readability
-                                >
-                                    <Pressable style={{ alignItems: 'center' }}>
-                                        {/* Avatar Container */}
-                                        <Box
-                                            style={{ elevation: 5 }}
+            <VStack className='flex-1'>
+                <MapView
+                    style={{ flex: 1 }}
+                    logoEnabled={false}
+                    attributionEnabled={false}
+                    onPress={() => setIsSheetOpen(false)}
+                >
+                    <Camera
+                        ref={camera}
+                        followUserLocation={mode === Mode.Navigating}
+                        defaultSettings={{
+                            centerCoordinate: itinerary.stops.length > 0 ?
+                                [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude] :
+                                [120.8092, 14.8605],
+                            zoomLevel: 14
+                        }}
+                    />
+                    <LocationPuck pulsing={{ isEnabled: true, color: '#007AFF' }} />
+                    {navigationRoute.length > 0 && (
+                        <ShapeSource id="routeSource" shape={navigationRoute[0].geometry}>
+                            <LineLayer
+                                id="routeLayer"
+                                style={{
+                                    lineColor: mode === Mode.Navigating ? '#007AFF' : '#94a3b8',
+                                    lineWidth: 5,
+                                    lineCap: 'round',
+                                    lineJoin: 'round'
+                                }}
+                            />
+                        </ShapeSource>
+                    )}
+                    {
+                        itinerary.stops.map(stop => (
+                            <MarkerView
+                                key={stop.id}
+                                coordinate={[stop.landmark.longitude, stop.landmark.latitude]}
+                                anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
+                                allowOverlap={!stop.visited_at}     // Better for readability
+                            >
+                                <Pressable style={{ alignItems: 'center' }}>
+                                    {/* Avatar Container */}
+                                    <Box
+                                        style={{ elevation: 5 }}
 
-                                            className={`p-1 bg-background-900 rounded-full shadow-lg 
+                                        className={`p-1 bg-background-900 rounded-full shadow-lg 
                                     ${stop.visited_at ? 'opacity-50' : ''}`
-                                            }
-                                        >
-                                            <Image
-                                                source={{ uri: stop.landmark.image_url || "https://via.placeholder.com/150" }}
-                                                style={{ width: 24, height: 24, borderRadius: 22 }}
-                                            />
-                                        </Box>
-
-                                        {/* The "Pointer" Triangle */}
-                                        <Box
-                                            className="bg-primary-500"
-                                            style={{
-                                                width: 12,
-                                                height: 12,
-                                                transform: [{ rotate: '45deg' }],
-                                                marginTop: -6,
-                                                zIndex: -1
-                                            }}
+                                        }
+                                    >
+                                        <Image
+                                            source={{ uri: stop.landmark.image_url || "https://via.placeholder.com/150" }}
+                                            style={{ width: 24, height: 24, borderRadius: 22 }}
                                         />
+                                    </Box>
 
-                                        {/* Label with better padding */}
-                                        <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
-                                            <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
-                                                {stop.landmark.name}
-                                            </Text>
-                                        </Box>
-                                    </Pressable>
-                                </MarkerView>
-                            ))
-                        }
-                    </MapView>
+                                    {/* The "Pointer" Triangle */}
+                                    <Box
+                                        className="bg-primary-500"
+                                        style={{
+                                            width: 12,
+                                            height: 12,
+                                            transform: [{ rotate: '45deg' }],
+                                            marginTop: -6,
+                                            zIndex: -1
+                                        }}
+                                    />
 
-                    <CustomLocalSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
-                        {mode === Mode.Viewing ? (
-                            <VStack space='lg' className='pb-6 h-full'>
-                                <HStack className='justify-between items-center px-4'>
+                                    {/* Label with better padding */}
+                                    <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
+                                        <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
+                                            {stop.landmark.name}
+                                        </Text>
+                                    </Box>
+                                </Pressable>
+                            </MarkerView>
+                        ))
+                    }
+                </MapView>
+
+                <CustomLocalSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
+                    {mode === Mode.Viewing ? (
+                        <VStack space='lg' className='pb-6 h-full'>
+                            <HStack className='justify-between items-center px-4'>
+                                <VStack>
+                                    <Heading size='xl'>{itinerary.name}</Heading>
+                                    <HStack space='sm' className='items-center'>
+                                        <Icon as={Clock} size='xs' className='text-typography-400' />
+                                        <Text size='sm' className='text-typography-500'>
+                                            {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining
+                                        </Text>
+                                    </HStack>
+                                </VStack>
+                                <Pressable onPress={handleAddPoi}>
+                                    <Icon as={PlusCircle} size='xl' className='text-primary-600' />
+                                </Pressable>
+                            </HStack>
+                            <Divider />
+
+                            <DraggableFlatList
+                                ref={flatListRef}
+                                data={pendingStops}
+                                keyExtractor={(item) => item.id.toString()}
+                                onDragEnd={handleDragEnd}
+                                contentContainerStyle={{ paddingBottom: 100 }}
+
+                                ListHeaderComponent={
                                     <VStack>
-                                        <Heading size='xl'>{itinerary.name}</Heading>
-                                        <HStack space='sm' className='items-center'>
-                                            <Icon as={Clock} size='xs' className='text-typography-400' />
-                                            <Text size='sm' className='text-typography-500'>
-                                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining
-                                            </Text>
-                                        </HStack>
-                                    </VStack>
-                                    <Pressable onPress={handleAddPoi}>
-                                        <Icon as={PlusCircle} size='xl' className='text-primary-600' />
-                                    </Pressable>
-                                </HStack>
-                                <Divider />
-
-                                <DraggableFlatList
-                                    ref={flatListRef}
-                                    data={pendingStops}
-                                    keyExtractor={(item) => item.id.toString()}
-                                    onDragEnd={handleDragEnd}
-                                    contentContainerStyle={{ paddingBottom: 100 }}
-
-                                    ListHeaderComponent={
-                                        <VStack>
-                                            {completedStops
-                                                .sort((a, b) => new Date(a.visited_at!).getTime() - new Date(b.visited_at!).getTime())
-                                                .map((item) => (
-                                                    <View
-                                                        className='px-4 py-4 border-b border-outline-50'
-                                                        key={item.id}
-                                                    >
-                                                        <StopListItem
-                                                            displayNumber={0}
-                                                            isVisited={!!item.visited_at}
-                                                            landmark={item.landmark}
-                                                            onVisitToggle={() => handleVisitedPress(item)}
-                                                            onDelete={() => handleRemoveStop(item.id)}
-                                                            onLocate={() => handleFocusStop(item)}
-                                                        />
-                                                    </View>
-                                                ))}
-                                        </VStack>
-                                    }
-                                    renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<POIWithLandmark>) => {
-                                        const isVisited = !!item.visited_at;
-                                        const currentIndex = getIndex() ?? 0;
-                                        const displayNumber = currentIndex + completedStops.length + 1;
-                                        return (
-                                            <ScaleDecorator
-                                                key={item.id}
-                                            >
-                                                <Pressable
-                                                    onLongPress={drag}
-                                                    className={`px-4 py-4 border-b border-outline-50 `}
+                                        {completedStops
+                                            .sort((a, b) => new Date(a.visited_at!).getTime() - new Date(b.visited_at!).getTime())
+                                            .map((item) => (
+                                                <View
+                                                    className='px-4 py-4 border-b border-outline-50'
+                                                    key={item.id}
                                                 >
                                                     <StopListItem
-                                                        displayNumber={displayNumber}
-                                                        isVisited={isVisited}
+                                                        displayNumber={0}
+                                                        isVisited={!!item.visited_at}
                                                         landmark={item.landmark}
                                                         onVisitToggle={() => handleVisitedPress(item)}
                                                         onDelete={() => handleRemoveStop(item.id)}
                                                         onLocate={() => handleFocusStop(item)}
                                                     />
-                                                </Pressable>
-                                            </ScaleDecorator>
-                                        );
-                                    }}
-                                />
-                            </VStack>
-                        ) : (
-                            <VStack className='h-full bg-background-0'>
-                                {/* Primary Instruction Card */}
-                                <Box className="mx-4 mt-2 p-5 bg-background-100 rounded-3xl shadow-xl">
-                                    <HStack space="lg" className="items-center">
-                                        <Box className="bg-primary-500 p-4 rounded-2xl">
-                                            <Icon
-                                                as={Navigation2}
-                                                size="xl"
-                                                style={{ transform: [{ rotate: '45deg' }] }}
-                                            />
-                                        </Box>
-                                        <VStack className="flex-1">
-                                            <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
-                                                {navigationRoute[0]?.distance > 1000
-                                                    ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
-                                                    : `${navigationRoute[0]?.distance.toFixed(0)} m`}
-                                            </Text>
-                                            <Heading size='lg' className=" leading-tight">
-                                                {navigationRoute[0]?.legs[0]?.steps[0]?.maneuver.instruction}
-                                            </Heading>
-                                        </VStack>
-                                    </HStack>
-                                </Box>
-
-                                {/* Destination Target */}
-                                <HStack className="px-6 py-4 items-center" space="sm">
-                                    <Icon as={CheckCircle} size="sm" className="text-success-500" />
-                                    <Text size="sm" className="text-typography-500 font-medium">
-                                        Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
-                                    </Text>
-                                </HStack>
-
-                                <Divider className="mx-4" />
-
-                                {/* Upcoming Steps List */}
-                                <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
-                                    <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
-                                    <VStack space='sm' className="pb-20">
-                                        {navigationRoute[0]?.legs[0]?.steps.slice(1).map((step, i) => (
-                                            <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
-                                                <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
-                                                    {/* You can replace this with a dynamic icon library like Lucide arrow icons */}
-                                                    <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />
-                                                </Box>
-                                                <VStack className="flex-1">
-                                                    <Text size='md' className="text-typography-800 font-medium">{step.maneuver.instruction}</Text>
-                                                    <Text size='xs' className="text-typography-400">{step.distance.toFixed(0)} m</Text>
-                                                </VStack>
-                                            </HStack>
-                                        ))}
+                                                </View>
+                                            ))}
                                     </VStack>
-                                </ScrollView>
+                                }
+                                renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<POIWithLandmark>) => {
+                                    const isVisited = !!item.visited_at;
+                                    const currentIndex = getIndex() ?? 0;
+                                    const displayNumber = currentIndex + completedStops.length + 1;
+                                    return (
+                                        <ScaleDecorator
+                                            key={item.id}
+                                        >
+                                            <Pressable
+                                                onLongPress={drag}
+                                                className={`px-4 py-4 border-b border-outline-50 `}
+                                            >
+                                                <StopListItem
+                                                    displayNumber={displayNumber}
+                                                    isVisited={isVisited}
+                                                    landmark={item.landmark}
+                                                    onVisitToggle={() => handleVisitedPress(item)}
+                                                    onDelete={() => handleRemoveStop(item.id)}
+                                                    onLocate={() => handleFocusStop(item)}
+                                                />
+                                            </Pressable>
+                                        </ScaleDecorator>
+                                    );
+                                }}
+                            />
+                        </VStack>
+                    ) : (
+                        <VStack className='h-full bg-background-0'>
+                            {/* Primary Instruction Card */}
+                            <Box className="mx-4 mt-2 p-5 bg-background-100 rounded-3xl shadow-xl">
+                                <HStack space="lg" className="items-center">
+                                    <Box className="bg-primary-500 p-4 rounded-2xl">
+                                        <Icon
+                                            as={Navigation2}
+                                            size="xl"
+                                            style={{ transform: [{ rotate: '45deg' }] }}
+                                        />
+                                    </Box>
+                                    <VStack className="flex-1">
+                                        <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
+                                            {navigationRoute[0]?.distance > 1000
+                                                ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
+                                                : `${navigationRoute[0]?.distance.toFixed(0)} m`}
+                                        </Text>
+                                        <Heading size='lg' className=" leading-tight">
+                                            {navigationRoute[0]?.legs[0]?.steps[0]?.maneuver.instruction}
+                                        </Heading>
+                                    </VStack>
+                                </HStack>
+                            </Box>
 
-                                {/* Controls Overlay */}
-                                <Box className="absolute bottom-6 left-4 right-4">
-                                    <Button
-                                        action='negative'
-                                        variant='solid'
-                                        className='rounded-2xl h-14 shadow-lg bg-error-600'
-                                        onPress={() => setMode(Mode.Viewing)}
-                                    >
-                                        <ButtonText className="font-bold">Exit Navigation</ButtonText>
-                                    </Button>
-                                </Box>
-                            </VStack>
-                        )}
-                    </CustomLocalSheet>
-
-                    <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' style={{ marginBottom: isSheetOpen ? 120 : 0 }}>
-                        {!isSheetOpen && (
-                            <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
-                                <ButtonIcon as={ArrowUp} size='lg' />
-                            </Button>
-                        )}
-                        <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 })}>
-                            <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
-                        </Button>
-                        {mode === Mode.Viewing && (
-                            <HStack space='md' className='w-full justify-center'>
-                                <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1' onPress={handleOptimizePress}>
-                                    <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                                    <ButtonText>Optimize</ButtonText>
-                                </Button>
-                                <Button className='rounded-2xl shadow-md h-14 flex-1' onPress={handleNavigationButtonClick} isDisabled={!nextUnvisitedStop}>
-                                    <ButtonIcon as={Navigation} className='mr-2' />
-                                    <ButtonText>Navigate</ButtonText>
-                                </Button>
+                            {/* Destination Target */}
+                            <HStack className="px-6 py-4 items-center" space="sm">
+                                <Icon as={CheckCircle} size="sm" className="text-success-500" />
+                                <Text size="sm" className="text-typography-500 font-medium">
+                                    Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
+                                </Text>
                             </HStack>
-                        )}
-                    </VStack>
+
+                            <Divider className="mx-4" />
+
+                            {/* Upcoming Steps List */}
+                            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
+                                <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
+                                <VStack space='sm' className="pb-20">
+                                    {navigationRoute[0]?.legs[0]?.steps.slice(1).map((step, i) => (
+                                        <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
+                                            <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
+                                                {/* You can replace this with a dynamic icon library like Lucide arrow icons */}
+                                                <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />
+                                            </Box>
+                                            <VStack className="flex-1">
+                                                <Text size='md' className="text-typography-800 font-medium">{step.maneuver.instruction}</Text>
+                                                <Text size='xs' className="text-typography-400">{step.distance.toFixed(0)} m</Text>
+                                            </VStack>
+                                        </HStack>
+                                    ))}
+                                </VStack>
+                            </ScrollView>
+
+                            {/* Controls Overlay */}
+                            <Box className="absolute bottom-6 left-4 right-4">
+                                <Button
+                                    action='negative'
+                                    variant='solid'
+                                    className='rounded-2xl h-14 shadow-lg bg-error-600'
+                                    onPress={() => setMode(Mode.Viewing)}
+                                >
+                                    <ButtonText className="font-bold">Exit Navigation</ButtonText>
+                                </Button>
+                            </Box>
+                        </VStack>
+                    )}
+                </CustomLocalSheet>
+
+                <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' style={{ marginBottom: isSheetOpen ? 120 : 0 }}>
+                    {!isSheetOpen && (
+                        <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
+                            <ButtonIcon as={ArrowUp} size='lg' />
+                        </Button>
+                    )}
+                    <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 })}>
+                        <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
+                    </Button>
+                    {mode === Mode.Viewing && (
+                        <HStack space='md' className='w-full justify-center'>
+                            <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1' onPress={handleOptimizePress}>
+                                <ButtonIcon as={ArrowDownUp} className='mr-2' />
+                                <ButtonText>Optimize</ButtonText>
+                            </Button>
+                            <Button className='rounded-2xl shadow-md h-14 flex-1' onPress={handleNavigationButtonClick} isDisabled={!nextUnvisitedStop}>
+                                <ButtonIcon as={Navigation} className='mr-2' />
+                                <ButtonText>Navigate</ButtonText>
+                            </Button>
+                        </HStack>
+                    )}
                 </VStack>
-            </GestureHandlerRootView>
+            </VStack>
         </>
     );
 }
