@@ -1,14 +1,17 @@
 import React, { ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Landmark, LandmarkCategory } from '@/src/model/landmark.types';
 
+import { Box } from '@/components/ui/box';
+import { Text } from '@/components/ui/text';
 import CustomMapView from '@/src/components/CustomMapView';
 import MapFabs, { MAP_STYLES } from '@/src/components/MapFabs';
-import { Camera, Images, ShapeSource, SymbolLayer } from '@rnmapbox/maps';
+import { Camera, MarkerView } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
+import { Pressable } from 'react-native-gesture-handler';
 
 
 
@@ -178,51 +181,49 @@ const LandmarkMapView = ({
                 </>
             )}
         >
-            <ShapeSource
-                id='landmark-shape-source'
-                shape={{
-                    type: 'FeatureCollection',
-                    features: landmarks.map((landmark) => ({
-                        type: 'Feature',
-                        id: landmark.id,
-                        properties: {
-                            title: landmark.name,
-                            icon: getPin(landmark.categories[Math.floor(Math.random() * landmark.categories.length)]),
-                        },
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [landmark.longitude, landmark.latitude],
-                        },
-                    })),
-                }}
-                onPress={(event) => {
-                    const landmark = landmarks.find((landmark) => landmark.id == event.features[0].id) || null
-                    if (landmark)
-                        handleMarkerPress(landmark)
-                }}
+            {
+                landmarks.map(v => (
+                    <MarkerView
+                        key={v.id}
+                        coordinate={[v.longitude, v.latitude]}
+                        anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
+                        allowOverlap={false}     // Better for readability
+                    >
+                        <Pressable onPress={() => setSelectedLandmark(v)} style={{ alignItems: 'center' }}>
+                            {/* Avatar Container */}
+                            <Box
+                                className="p-1 bg-background-900 rounded-full shadow-lg border-2 border-primary-100"
+                                style={{ elevation: 5 }}
+                            >
+                                <Image
+                                    source={{ uri: v.image_url || "https://via.placeholder.com/150" }}
+                                    style={{ width: 24, height: 24, borderRadius: 22 }}
+                                />
+                            </Box>
 
-            >
-                <Images
-                    images={{
-                        IconImage: IconImage,      // Default/Fallback
-                        HistoryPin: HistoryPin,
-                        LandscapePin: LandscapePin,
-                        NaturePin: NaturePin,
-                        ReligiousPin: ReligiousPin,
-                        WaterPin: WaterPin,
-                    }}
-                />
-                <SymbolLayer
-                    id={'symbol-layer'}
-                    style={{
-                        textField: ['get', 'title'],
-                        textAnchor: 'top',
-                        textOffset: [0, .5],
-                        iconSize: 1,
-                        iconImage: ['get', 'icon'],
-                    }}
-                />
-            </ShapeSource>
+                            {/* The "Pointer" Triangle */}
+                            <Box
+                                className="bg-primary-500"
+                                style={{
+                                    width: 12,
+                                    height: 12,
+                                    transform: [{ rotate: '45deg' }],
+                                    marginTop: -6,
+                                    zIndex: -1
+                                }}
+                            />
+
+                            {/* Label with better padding */}
+                            <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
+                                <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
+                                    {v.name}
+                                </Text>
+                            </Box>
+                        </Pressable>
+                    </MarkerView>
+                ))
+            }
+
             {
                 children
             }
