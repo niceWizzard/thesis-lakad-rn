@@ -3,10 +3,10 @@ import { LandmarkDistrict, LandmarkMunicipality } from "../model/landmark.types"
 export const DISTRICT_TO_MUNICIPALITY_MAP = {
     "1": ["Bulakan", "Calumpit", "Hagonoy", "Malolos", "Paombong", "Pulilan"],
     "2": ["Baliwag", "Bustos", "Plaridel"],
-    "3": ["DRT", "San_Ildefonso", "San_Miguel", "San_Rafael"],
+    "3": ["DRT", "San Ildefonso", "San Miguel", "San Rafael"],
     "4": ["Marilao", "Meycauayan", "Obando"],
     "5": ["Balagtas", "Bocaue", "Guiguinto", "Pandi"],
-    "6": ["Angat", "Norzagaray", "Santa_Maria"],
+    "6": ["Angat", "Norzagaray", "Santa Maria"],
     "Lone": ["SJDM"]
 } as const;
 

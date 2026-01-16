@@ -189,9 +189,9 @@ export type Database = {
         | "Bustos"
         | "Plaridel"
         | "DRT"
-        | "San_Ildefonso"
-        | "San_Miguel"
-        | "San_Rafael"
+        | "San Ildefonso"
+        | "San Miguel"
+        | "San Rafael"
         | "Marilao"
         | "Meycauayan"
         | "Obando"
@@ -201,9 +201,8 @@ export type Database = {
         | "Pandi"
         | "Angat"
         | "Norzagaray"
-        | "Santa_Maria"
+        | "Santa Maria"
         | "SJDM"
-      poi_category: "Church" | "Historical" | "Nature" | "Museum" | "Landmark"
       user_type: "Regular" | "Admin" | "SuperAdmin"
     }
     CompositeTypes: {
@@ -351,9 +350,9 @@ export const Constants = {
         "Bustos",
         "Plaridel",
         "DRT",
-        "San_Ildefonso",
-        "San_Miguel",
-        "San_Rafael",
+        "San Ildefonso",
+        "San Miguel",
+        "San Rafael",
         "Marilao",
         "Meycauayan",
         "Obando",
@@ -363,10 +362,9 @@ export const Constants = {
         "Pandi",
         "Angat",
         "Norzagaray",
-        "Santa_Maria",
+        "Santa Maria",
         "SJDM",
       ],
-      poi_category: ["Church", "Historical", "Nature", "Museum", "Landmark"],
       user_type: ["Regular", "Admin", "SuperAdmin"],
     },
   },

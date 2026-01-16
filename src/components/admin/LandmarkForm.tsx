@@ -276,7 +276,7 @@ export function LandmarkForm({
                                                 </SelectTrigger>
                                                 <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
                                                     {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => (
-                                                        <SelectItem key={m} label={m.replace("_", " ")} value={m} />
+                                                        <SelectItem key={m} label={m} value={m} />
                                                     ))}
                                                 </SelectContent></SelectPortal>
                                             </Select>
