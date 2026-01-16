@@ -1,7 +1,7 @@
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { Button, ButtonText } from '@/components/ui/button';
@@ -19,6 +19,9 @@ import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
 import { fetchLandmarks } from '../utils/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
 import { supabase } from '../utils/supabase';
+
+
+const LakadSplashImage = require("@/assets/images/lakad-cover.png")
 
 const LoadingSplashScreen = () => {
     const router = useRouter();
@@ -129,17 +132,17 @@ const LoadingSplashScreen = () => {
                 className="items-center"
             >
                 {/* Brand Logo Placeholder */}
-                <View className="w-24 h-24 bg-white rounded-3xl items-center justify-center mb-6 shadow-lg">
-                    <Heading size="3xl" className="text-primary-600">L</Heading>
+                <View className="w-24 h-24 bg-background-0 rounded-3xl items-center justify-center mb-6 shadow-lg">
+                    <Image
+                        source={LakadSplashImage}
+                        resizeMode="contain"
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                        }}
+                    />
                 </View>
 
-                <Heading size="3xl" className="text-white font-bold tracking-widest">
-                    LAKAD
-                </Heading>
-
-                <Text className="text-primary-100 mt-2 font-medium">
-                    Smart Itinerary Planner
-                </Text>
             </Animated.View>
 
             {/* Bottom Loader */}
