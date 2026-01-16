@@ -139,7 +139,10 @@ export default function ItineraryView() {
     useEffect(() => {
         if (mode === Mode.Viewing && isSheetOpen) {
             const timer = setTimeout(() => {
-                if (flatListRef.current) {
+                if (!itinerary || !flatListRef.current)
+                    return
+                const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
+                if (pendingStops.length > 0) {
                     flatListRef.current.scrollToIndex({
                         index: 0,
                         animated: true,
@@ -489,9 +492,7 @@ export default function ItineraryView() {
                                     keyExtractor={(item) => item.id.toString()}
                                     onDragEnd={handleDragEnd}
                                     contentContainerStyle={{ paddingBottom: 100 }}
-                                    onScrollToIndexFailed={(info) => {
-                                        flatListRef.current?.scrollToOffset({ offset: info.averageItemLength * info.index, animated: true });
-                                    }}
+
                                     ListHeaderComponent={
                                         <VStack>
                                             {completedStops
