@@ -3,6 +3,7 @@ import { Box } from '@/components/ui/box';
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import { Heading } from '@/components/ui/heading';
 import { Icon } from '@/components/ui/icon';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Wand2 } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -14,6 +15,7 @@ const ExpandableFab = () => {
     const [showMenu, setShowMenu] = useState(false);
     const router = useRouter();
     const { session } = useAuthStore()
+    const queryClient = useQueryClient()
 
     const handleClose = () => setShowMenu(false);
 
@@ -22,6 +24,7 @@ const ExpandableFab = () => {
             const id = await createItineraryOnly({
                 userId: session!.user.id
             })
+            await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
             router.navigate({
                 pathname: '/itinerary/[id]',
                 params: { id }
