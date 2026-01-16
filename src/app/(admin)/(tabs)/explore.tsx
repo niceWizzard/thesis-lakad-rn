@@ -13,7 +13,6 @@ import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { MAP_STYLES } from '@/src/components/MapFabs';
 import { Camera } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -22,7 +21,6 @@ import { Edit2, Info, MapPin, Star } from 'lucide-react-native';
 const AdminExploreTab = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
-    const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard);
     const router = useRouter();
     const camera = useRef<Camera | null>(null)
 
@@ -68,7 +66,6 @@ const AdminExploreTab = () => {
         <LandmarkMapView
             mapViewProps={{
                 style: styles.map,
-                styleURL: mapStyle,
                 logoEnabled: false,
                 attributionEnabled: false,
                 onPress: () => setSelectedLandmark(null),

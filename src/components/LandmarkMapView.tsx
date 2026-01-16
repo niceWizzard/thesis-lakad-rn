@@ -8,8 +8,8 @@ import { Landmark, LandmarkCategory } from '@/src/model/landmark.types';
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
 import CustomMapView from '@/src/components/CustomMapView';
-import MapFabs, { MAP_STYLES } from '@/src/components/MapFabs';
-import { MarkerView } from '@rnmapbox/maps';
+import MapFabs from '@/src/components/MapFabs';
+import { MarkerView, StyleURL } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -55,9 +55,9 @@ const LandmarkMapView = ({
 } & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'sheetContent' | 'cameraRef'>) => {
     const camera = cameraRef;
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-    const [mapStyle, setMapStyle] = useState(MAP_STYLES.standard);
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [mapStyleUrl, setMapStyleUrl] = useState(StyleURL.Street)
 
 
     // Filter results based on search
@@ -137,14 +137,13 @@ const LandmarkMapView = ({
     return (
         <CustomMapView
             mapViewProps={{
-                style: styles.map,
-                styleURL: mapStyle,
+                styleURL: mapStyleUrl,
                 logoEnabled: false,
                 attributionEnabled: false,
                 onPress: () => setSelectedLandmark(null),
                 compassEnabled: true,
                 compassPosition: { top: 96, right: 8 },
-                ...mapViewProps
+                ...mapViewProps,
             }}
             cameraRef={camera}
             isSheetOpen={selectedLandmark != null}
@@ -174,7 +173,7 @@ const LandmarkMapView = ({
                     {/* Map Controls (FABs) */}
                     <MapFabs
                         handleLocatePress={handleLocatePress}
-                        setMapStyle={setMapStyle}
+                        setMapStyle={setMapStyleUrl}
                     />
                     {
                         overlays

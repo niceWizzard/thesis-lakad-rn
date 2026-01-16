@@ -38,7 +38,10 @@ const CustomMapView = ({
 }: LandmarkMapViewProps) => {
     return (
         <Box className="flex-1 bg-background-0">
-            <MapView style={{ flex: 1 }} {...mapViewProps}>
+            <MapView
+                style={{ flex: 1 }}
+                {...mapViewProps}
+            >
                 <Camera ref={cameraRef} defaultSettings={{ centerCoordinate: DEFAULT_COORDS, zoomLevel: 12 }} />
                 <LocationPuck pulsing={{ isEnabled: true }} />
                 {children}

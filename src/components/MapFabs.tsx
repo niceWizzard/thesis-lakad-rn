@@ -1,25 +1,35 @@
 import { Fab, FabIcon } from '@/components/ui/fab';
+import { StyleURL } from '@rnmapbox/maps';
 import { Layers, LocateFixed } from 'lucide-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 
 
-export const MAP_STYLES = {
-    standard: "mapbox://styles/mapbox/standard",
-    satellite: "mapbox://styles/mapbox/standard-satellite",
-};
-
+const MAP_STYLES = [
+    StyleURL.Dark,
+    StyleURL.Satellite,
+    StyleURL.SatelliteStreet,
+    StyleURL.Street,
+]
 
 const MapFabs = ({
     handleLocatePress,
     setMapStyle,
 }: {
     handleLocatePress: () => void,
-    setMapStyle: React.Dispatch<React.SetStateAction<string>>
+    setMapStyle: React.Dispatch<React.SetStateAction<StyleURL>>
 }) => {
+
+    const [mapStyleIndex, setMapStyleIndex] = useState(0)
+
     return (
         <>
             <Fab
-                onPress={() => setMapStyle(prev => prev === MAP_STYLES.standard ? MAP_STYLES.satellite : MAP_STYLES.standard)}
+                onPress={() => {
+                    setMapStyleIndex(v => {
+                        setMapStyle(MAP_STYLES[(v + 1) % MAP_STYLES.length])
+                        return v + 1
+                    })
+                }}
                 size="md"
                 placement='top right'
                 className='mt-40'
