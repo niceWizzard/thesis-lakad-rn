@@ -6,8 +6,7 @@ import { Menu, MenuItem, MenuItemLabel } from '@/components/ui/menu';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { Check, EllipsisVertical, MapPin, Trash } from 'lucide-react-native';
-import React from 'react';
-import { } from 'react-native';
+import React, { useState } from 'react';
 import { Landmark } from '../model/landmark.types';
 
 const StopListItem = ({
@@ -25,6 +24,8 @@ const StopListItem = ({
     displayNumber: number,
     onLocate: () => void,
 }) => {
+    const [isOpen, setIsOpen] = useState(false)
+
     return (
         <HStack className='items-center justify-between'>
             <HStack space='md' className='flex-1 items-center min-w-0 justify-center'>
@@ -56,23 +57,43 @@ const StopListItem = ({
                     </Text>
                 </VStack>
             </HStack>
+
             <Menu
+                onClose={() => {
+                    console.log("ONC LOSE")
+                    setIsOpen(false)
+                }}
+                onOpen={() => {
+                    console.log("ON OPEN")
+                    setIsOpen(true)
+                }}
+                selectionMode="single"
+                isOpen={isOpen}
                 placement="left"
                 trigger={({ ...triggerProps }) => {
                     return (
-                        <Button {...triggerProps}
+                        <Button
                             variant='link'
                             action='secondary'
+                            {...triggerProps}
+                            onPress={() => {
+                                setIsOpen(true)
+                                // bug in gluestack
+                                triggerProps.onPress()
+                            }}
                         >
                             <ButtonIcon as={EllipsisVertical} />
                         </Button>
                     );
                 }}
+                onSelectionChange={(s) => {
+                    console.log("SELECTED!")
+                    setIsOpen(false)
+                }}
             >
                 <MenuItem
                     key="Mark as visited" textValue={`Mark as ${isVisited ? 'Unvisited' : 'Visited'}`}
                     onPress={onVisitToggle}
-                    closeOnSelect
                 >
                     <Icon as={Check} size="sm" className="mr-2" />
                     <MenuItemLabel size="sm">Mark as {isVisited ? 'Unvisited' : 'Visited'}</MenuItemLabel>
@@ -80,7 +101,6 @@ const StopListItem = ({
                 <MenuItem
                     key="locate" textValue="Locate stop"
                     onPress={onLocate}
-                    closeOnSelect
                 >
                     <Icon as={MapPin} size="sm" className="mr-2" />
                     <MenuItemLabel size="sm">Locate Stop</MenuItemLabel>
@@ -88,7 +108,6 @@ const StopListItem = ({
                 <MenuItem
                     key="delete" textValue="Remove stop"
                     onPress={onDelete}
-                    closeOnSelect
                 >
                     <Icon as={Trash} size="sm" className="mr-2" />
                     <MenuItemLabel size="sm">Remove Stop</MenuItemLabel>
