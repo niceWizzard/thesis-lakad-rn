@@ -42,7 +42,16 @@ const CustomMapView = ({
                 style={{ flex: 1 }}
                 {...mapViewProps}
             >
-                <Camera ref={cameraRef} defaultSettings={{ centerCoordinate: DEFAULT_COORDS, zoomLevel: 12 }} />
+                <Camera ref={cameraRef}
+                    defaultSettings={{
+                        centerCoordinate: DEFAULT_COORDS, zoomLevel: 12,
+                    }}
+                    minZoomLevel={8}
+                    maxBounds={{
+                        ne: [122, 17],
+                        sw: [119, 13],
+                    }}
+                />
                 <LocationPuck pulsing={{ isEnabled: true }} />
                 {children}
             </MapView>
