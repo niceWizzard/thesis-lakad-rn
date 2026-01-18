@@ -3,7 +3,7 @@ import React, { ComponentProps } from 'react';
 
 import { Box } from '@/components/ui/box';
 
-import { CustomLocalSheet } from '@/src/components/CustomLocalSheet';
+
 
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 
@@ -50,9 +50,7 @@ const CustomMapView = ({
             {/* UI Overlays */}
             {overlays}
 
-            <CustomLocalSheet isOpen={isSheetOpen} onClose={onSheetClose}>
-                {sheetContent}
-            </CustomLocalSheet>
+
         </Box>
     );
 };

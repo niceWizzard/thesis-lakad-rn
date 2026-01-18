@@ -1,3 +1,12 @@
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
+import { Info, MapPin, Star } from 'lucide-react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Image, StyleSheet } from 'react-native';
+
+// UI Components
+import { Badge, BadgeText } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
@@ -5,45 +14,44 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import React, { useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet } from 'react-native';
 
+// Custom Components & Stores
+import CustomBottomSheet from '@/src/components/CustomBottomSheet';
+import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { Landmark } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
-
-import { Badge, BadgeText } from '@/components/ui/badge';
-import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { Camera } from '@rnmapbox/maps';
-import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
-import { Info, MapPin, Star } from 'lucide-react-native';
 
 const ExploreTab = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const router = useRouter();
-    const camera = useRef<Camera | null>(null)
+    const camera = useRef<any>(null);
+
+    const sheetRef = useRef<BottomSheet>(null);
+
+    // Define snap points: 0 is closed, 1 is the 40% mark
+    const snapPoints = useMemo(() => ["60%",], []);
 
     const landmarks = useLandmarkStore(v => v.landmarks);
 
+    // Sync BottomSheet with selectedLandmark state
     useEffect(() => {
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-        })();
-    }, []);
+        if (selectedLandmark) {
+            // Use requestAnimationFrame to ensure the sheet is ready
+            requestAnimationFrame(() => {
+                sheetRef.current?.snapToIndex(0);
+            });
+        } else {
+            sheetRef.current?.close();
+        }
+    }, [selectedLandmark]);
 
     useEffect(() => {
         let subscription: Location.LocationSubscription | null = null;
-
         (async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') return;
 
-            // WatchPositionAsync will update userLocation whenever they move
-            // and importantly, it will start working as soon as permissions are granted
             subscription = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.Balanced,
@@ -55,121 +63,144 @@ const ExploreTab = () => {
                 }
             );
         })();
-
-        return () => {
-            if (subscription) subscription.remove();
-        };
+        return () => subscription?.remove();
     }, []);
 
-    function handleLandmarkLocate() {
+    const handleLandmarkLocate = () => {
         if (!selectedLandmark) return;
-        const { longitude, latitude } = selectedLandmark;
         camera.current?.setCamera({
-            zoomLevel: 20,
-            animationDuration: 500,
-            centerCoordinate: [longitude, latitude],
-        })
-        setSelectedLandmark(null);
+            zoomLevel: 16,
+            animationDuration: 1000,
+            centerCoordinate: [selectedLandmark.longitude, selectedLandmark.latitude],
+        });
+    };
+
+    const handleBackdropPress = () => {
+        setSelectedLandmark(null)
     }
 
-    return (
-        <LandmarkMapView
-            mapViewProps={{
-                style: styles.map,
-                logoEnabled: false,
-                attributionEnabled: false,
-                onPress: () => setSelectedLandmark(null),
-                compassEnabled: true,
-                compassPosition: { top: 96, right: 8 },
-            }}
-            cameraRef={camera}
-            selectedLandmark={selectedLandmark}
-            setSelectedLandmark={setSelectedLandmark}
-            landmarks={landmarks}
-            sheetContent={(
-                <>
-                    {selectedLandmark && (
-                        <ScrollView className="w-full px-4" showsVerticalScrollIndicator={false}
-                        >
-                            <VStack className="gap-5 mt-4 flex-1">
-                                <VStack className="gap-2">
-                                    <HStack className="justify-between items-start">
-                                        <VStack className="flex-1">
-                                            <Heading size="xl" className="text-typography-900">
-                                                {selectedLandmark.name}
-                                            </Heading>
-                                            <HStack space="xs" className="mt-1 items-center">
-                                                <Icon as={MapPin} size="xs" className="text-typography-400" />
-                                                <Text size="xs" className="text-typography-500 font-medium">
-                                                    {selectedLandmark.municipality}, District {selectedLandmark.district}
-                                                </Text>
-                                            </HStack>
-                                        </VStack>
 
-                                        <HStack className="items-center bg-warning-50 px-3 py-1 rounded-full border border-warning-100">
-                                            <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
-                                            <Text size="sm" className="font-bold text-warning-700">
-                                                {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
+
+    return (
+        <Box className="flex-1 bg-background-0">
+            <LandmarkMapView
+                mapViewProps={{
+                    style: StyleSheet.absoluteFill,
+                    logoEnabled: false,
+                    attributionEnabled: false,
+                    onPress: () => setSelectedLandmark(null),
+                    compassEnabled: true,
+                    compassPosition: { top: 60, right: 10 },
+                }}
+                cameraRef={camera}
+                selectedLandmark={selectedLandmark}
+                setSelectedLandmark={setSelectedLandmark}
+                landmarks={landmarks}
+            />
+
+            <CustomBottomSheet
+                bottomSheetRef={sheetRef}
+                isBottomSheetOpened={!!selectedLandmark}
+                snapPoints={snapPoints}
+                enablePanDownToClose
+                onClose={handleBackdropPress}
+            >
+                {selectedLandmark ? (
+                    <BottomSheetScrollView
+                        contentContainerStyle={styles.scrollContent}
+                    >
+                        <VStack className="gap-6">
+                            {/* Header Info */}
+                            <VStack className="gap-2">
+                                <HStack className="justify-between items-start">
+                                    <VStack className="flex-1 pr-4">
+                                        <Heading size="xl" className="text-typography-900 leading-tight">
+                                            {selectedLandmark.name}
+                                        </Heading>
+                                        <HStack space="xs" className="mt-1 items-center">
+                                            <Icon as={MapPin} size="xs" className="text-primary-600" />
+                                            <Text size="sm" className="text-typography-500 font-medium">
+                                                {selectedLandmark.municipality}, District {selectedLandmark.district}
                                             </Text>
                                         </HStack>
+                                    </VStack>
+
+                                    <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
+                                        <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
+                                        <Text size="sm" className="font-bold text-warning-700">
+                                            {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
+                                        </Text>
                                     </HStack>
+                                </HStack>
 
-                                    <HStack space="xs" className="flex-wrap mt-2">
-                                        {selectedLandmark.categories?.map(cat => (
-                                            <Badge key={cat} action="info" variant="outline" className="rounded-md">
-                                                <BadgeText className="text-[10px] uppercase font-bold">{cat}</BadgeText>
-                                            </Badge>
-                                        ))}
-                                    </HStack>
-                                </VStack>
+                                <HStack space="xs" className="flex-wrap mt-1">
+                                    {selectedLandmark.categories?.map(cat => (
+                                        <Badge key={cat} action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
+                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{cat}</BadgeText>
+                                        </Badge>
+                                    ))}
+                                </HStack>
+                            </VStack>
 
-                                <Image
-                                    source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
-                                    className="w-full h-52 rounded-3xl bg-background-100"
-                                    resizeMode="cover"
-                                />
+                            {/* Image Section */}
+                            <Image
+                                source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
+                                className="w-full h-56 rounded-[32px] bg-background-100"
+                                resizeMode="cover"
+                            />
 
-                                <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
-                                    <Text size="sm" className="text-typography-600 leading-relaxed" numberOfLines={3}>
+                            {/* Description */}
+                            <VStack space="xs">
+                                <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
+                                <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
+                                    <Text size="sm" className="text-typography-600 leading-relaxed">
                                         {selectedLandmark.description || "No description available for this landmark."}
                                     </Text>
                                 </Box>
-
-                                <HStack space="md" className="mb-4">
-                                    <Button
-                                        className="flex-1 rounded-2xl h-14 bg-primary-600"
-                                        onPress={() => {
-                                            router.navigate({
-                                                pathname: '/landmark/[id]/view',
-                                                params: { id: selectedLandmark.id.toString() },
-                                            });
-                                        }}
-                                    >
-                                        <ButtonIcon as={Info} className="mr-2" />
-                                        <ButtonText className="font-bold">Full Details</ButtonText>
-                                    </Button>
-
-                                    <Button
-                                        variant="outline"
-                                        action="secondary"
-                                        className="rounded-2xl h-14 w-16 border-outline-300"
-                                        onPress={handleLandmarkLocate}
-                                    >
-                                        <ButtonIcon as={MapPin} className="text-primary-600" />
-                                    </Button>
-                                </HStack>
                             </VStack>
-                        </ScrollView>
-                    )}
-                </>
-            )}
-        >
-        </LandmarkMapView>
+
+                            {/* Actions */}
+                            <HStack space="md" className="pb-10">
+                                <Button
+                                    className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                    onPress={() => {
+                                        router.push({
+                                            pathname: '/landmark/[id]/view',
+                                            params: { id: selectedLandmark.id.toString() },
+                                        });
+                                    }}
+                                >
+                                    <ButtonIcon as={Info} className="mr-2" />
+                                    <ButtonText className="font-bold">Full Details</ButtonText>
+                                </Button>
+
+                                <Button
+                                    variant="outline"
+                                    className="rounded-2xl h-14 w-16 border-outline-200 bg-background-50"
+                                    onPress={handleLandmarkLocate}
+                                >
+                                    <ButtonIcon as={MapPin} className="text-primary-600" />
+                                </Button>
+                            </HStack>
+                        </VStack>
+                    </BottomSheetScrollView>
+                ) : (
+                    <Box className="flex-1 justify-center items-center p-10">
+                        <Text className="text-typography-400 italic text-center">
+                            Select a marker on the map to see details
+                        </Text>
+                    </Box>
+                )}
+            </CustomBottomSheet>
+        </Box >
     );
 };
 
 const styles = StyleSheet.create({
-    map: { flex: 1 },
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+    },
 });
 
 export default ExploreTab;
