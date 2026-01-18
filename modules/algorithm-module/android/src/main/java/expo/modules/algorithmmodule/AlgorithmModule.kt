@@ -43,6 +43,21 @@ class AlgorithmModule : Module() {
       ).second
     }
 
+    AsyncFunction("generateItinerary") Coroutine {
+      maxDistance : Double,
+      maxPOIs : Int,
+      weights: DoubleArray,
+      pois : Map<String, Map<String, Any>>,
+      distanceMap: Map<String, Map<String, Double>> ->
+      AGAMOptimizer(
+        maxDistance = maxDistance,
+        maxPOIs = maxPOIs,
+        jsPois = pois,
+        distanceMap = distanceMap,
+        weights = weights,
+      ).evolve(50)["poiIds"]
+    }
+
 
 
     // Enables the module to be used as a native view. Definition components that are accepted as part of

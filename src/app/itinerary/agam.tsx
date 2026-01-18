@@ -40,7 +40,9 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { Icon } from '@/components/ui/icon';
+import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
+import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -100,6 +102,43 @@ const CreateWithAgamScreen = () => {
 
     const onGenerate = async (data: FormData) => {
         try {
+
+            const pois = landmarks.reduce((obj, cur) => {
+                obj[cur.id] = {
+                    interest: 1,
+                    rating: cur.gmaps_rating / 5.0,
+                }
+                return obj
+            }, {} as { [key: string]: any })
+
+
+
+            const distanceMatrix = await fetchDistanceMatrix({
+                waypoints: landmarks.map(v => [v.longitude, v.latitude])
+            });
+
+            const landmarkDistanceMap: Record<string, Record<string, number>> = {};
+            landmarks.forEach((sourceStop, i) => {
+                const sourceId = sourceStop.id;
+                landmarkDistanceMap[sourceId] = {};
+                landmarks.forEach((targetStop, j) => {
+                    const targetId = targetStop.id;
+                    landmarkDistanceMap[sourceId][targetId] = distanceMatrix[i][j];
+                });
+            });
+
+
+            const data = await AlgorithmModule.generateItinerary(
+                100000,
+                100,
+                [1, 1, 2, 3, 4, 5,],
+                pois,
+                landmarkDistanceMap,
+            )
+
+            console.log(data);
+
+
             const newId = await createItinerary({
                 poiIds: shuffle(landmarks.map(v => v.id)),
             })

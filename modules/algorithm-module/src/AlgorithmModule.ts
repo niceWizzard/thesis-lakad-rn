@@ -13,6 +13,23 @@ declare class AlgorithmModule extends NativeModule<AlgorithmModuleEvents> {
     }
   }): Promise<string[]>
 
+  generateItinerary(
+    maxDistance: number,
+    maxPOIs: number,
+    weights: number[],
+    pois: {
+      [key: string]: {
+        interest: number,
+        rating: number,
+      }
+    },
+    distanceMap: {
+      [key: string]: {
+        [key: string]: number
+      }
+    },
+  ): Promise<string[]>
+
 }
 
 // This call loads the native module object from the JSI.
