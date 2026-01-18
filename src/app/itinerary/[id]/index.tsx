@@ -7,13 +7,11 @@ import {
     ShapeSource
 } from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
-import { feature, featureCollection } from '@turf/turf';
 import * as Location from 'expo-location';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, View } from 'react-native';
-import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { FlatList } from 'react-native-gesture-handler';
+
 
 // UI Components
 import { Box } from '@/components/ui/box';
@@ -55,7 +53,8 @@ import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/t
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 const poiIcon = require('@/assets/images/red_marker.png');
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -85,7 +84,6 @@ export default function ItineraryView() {
     const router = useRouter();
     const camera = useRef<Camera>(null);
     // Inside your component
-    const flatListRef = useRef<FlatList>(null);
 
     const [mode, setMode] = useState<Mode>(Mode.Viewing);
     const [isSheetOpen, setIsSheetOpen] = useState(true);
@@ -122,40 +120,6 @@ export default function ItineraryView() {
         })();
     }, []);
 
-    const poiFeatures = useMemo(() => {
-        if (!itinerary) return featureCollection([]);
-        return featureCollection(
-            itinerary.stops.map((stop) => feature({
-                type: 'Point',
-                coordinates: [stop.landmark.longitude, stop.landmark.latitude],
-            }, {
-                name: stop.landmark.name,
-                visited: !!stop.visited_at,
-                id: stop.id,
-                isTarget: nextUnvisitedStop?.id === stop.id,
-                iconType: 'app-poi-marker'
-            }))
-        );
-    }, [itinerary, nextUnvisitedStop]);
-
-
-    useEffect(() => {
-        if (mode === Mode.Viewing && isSheetOpen) {
-            const timer = setTimeout(() => {
-                if (!itinerary || !flatListRef.current)
-                    return
-                const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
-                if (pendingStops.length > 0) {
-                    flatListRef.current.scrollToIndex({
-                        index: 0,
-                        animated: true,
-                    });
-                }
-            }, 300);
-
-            return () => clearTimeout(timer);
-        }
-    }, [mode, isSheetOpen, itinerary]);
 
     useEffect(() => {
         if (isSheetOpen) {
@@ -167,7 +131,7 @@ export default function ItineraryView() {
         }
     }, [isSheetOpen])
 
-    const handleFocusStop = (stop: any) => {
+    const locatePOI = (stop: POIWithLandmark) => {
         camera.current?.setCamera({
             centerCoordinate: [stop.landmark.longitude, stop.landmark.latitude],
             zoomLevel: 18,
@@ -176,33 +140,7 @@ export default function ItineraryView() {
         });
     };
 
-    const handleDragEnd = async ({ data }: DragEndParams<POIWithLandmark>) => {
-        setLoadingMode(LoadingMode.Updating);
-        try {
-            const visited = data.filter(item => !!item.visited_at);
-            const unvisited = data.filter(item => !item.visited_at);
-            const strictOrder = [...visited, ...unvisited];
 
-            const updates = strictOrder.map((item, index) => ({
-                id: item.id,
-                itinerary_id: item.itinerary_id,
-                landmark_id: item.landmark_id,
-                visit_order: index + 1,
-                visited_at: item.visited_at
-            }));
-
-            const { error } = await supabase.from('poi').upsert(updates, { onConflict: 'id' });
-            if (error) throw error;
-            showToast("Order Saved", "Your custom sequence is now updated.", "success");
-
-            await refetch();
-        } catch (error) {
-            console.error("Reorder Error:", error);
-            showToast("Error", "Failed to save the new order.", "error");
-        } finally {
-            setLoadingMode(LoadingMode.Hidden)
-        }
-    };
     const handleNavigationButtonClick = async () => {
         if (!nextUnvisitedStop) {
             showToast("No Stops Left", "You have completed all points in this itinerary.", "info");
@@ -226,70 +164,6 @@ export default function ItineraryView() {
         });
     };
 
-    const handleVisitedPress = async (poi: POI) => {
-        setLoadingMode(LoadingMode.Updating);
-        try {
-            const isMarkingAsVisited = !poi.visited_at;
-            const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
-
-            const { error: updateError } = await supabase
-                .from('poi')
-                .update({ visited_at: newVisitedAt })
-                .eq('id', poi.id);
-
-            if (updateError) throw updateError;
-
-            const { data: allPois, error: fetchError } = await supabase
-                .from('poi')
-                .select('*')
-                .eq('itinerary_id', poi.itinerary_id);
-
-            if (fetchError || !allPois) throw fetchError || new Error("No data");
-
-            const sortedPois = [...allPois].sort((a, b) => {
-                if (a.visited_at && !b.visited_at) return -1;
-                if (!a.visited_at && b.visited_at) return 1;
-                if (a.visited_at && b.visited_at) {
-                    return new Date(a.visited_at).getTime() - new Date(b.visited_at).getTime();
-                }
-                return (a.visit_order ?? 0) - (b.visit_order ?? 0);
-            });
-
-            const updates = sortedPois.map((item, index) => ({
-                id: item.id,
-                itinerary_id: item.itinerary_id,
-                landmark_id: item.landmark_id,
-                visit_order: index + 1,
-                visited_at: item.visited_at
-            }));
-
-            const { error: bulkError } = await supabase
-                .from('poi')
-                .upsert(updates, { onConflict: 'id' });
-
-            if (bulkError) throw bulkError;
-
-            await refetch();
-        } catch (e: any) {
-            console.error("Error updating status:", e.message);
-            showToast("Something went wrong.", e.message, 'error')
-        } finally {
-            setLoadingMode(LoadingMode.Hidden); // Stop loading
-        }
-    };
-
-    const handleRemoveStop = async (id: number) => {
-        setLoadingMode(LoadingMode.Deleting);
-        try {
-            const { error } = await supabase.from('poi').delete().eq('id', id);
-            if (error) throw error;
-            await refetch();
-        } catch (err: any) {
-            showToast("Something went wrong.", err.message, 'error')
-        } finally {
-            setLoadingMode(LoadingMode.Hidden);
-        }
-    }
 
     const showToast = (title: string, description?: string, action: "success" | "error" | "info" = "success") => {
         toast.show({
@@ -377,18 +251,8 @@ export default function ItineraryView() {
     };
 
 
-
-    const handleAddPoi = async () => {
-        router.navigate({
-            pathname: '/itinerary/[id]/add-poi',
-            params: { id: itinerary.id, currentCount: itinerary.stops.length },
-        })
-    }
-
-    // 1. Get the actual count of completed (visited) stops
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
 
-    // 2. Get the list of stops that are still pending (to be used in the draggable list)
     const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
 
     return (
@@ -492,8 +356,6 @@ export default function ItineraryView() {
                     }
                 </MapView>
 
-
-
                 <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' style={{ marginBottom: isSheetOpen ? 120 : 0 }}>
                     {!isSheetOpen && (
                         <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
@@ -503,173 +365,320 @@ export default function ItineraryView() {
                     <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 })}>
                         <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
                     </Button>
-                    {mode === Mode.Viewing && (
-                        <HStack space='md' className='w-full justify-center'>
-                            <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1' onPress={handleOptimizePress}>
-                                <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                                <ButtonText>Optimize</ButtonText>
-                            </Button>
-                            <Button className='rounded-2xl shadow-md h-14 flex-1' onPress={handleNavigationButtonClick} isDisabled={!nextUnvisitedStop}>
-                                <ButtonIcon as={Navigation} className='mr-2' />
-                                <ButtonText>Navigate</ButtonText>
-                            </Button>
-                        </HStack>
-                    )}
+
                 </VStack>
+                <CustomBottomSheet
+                    index={0}
+                    bottomSheetRef={bottomSheetRef}
+                    snapPoints={["50%", "70%"]}
+                    isBottomSheetOpened={isSheetOpen}
+                    onClose={() => setIsSheetOpen(false)}
+                    enableDynamicSizing={false}
+                    enablePanDownToClose
+                >
+
+                    <BottomSheetScrollView>
+                        <ViewingModeBottomSheetContent
+                            completedStops={completedStops}
+                            pendingStops={pendingStops}
+                            itinerary={itinerary}
+                            mode={mode}
+                            isSheetOpen={isSheetOpen}
+                            refetch={refetch}
+                            showToast={showToast}
+                            locatePOI={locatePOI}
+                            canOptimize={pendingStops.length > 1}
+                            handleOptimizePress={handleOptimizePress}
+                            goNavigationMode={handleNavigationButtonClick}
+                        />
+                        <NavigatingModeBottomSheetContent
+                            navigationRoute={navigationRoute}
+                            mode={mode}
+                            nextUnvisitedStop={nextUnvisitedStop}
+                            exitNavigationMode={() => {
+                                setMode(Mode.Viewing);
+                                setNavigationRoute([]);
+                            }}
+                        />
+                    </BottomSheetScrollView>
+                </CustomBottomSheet>
             </VStack>
-            <CustomBottomSheet
-                index={0}
-                bottomSheetRef={bottomSheetRef}
-                snapPoints={["50%"]}
-                isBottomSheetOpened={isSheetOpen}
-                onClose={() => setIsSheetOpen(false)}
-                onChange={(index) => {
-                    console.log("CHANGED INDEX", index)
-                    if (index === -1) setIsSheetOpen(false);
-                }}
-            >
-                <BottomSheetView>
-                    {mode === Mode.Viewing ? (
-                        <VStack space='lg' className='pb-6 h-full'>
-                            <HStack className='justify-between items-center px-4'>
-                                <VStack>
-                                    <Heading size='xl'>{itinerary.name}</Heading>
-                                    <HStack space='sm' className='items-center'>
-                                        <Icon as={Clock} size='xs' className='text-typography-400' />
-                                        <Text size='sm' className='text-typography-500'>
-                                            {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining
-                                        </Text>
-                                    </HStack>
-                                </VStack>
-                                <Pressable onPress={handleAddPoi}>
-                                    <Icon as={PlusCircle} size='xl' className='text-primary-600' />
-                                </Pressable>
-                            </HStack>
-                            <Divider />
-
-                            <DraggableFlatList
-                                ref={flatListRef}
-                                data={pendingStops}
-                                keyExtractor={(item) => item.id.toString()}
-                                onDragEnd={handleDragEnd}
-                                contentContainerStyle={{ paddingBottom: 100 }}
-
-                                ListHeaderComponent={
-                                    <VStack>
-                                        {completedStops
-                                            .sort((a, b) => new Date(a.visited_at!).getTime() - new Date(b.visited_at!).getTime())
-                                            .map((item) => (
-                                                <View
-                                                    className='px-4 py-4 border-b border-outline-50'
-                                                    key={item.id}
-                                                >
-                                                    <StopListItem
-                                                        displayNumber={0}
-                                                        isVisited={!!item.visited_at}
-                                                        landmark={item.landmark}
-                                                        onVisitToggle={() => handleVisitedPress(item)}
-                                                        onDelete={() => handleRemoveStop(item.id)}
-                                                        onLocate={() => handleFocusStop(item)}
-                                                    />
-                                                </View>
-                                            ))}
-                                    </VStack>
-                                }
-                                renderItem={({ item, drag, isActive, getIndex }: RenderItemParams<POIWithLandmark>) => {
-                                    const isVisited = !!item.visited_at;
-                                    const currentIndex = getIndex() ?? 0;
-                                    const displayNumber = currentIndex + completedStops.length + 1;
-                                    return (
-                                        <ScaleDecorator
-                                            key={item.id}
-                                        >
-                                            <Pressable
-                                                onLongPress={drag}
-                                                className={`px-4 py-4 border-b border-outline-50 `}
-                                            >
-                                                <StopListItem
-                                                    displayNumber={displayNumber}
-                                                    isVisited={isVisited}
-                                                    landmark={item.landmark}
-                                                    onVisitToggle={() => handleVisitedPress(item)}
-                                                    onDelete={() => handleRemoveStop(item.id)}
-                                                    onLocate={() => handleFocusStop(item)}
-                                                />
-                                            </Pressable>
-                                        </ScaleDecorator>
-                                    );
-                                }}
-                            />
-                        </VStack>
-                    ) : (
-                        <VStack className='h-full bg-background-0'>
-                            {/* Primary Instruction Card */}
-                            <Box className="mx-4 mt-2 p-5 bg-background-100 rounded-3xl shadow-xl">
-                                <HStack space="lg" className="items-center">
-                                    <Box className="bg-primary-500 p-4 rounded-2xl">
-                                        <Icon
-                                            as={Navigation2}
-                                            size="xl"
-                                            style={{ transform: [{ rotate: '45deg' }] }}
-                                        />
-                                    </Box>
-                                    <VStack className="flex-1">
-                                        <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
-                                            {navigationRoute[0]?.distance > 1000
-                                                ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
-                                                : `${navigationRoute[0]?.distance.toFixed(0)} m`}
-                                        </Text>
-                                        <Heading size='lg' className=" leading-tight">
-                                            {navigationRoute[0]?.legs[0]?.steps[0]?.maneuver.instruction}
-                                        </Heading>
-                                    </VStack>
-                                </HStack>
-                            </Box>
-
-                            {/* Destination Target */}
-                            <HStack className="px-6 py-4 items-center" space="sm">
-                                <Icon as={CheckCircle} size="sm" className="text-success-500" />
-                                <Text size="sm" className="text-typography-500 font-medium">
-                                    Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
-                                </Text>
-                            </HStack>
-
-                            <Divider className="mx-4" />
-
-                            {/* Upcoming Steps List */}
-                            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
-                                <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
-                                <VStack space='sm' className="pb-20">
-                                    {navigationRoute[0]?.legs[0]?.steps.slice(1).map((step, i) => (
-                                        <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
-                                            <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
-                                                {/* You can replace this with a dynamic icon library like Lucide arrow icons */}
-                                                <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />
-                                            </Box>
-                                            <VStack className="flex-1">
-                                                <Text size='md' className="text-typography-800 font-medium">{step.maneuver.instruction}</Text>
-                                                <Text size='xs' className="text-typography-400">{step.distance.toFixed(0)} m</Text>
-                                            </VStack>
-                                        </HStack>
-                                    ))}
-                                </VStack>
-                            </ScrollView>
-
-                            {/* Controls Overlay */}
-                            <Box className="absolute bottom-6 left-4 right-4">
-                                <Button
-                                    action='negative'
-                                    variant='solid'
-                                    className='rounded-2xl h-14 shadow-lg bg-error-600'
-                                    onPress={() => setMode(Mode.Viewing)}
-                                >
-                                    <ButtonText className="font-bold">Exit Navigation</ButtonText>
-                                </Button>
-                            </Box>
-                        </VStack>
-                    )}
-                </BottomSheetView>
-            </CustomBottomSheet>
         </>
     );
+}
+
+
+function NavigatingModeBottomSheetContent({
+    mode,
+    navigationRoute,
+    nextUnvisitedStop,
+    exitNavigationMode,
+
+}: {
+    navigationRoute: MapboxRoute[],
+    mode: Mode,
+    nextUnvisitedStop: POIWithLandmark | null,
+    exitNavigationMode: () => void,
+}) {
+    if (mode !== Mode.Navigating)
+        return null;
+
+    return (<>
+        <VStack className='h-full bg-background-0'>
+            {/* Primary Instruction Card */}
+            <Box className="mx-4 mt-2 p-5 bg-background-100 rounded-3xl shadow-xl">
+                <HStack space="lg" className="items-center">
+                    <Box className="bg-primary-500 p-4 rounded-2xl">
+                        <Icon
+                            as={Navigation2}
+                            size="xl"
+                            style={{ transform: [{ rotate: '45deg' }] }}
+                        />
+                    </Box>
+                    <VStack className="flex-1">
+                        <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
+                            {navigationRoute[0]?.distance > 1000
+                                ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
+                                : `${navigationRoute[0]?.distance.toFixed(0)} m`}
+                        </Text>
+                        <Heading size='lg' className=" leading-tight">
+                            {navigationRoute[0]?.legs[0]?.steps[0]?.maneuver.instruction}
+                        </Heading>
+                    </VStack>
+                </HStack>
+            </Box>
+
+            {/* Destination Target */}
+            <HStack className="px-6 py-4 items-center" space="sm">
+                <Icon as={CheckCircle} size="sm" className="text-success-500" />
+                <Text size="sm" className="text-typography-500 font-medium">
+                    Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
+                </Text>
+            </HStack>
+
+            <Divider className="mx-4" />
+
+            {/* Upcoming Steps List */}
+            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
+                <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
+                <VStack space='sm' className="pb-20">
+                    {navigationRoute[0]?.legs[0]?.steps.slice(1).map((step, i) => (
+                        <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
+                            <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
+                                {/* You can replace this with a dynamic icon library like Lucide arrow icons */}
+                                <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />
+                            </Box>
+                            <VStack className="flex-1">
+                                <Text size='md' className="text-typography-800 font-medium">{step.maneuver.instruction}</Text>
+                                <Text size='xs' className="text-typography-400">{step.distance.toFixed(0)} m</Text>
+                            </VStack>
+                        </HStack>
+                    ))}
+                </VStack>
+            </ScrollView>
+
+            {/* Controls Overlay */}
+            <Box className="absolute bottom-6 left-4 right-4">
+                <Button
+                    action='negative'
+                    variant='solid'
+                    className='rounded-2xl h-14 shadow-lg bg-error-600'
+                    onPress={exitNavigationMode}
+                >
+                    <ButtonText className="font-bold">Exit Navigation</ButtonText>
+                </Button>
+            </Box>
+        </VStack>
+    </>)
+}
+
+
+function ViewingModeBottomSheetContent({
+    itinerary, mode, isSheetOpen,
+    goNavigationMode,
+    handleOptimizePress,
+    canOptimize,
+    pendingStops,
+    completedStops,
+    refetch,
+    showToast,
+    locatePOI,
+}: {
+    itinerary: ItineraryWithStops,
+    mode: Mode,
+    isSheetOpen: boolean,
+    pendingStops: POIWithLandmark[],
+    completedStops: POIWithLandmark[],
+    refetch: () => Promise<any>,
+    showToast: (title: string, description?: string, action?: "success" | "error" | "info") => void,
+    locatePOI: (stop: POIWithLandmark) => void,
+    handleOptimizePress: () => void,
+    goNavigationMode: () => void,
+    canOptimize: boolean,
+}
+) {
+    const scrollViewRef = useRef<ScrollView>(null);
+    const router = useRouter();
+    const [isUpdating, setIsUpdating] = useState(false)
+
+
+    useEffect(() => {
+        if (mode === Mode.Viewing && isSheetOpen) {
+            const timer = setTimeout(() => {
+                if (!itinerary || !scrollViewRef.current)
+                    return
+                const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
+                if (pendingStops.length > 0) {
+                    scrollViewRef.current.scrollTo({
+                        y: 0,
+                        animated: true,
+                    })
+                }
+            }, 300);
+
+            return () => clearTimeout(timer);
+        }
+    }, [mode, isSheetOpen, itinerary]);
+
+    const handleAddPoi = async () => {
+        router.navigate({
+            pathname: '/itinerary/[id]/add-poi',
+            params: { id: itinerary.id, currentCount: itinerary.stops.length },
+        })
+    }
+
+    const handleVisitedPress = async (poi: POI) => {
+        setIsUpdating(true)
+        try {
+            const isMarkingAsVisited = !poi.visited_at;
+            const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
+
+            const { error: updateError } = await supabase
+                .from('poi')
+                .update({ visited_at: newVisitedAt })
+                .eq('id', poi.id);
+
+            if (updateError) throw updateError;
+
+            const { data: allPois, error: fetchError } = await supabase
+                .from('poi')
+                .select('*')
+                .eq('itinerary_id', poi.itinerary_id);
+
+            if (fetchError || !allPois) throw fetchError || new Error("No data");
+
+            const sortedPois = [...allPois].sort((a, b) => {
+                if (a.visited_at && !b.visited_at) return -1;
+                if (!a.visited_at && b.visited_at) return 1;
+                if (a.visited_at && b.visited_at) {
+                    return new Date(a.visited_at).getTime() - new Date(b.visited_at).getTime();
+                }
+                return (a.visit_order ?? 0) - (b.visit_order ?? 0);
+            });
+
+            const updates = sortedPois.map((item, index) => ({
+                id: item.id,
+                itinerary_id: item.itinerary_id,
+                landmark_id: item.landmark_id,
+                visit_order: index + 1,
+                visited_at: item.visited_at
+            }));
+
+            const { error: bulkError } = await supabase
+                .from('poi')
+                .upsert(updates, { onConflict: 'id' });
+
+            if (bulkError) throw bulkError;
+
+            await refetch();
+        } catch (e: any) {
+            console.error("Error updating status:", e.message);
+            showToast("Something went wrong.", e.message, 'error')
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleReorderPress = () => {
+        router.navigate({
+            pathname: '/itinerary/[id]/reorder',
+            params: { id: itinerary.id },
+        })
+    }
+
+    const handleRemoveStop = async (id: number) => {
+        setIsUpdating(true)
+        try {
+            const { error } = await supabase.from('poi').delete().eq('id', id);
+            if (error) throw error;
+            await refetch();
+        } catch (err: any) {
+            showToast("Something went wrong.", err.message, 'error')
+        } finally {
+            setIsUpdating(false);
+        }
+    }
+
+    if (mode !== Mode.Viewing)
+        return null;
+    return (
+        <>
+            <LoadingModal
+                isShown={isUpdating}
+                loadingText={"Updating itinerary"}
+            />
+            <VStack space='lg' className='pb-6 h-full flex-1'>
+                <HStack className='justify-between items-center px-4'>
+                    <VStack>
+                        <Heading size='xl'>{itinerary.name}</Heading>
+                        <HStack space='sm' className='items-center'>
+                            <Icon as={Clock} size='xs' className='text-typography-400' />
+                            <Text size='sm' className='text-typography-500'>
+                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining
+                            </Text>
+                        </HStack>
+                    </VStack>
+                    <Pressable onPress={handleAddPoi}>
+                        <Icon as={PlusCircle} size='xl' className='text-primary-600' />
+                    </Pressable>
+
+                </HStack>
+                <HStack space='md' className='w-full justify-center'>
+                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleOptimizePress}>
+                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
+                        <ButtonText>Optimize</ButtonText>
+                    </Button>
+                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}>
+                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
+                        <ButtonText>Reorder</ButtonText>
+                    </Button>
+                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={!canOptimize}>
+                        <ButtonIcon as={Navigation} className='mr-2' />
+                        <ButtonText>Navigate</ButtonText>
+                    </Button>
+                </HStack>
+                <Divider />
+                {itinerary.stops
+                    .map((item, currentIndex) => {
+                        const isVisited = !!item.visited_at;
+                        const displayNumber = currentIndex + 1;
+                        return (
+                            <View
+                                className='px-4 py-4 border-b border-outline-50'
+                                key={item.id}
+                            >
+                                <StopListItem
+                                    displayNumber={displayNumber}
+                                    isVisited={isVisited}
+                                    landmark={item.landmark}
+                                    onVisitToggle={() => handleVisitedPress(item)}
+                                    onDelete={() => handleRemoveStop(item.id)}
+                                    onLocate={() => locatePOI(item)} />
+                            </View>
+                        );
+                    })}
+
+            </VStack>
+        </>
+    )
 }
