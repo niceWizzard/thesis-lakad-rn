@@ -11,7 +11,7 @@ import {
     Navigation2,
     Sparkles
 } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     Alert,
@@ -39,19 +39,25 @@ import { VStack } from '@/components/ui/vstack';
 
 // Stores & Utils
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
+import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
+import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 
-const DISTRICTS = [
-    { id: '1', label: 'District 1' },
-    { id: '2', label: 'District 2' },
-    { id: '3', label: 'District 3' },
-    { id: '4', label: 'District 4' },
-    { id: '5', label: 'District 5' },
-    { id: '6', label: 'District 6' },
-    { id: 'Lone', label: 'Lone District' },
-];
+const DISTRICTS: {
+    id: LandmarkDistrict,
+    label: string;
+}[] = [
+        { id: '1', label: 'District 1' },
+        { id: '2', label: 'District 2' },
+        { id: '3', label: 'District 3' },
+        { id: '4', label: 'District 4' },
+        { id: '5', label: 'District 5' },
+        { id: '6', label: 'District 6' },
+        { id: 'Lone', label: 'Lone District' },
+    ];
+
 
 const CATEGORIES = [
     { id: 'History', label: 'History' },
@@ -72,6 +78,7 @@ const schema = z.object({
     }, "AGAM only supports up to 50 stopovers"),
     districts: z.array(z.string()).min(1, "Select at least one district"),
     categories: z.array(z.string()).min(1, "Select at least one category"),
+    municipalities: z.array(z.string()).min(1, "Select at least one municipality"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -89,22 +96,42 @@ const CreateWithAgamScreen = () => {
             maxPoi: '10',
             districts: DISTRICTS.map(d => d.id),
             categories: CATEGORIES.map(c => c.id),
+            municipalities: MUNICIPALITIES,
         },
         mode: 'onChange',
     });
 
     const selectedDistricts = watch('districts');
     const selectedCategories = watch('categories');
+    const selectedMunicipalities = watch('municipalities');
+
+    const validMunicipalities = useMemo(() => {
+        return selectedDistricts.flatMap(v => DISTRICT_TO_MUNICIPALITY_MAP[v as LandmarkDistrict] || []).sort((a, b) => a.localeCompare(b));
+    }, [selectedDistricts]);
+
+    useEffect(() => {
+        const nextMunicipalities = selectedMunicipalities.filter(v =>
+            validMunicipalities.includes(v as LandmarkMunicipality)
+        );
+
+        if (JSON.stringify(nextMunicipalities) !== JSON.stringify(selectedMunicipalities)) {
+            setValue('municipalities', nextMunicipalities, { shouldValidate: true });
+        }
+    }, [validMunicipalities, selectedMunicipalities, setValue]);
+
 
     // Dynamic counter logic
     const availableCount = useMemo(() => {
         return landmarks.filter(l =>
             selectedDistricts.includes(l.district) &&
+            selectedMunicipalities.includes(l.municipality) &&
             l.categories.some(cat => selectedCategories.includes(cat))
         ).length;
-    }, [landmarks, selectedDistricts, selectedCategories]);
+    }, [landmarks, selectedDistricts, selectedCategories, selectedMunicipalities]);
 
-    const toggleItem = (current: string[], id: string, field: 'districts' | 'categories') => {
+
+
+    const toggleItem = (current: string[], id: string, field: 'districts' | 'categories' | 'municipalities') => {
         const next = current.includes(id) ? current.filter(i => i !== id) : [...current, id];
         setValue(field, next, { shouldValidate: true });
     };
@@ -114,6 +141,7 @@ const CreateWithAgamScreen = () => {
         try {
             const filteredLandmarks = landmarks.filter(l =>
                 formData.districts.includes(l.district) &&
+                selectedMunicipalities.includes(l.municipality) &&
                 l.categories.some(cat => formData.categories.includes(cat))
             );
 
@@ -158,6 +186,7 @@ const CreateWithAgamScreen = () => {
             setIsGenerating(false);
         }
     };
+
 
     return (
         <KeyboardAvoidingView
@@ -218,6 +247,46 @@ const CreateWithAgamScreen = () => {
                                     </View>
                                 </AccordionContent>
                             </AccordionItem>
+
+
+
+                            <AccordionItem value="municipalities" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
+                                <AccordionHeader>
+                                    <AccordionTrigger>
+                                        {({ isExpanded }: any) => (
+                                            <HStack className="items-center justify-between w-full pr-4">
+                                                <HStack className="items-center gap-3">
+                                                    <Icon as={Layers} className="text-primary-600" />
+                                                    <AccordionTitleText className="font-bold">Municipalities</AccordionTitleText>
+                                                </HStack>
+                                                <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
+                                            </HStack>
+                                        )}
+                                    </AccordionTrigger>
+                                </AccordionHeader>
+                                <AccordionContent>
+                                    <View className="flex-row flex-wrap gap-2 p-2">
+                                        {validMunicipalities.map(c => {
+                                            const active = selectedMunicipalities.includes(c);
+                                            return (
+                                                <TouchableOpacity
+                                                    key={c}
+                                                    onPress={() => toggleItem(selectedMunicipalities, c, 'municipalities')}
+                                                    className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-600 border-primary-600' : 'bg-background-0 border-outline-200'}`}
+                                                >
+                                                    <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{c}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                        {
+                                            validMunicipalities.length === 0 && (
+                                                <Text>No municipalities found</Text>
+                                            )
+                                        }
+                                    </View>
+                                </AccordionContent>
+                            </AccordionItem>
+
 
                             <AccordionItem value="categories" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
                                 <AccordionHeader>
