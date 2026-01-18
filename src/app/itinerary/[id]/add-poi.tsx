@@ -26,7 +26,7 @@ export default function AddPOIScreen() {
     const { data: landmarks, isLoading } = useQuery({
         queryKey: ['landmarks', searchQuery],
         queryFn: async () => {
-            let query = supabase.from('landmark').select('*');
+            let query = supabase.from('landmark').select('*').is('deleted_at', null);
             if (searchQuery) {
                 query = query.ilike('name', `%${searchQuery}%`);
             }
