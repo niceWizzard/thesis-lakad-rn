@@ -60,11 +60,9 @@ const StopListItem = ({
 
             <Menu
                 onClose={() => {
-                    console.log("ONC LOSE")
                     setIsOpen(false)
                 }}
                 onOpen={() => {
-                    console.log("ON OPEN")
                     setIsOpen(true)
                 }}
                 selectionMode="single"
@@ -87,7 +85,6 @@ const StopListItem = ({
                     );
                 }}
                 onSelectionChange={(s) => {
-                    console.log("SELECTED!")
                     setIsOpen(false)
                 }}
             >

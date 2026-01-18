@@ -52,7 +52,6 @@ const LoadingSplashScreen = () => {
                     // We stay on splash or let RootLayout handle the redirect
                     return;
                 }
-                console.log(loadingError)
                 if (loadingError) {
                     return;
                 }
@@ -98,7 +97,6 @@ const LoadingSplashScreen = () => {
 
 
                 const userType = await fetchUserType(session.user.id);
-                console.log("USER TYPE: ", userType)
                 // 4. Set global auth state and enter the app
                 setAuth(session, userType);
 

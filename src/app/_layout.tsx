@@ -21,11 +21,8 @@ export default function RootLayout() {
     // 1. Unified URL Logic
     const handleDeepLink = (url: string | null) => {
       if (!url) return;
-      console.log("++++")
-      console.log("EVENT URL:", url);
 
       if (url.includes('error=')) {
-        console.log("GOING TO LINK ERROR")
         router.replace("/link-error");
         return;
       }
@@ -43,7 +40,6 @@ export default function RootLayout() {
 
     // 4. Handle Auth State
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("SUPABASE EVENT: <", event)
       if (session) {
         setAuth(session);
         // ONLY redirect to tabs if it's a standard login, 

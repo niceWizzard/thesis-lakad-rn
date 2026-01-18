@@ -80,7 +80,6 @@ export default function AdminLandmarkCreateScreen() {
             });
             setDisregardDiscardDialog(true);
             setTimeout(() => {
-                console.log("BACKING: ", disregardDiscardDialog)
                 router.back();
             }, 100)
         },
