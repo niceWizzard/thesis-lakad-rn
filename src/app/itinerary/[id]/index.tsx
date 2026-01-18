@@ -358,7 +358,7 @@ export default function ItineraryView() {
                     }
                 </MapView>
 
-                <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' style={{ marginBottom: isSheetOpen ? 120 : 0 }}>
+                <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' >
                     {!isSheetOpen && (
                         <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
                             <ButtonIcon as={ArrowUp} size='lg' />
