@@ -1,7 +1,13 @@
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useTheme } from '@react-navigation/native';
 import React, { ComponentProps, RefObject, useEffect } from 'react';
 import { BackHandler } from 'react-native';
+
+// FROM gluestack config
+const BG_COLOR = {
+    'light': 'rgb(255 255 255)',
+    'dark': 'rgb(18 18 18)',
+}
 
 const CustomBottomSheet = ({
     isBottomSheetOpened,
@@ -17,6 +23,9 @@ const CustomBottomSheet = ({
 } & React.PropsWithChildren<ComponentProps<typeof BottomSheet>>) => {
 
     const isFocused = useIsFocused()
+    const { dark } = useTheme()
+
+    const bgColor = BG_COLOR[dark ? 'dark' : 'light']
 
     useEffect(() => {
         const backAction = () => {
@@ -35,7 +44,6 @@ const CustomBottomSheet = ({
         // Cleanup the listener when the component unmounts
         return () => backHandler.remove();
     }, [isFocused, isBottomSheetOpened]);
-
 
     // Backdrop component to allow closing by clicking the map
     const renderBackdrop = React.useCallback(
@@ -61,6 +69,12 @@ const CustomBottomSheet = ({
             backdropComponent={renderBackdrop}
             containerStyle={{
                 zIndex: 200,
+            }}
+            backgroundStyle={{
+                backgroundColor: bgColor,
+            }}
+            handleIndicatorStyle={{
+                opacity: 0,
             }}
             {...props}
         >
