@@ -23,6 +23,7 @@ import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 import { POIWithLandmark } from '@/src/model/poi.types';
 import { useAuthStore } from '@/src/stores/useAuth';
+import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
 import { Pressable } from 'react-native-gesture-handler';
@@ -72,15 +73,24 @@ const ReorderScreen = () => {
                 visit_order: index + 1,
                 visited_at: item.visited_at
             }));
+            const newDistance = await calculateItineraryDistance(fullNewList.map(v => [v.landmark.longitude, v.landmark.latitude]));
+            const itineraryUpdate = supabase.from('itinerary')
+                .update({ distance: newDistance })
+                .eq('id', itinerary.id);
+            const poiUpdate = supabase.from('poi').upsert(updates);
+            const [{ error: itineraryError }, { error: poiError }] = await Promise.all([itineraryUpdate, poiUpdate]);
+            if (itineraryError)
+                throw itineraryError;
+            if (poiError)
+                throw poiError;
 
-            const { error } = await supabase.from('poi').upsert(updates);
-            if (error) throw error;
 
             // Update local cache immediately for snappy UI
             queryClient.setQueryData(['itinerary', id], { ...itinerary, stops: fullNewList });
             showToast("Order Updated", "Sequence saved successfully.");
         } catch (error) {
             showToast("Error", "Failed to sync order.", "error");
+            console.error(error);
         } finally {
             setIsUpdating(false);
         }

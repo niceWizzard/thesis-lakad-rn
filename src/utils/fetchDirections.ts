@@ -46,7 +46,7 @@ interface MapboxWaypoint {
     location: [number, number]
 }
 
-interface MapboxResponse {
+export interface MapboxResponse {
     code: "Ok" | string
     routes: MapboxRoute[]
     waypoints: MapboxWaypoint[]
