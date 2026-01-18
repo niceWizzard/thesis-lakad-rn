@@ -172,10 +172,10 @@ const CreateWithAgamScreen = () => {
                             <HStack className="items-center justify-between">
                                 <VStack className="gap-1">
                                     <HStack className="items-center gap-2">
-                                        <Sparkles size={22} className="text-primary-600" />
+                                        <Icon as={Sparkles} />
                                         <Heading size="lg">Agam Planner</Heading>
                                     </HStack>
-                                    <Text size="sm" className="text-typography-500">AI-Powered Itineraries</Text>
+                                    <Text size="sm" className="text-typography-500">Smart-Generated Itineraries</Text>
                                 </VStack>
 
                                 <Box className="bg-primary-50 px-4 py-2 rounded-lg border border-primary-100 items-center">
@@ -186,12 +186,12 @@ const CreateWithAgamScreen = () => {
                         </VStack>
 
                         {/* Constraints Accordion */}
-                        <Accordion variant="filled" className="gap-3 mb-6">
+                        <Accordion variant='unfilled' className="gap-3 mb-6">
                             <AccordionItem value="districts" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
                                 <AccordionHeader>
                                     <AccordionTrigger>
                                         {({ isExpanded }: any) => (
-                                            <HStack className="items-center justify-between w-full pr-4">
+                                            <HStack className="it`ems-center justify-between w-full pr-4">
                                                 <HStack className="items-center gap-3">
                                                     <Icon as={MapIcon} className="text-primary-600" />
                                                     <AccordionTitleText className="font-bold">Districts</AccordionTitleText>
