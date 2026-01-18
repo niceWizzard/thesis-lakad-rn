@@ -11,7 +11,10 @@ declare class AlgorithmModule extends NativeModule<AlgorithmModuleEvents> {
     [key: string]: {
       [key: string]: number
     }
-  }): Promise<string[]>
+  }): Promise<{
+    itinerary: string[],
+    distance: number,
+  }>
 
   generateItinerary(
     maxDistance: number,
@@ -28,7 +31,10 @@ declare class AlgorithmModule extends NativeModule<AlgorithmModuleEvents> {
         [key: string]: number
       }
     },
-  ): Promise<string[]>
+  ): Promise<{
+    itinerary: string[],
+    distance: number,
+  }>
 
 }
 

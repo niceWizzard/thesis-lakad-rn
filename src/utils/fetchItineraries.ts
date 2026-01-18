@@ -9,6 +9,7 @@ export async function fetchItinerariesOfUser(userId: string) {
       name,
       created_at,
       user_id,
+      distance,
       stops:poi (
         id,
         visited_at,
@@ -43,6 +44,7 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
       name,
       created_at,
       user_id,
+      distance,
       stops:poi (
         id,
         visited_at,
@@ -70,12 +72,13 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
   return data as unknown as ItineraryWithStops
 }
 
-export async function createItinerary({ itineraryName, poiIds }: { itineraryName?: string, poiIds: number[] }) {
+export async function createItinerary({ itineraryName, poiIds, distance }: { itineraryName?: string, poiIds: number[], distance: number }) {
   // Use a cleaner date format for the default name
   const dateStr = new Date().toLocaleDateString();
 
   const { data: newId, error } = await supabase.rpc('create_full_itinerary', {
     p_name: itineraryName ?? `Adventure ${dateStr}`,
+    p_distance: distance,
     p_landmark_list: poiIds, // Our updated RPC handles the flat list and order
   });
 
@@ -86,11 +89,12 @@ export async function createItinerary({ itineraryName, poiIds }: { itineraryName
 }
 
 
-export async function createItineraryOnly({ itineraryName, userId }: { itineraryName?: string, userId: string }): Promise<number> {
+export async function createItineraryOnly({ itineraryName, distance, userId }: { itineraryName?: string, userId: string, distance: number }): Promise<number> {
   const dateStr = new Date().toLocaleDateString();
   const { error, data: itinerary } = await supabase.from('itinerary').insert({
     name: itineraryName ?? `Adventure ${dateStr}`,
     user_id: userId,
+    distance,
   }).select('id').single()
 
   if (error) throw error

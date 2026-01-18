@@ -17,18 +17,21 @@ export type Database = {
       itinerary: {
         Row: {
           created_at: string
+          distance: number
           id: number
           name: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          distance?: number
           id?: number
           name?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          distance?: number
           id?: number
           name?: string
           user_id?: string
@@ -164,6 +167,10 @@ export type Database = {
     }
     Functions: {
       create_full_itinerary:
+        | {
+            Args: { p_distance: number; p_landmark_list: Json; p_name: string }
+            Returns: number
+          }
         | { Args: { p_landmark_list: Json; p_name: string }; Returns: number }
         | {
             Args: { p_landmark_list: Json; p_name: string; p_user_id: string }

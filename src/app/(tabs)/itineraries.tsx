@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { Stack, useRouter } from 'expo-router';
-import { ClipboardList, EllipsisVertical, MapPin, Play, Search, X } from 'lucide-react-native';
+import { ClipboardList, EllipsisVertical, MapPin, Play, Ruler, Search, X } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 
@@ -140,6 +140,10 @@ export default function ItinerariesScreen() {
                                             <Icon as={MapPin} size="xs" className="text-primary-600" />
                                             <Text size="xs" className="uppercase font-bold text-primary-600 tracking-wider">
                                                 {itinerary.stops?.length || 0} Stops
+                                            </Text>
+                                            <Icon as={Ruler} size="xs" className="text-primary-600" />
+                                            <Text size="xs" className="uppercase font-bold text-primary-600 tracking-wider">
+                                                {itinerary.distance || 0} m
                                             </Text>
                                         </HStack>
                                         <Heading size="lg" className="text-typography-900 leading-tight">

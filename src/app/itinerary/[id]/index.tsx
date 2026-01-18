@@ -210,7 +210,10 @@ export default function ItineraryView() {
             );
 
             // 3. Get the optimized order (returns array of IDs)
-            const optimizedIds = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
+            const {
+                itinerary: optimizedIds,
+                distance,
+            } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
 
             /** * 4. Calculate the starting Index.
              * If 3 stops were already visited (indices 0, 1, 2), 
@@ -230,7 +233,13 @@ export default function ItineraryView() {
                     .eq('id', Number.parseInt(id));
             });
 
-            await Promise.allSettled(updates);
+            const itineraryUpdate = supabase
+                .from('itinerary')
+                .update({ distance })
+                .eq('id', itinerary.id)
+
+
+            await Promise.allSettled([...updates, itineraryUpdate]);
             refetch();
             showToast("Optimization Complete", "The route has been reordered for efficiency.", "success");
             setIsSheetOpen(true)
@@ -627,7 +636,7 @@ function ViewingModeBottomSheetContent({
                         <HStack space='sm' className='items-center'>
                             <Icon as={Clock} size='xs' className='text-typography-400' />
                             <Text size='sm' className='text-typography-500'>
-                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining
+                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining  • {itinerary.distance} m
                             </Text>
                         </HStack>
                     </VStack>

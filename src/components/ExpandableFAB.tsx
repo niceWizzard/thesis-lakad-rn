@@ -22,7 +22,8 @@ const ExpandableFab = () => {
     const handleManual = async () => {
         try {
             const id = await createItineraryOnly({
-                userId: session!.user.id
+                userId: session!.user.id,
+                distance: 0,
             })
             await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
             router.navigate({

@@ -132,7 +132,10 @@ const CreateWithAgamScreen = () => {
             );
 
 
-            const result = await AlgorithmModule.generateItinerary(
+            const {
+                itinerary: result,
+                distance,
+            } = await AlgorithmModule.generateItinerary(
                 Number.parseFloat(formData.maxDistance) * 1000,
                 Number.parseInt(formData.maxPoi),
                 formData.districts.map(d => (d === 'Lone' ? 0 : parseInt(d))),
@@ -144,6 +147,7 @@ const CreateWithAgamScreen = () => {
 
             const newId = await createItinerary({
                 poiIds: result.map((v: string) => Number.parseInt(v)),
+                distance
             });
 
             queryClient.invalidateQueries({ queryKey: ['itineraries'] });

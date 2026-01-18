@@ -38,9 +38,14 @@ class AlgorithmModule : Module() {
     }
 
     AsyncFunction("calculateOptimizedItinerary") Coroutine { value : Map<String,Map<String, Double>>  ->
-      simulatedAnnealingImproved(
+      val result = simulatedAnnealingImproved(
         value,
-      ).second
+      )
+
+      mapOf(
+        "itinerary" to result.second,
+        "distance" to result.first,
+      )
     }
 
     AsyncFunction("generateItinerary") Coroutine {
@@ -49,13 +54,18 @@ class AlgorithmModule : Module() {
       weights: DoubleArray,
       pois : Map<String, Map<String, Any>>,
       distanceMap: Map<String, Map<String, Double>> ->
-      AGAMOptimizer(
+      val result = AGAMOptimizer(
         maxDistance = maxDistance,
         maxPOIs = maxPOIs,
         jsPois = pois,
         distanceMap = distanceMap,
         weights = weights,
-      ).evolve(50)["poiIds"]
+      ).evolve(50)
+
+      mapOf(
+        "itinerary" to result["poiIds"],
+        "distance" to result["totalDistance"],
+      )
     }
 
 
