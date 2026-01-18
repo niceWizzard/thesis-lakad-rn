@@ -42,7 +42,7 @@ import { VStack } from '@/components/ui/vstack';
 import { Icon } from '@/components/ui/icon';
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
-import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
+import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -113,19 +113,13 @@ const CreateWithAgamScreen = () => {
 
 
 
-            const distanceMatrix = await fetchDistanceMatrix({
-                waypoints: landmarks.map(v => [v.longitude, v.latitude])
-            });
+            const landmarkDistanceMap: Record<string, Record<string, number>> = await fetchFullDistanceMatrix(
+                landmarks.map(v => ({
+                    id: v.id.toString(),
+                    coords: [v.longitude, v.latitude],
+                }))
+            )
 
-            const landmarkDistanceMap: Record<string, Record<string, number>> = {};
-            landmarks.forEach((sourceStop, i) => {
-                const sourceId = sourceStop.id;
-                landmarkDistanceMap[sourceId] = {};
-                landmarks.forEach((targetStop, j) => {
-                    const targetId = targetStop.id;
-                    landmarkDistanceMap[sourceId][targetId] = distanceMatrix[i][j];
-                });
-            });
 
 
             const data = await AlgorithmModule.generateItinerary(
@@ -136,7 +130,6 @@ const CreateWithAgamScreen = () => {
                 landmarkDistanceMap,
             )
 
-            console.log(data);
 
 
             const newId = await createItinerary({

@@ -29,7 +29,6 @@ import { supabase } from '@/src/utils/supabase';
 
 // Icons
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
-import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import {
     ArrowDownUp,
     ArrowUp,
@@ -54,6 +53,7 @@ import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 const poiIcon = require('@/assets/images/red_marker.png');
@@ -202,22 +202,15 @@ export default function ItineraryView() {
             if (onGoingStops.length === 0) return;
 
             // 2. Fetch distances only for remaining stops
-            const distanceMatrix = await fetchDistanceMatrix({
-                waypoints: onGoingStops.map(v => [v.landmark.longitude, v.landmark.latitude])
-            });
-
-            const landmarkDistanceMap: Record<string, Record<string, number>> = {};
-            onGoingStops.forEach((sourceStop, i) => {
-                const sourceId = sourceStop.id;
-                landmarkDistanceMap[sourceId] = {};
-                onGoingStops.forEach((targetStop, j) => {
-                    const targetId = targetStop.id;
-                    landmarkDistanceMap[sourceId][targetId] = distanceMatrix[i][j];
-                });
-            });
+            const distanceMatrix = await fetchFullDistanceMatrix(
+                onGoingStops.map(v => ({
+                    coords: [v.landmark.longitude, v.landmark.latitude],
+                    id: v.id.toString(),
+                }))
+            );
 
             // 3. Get the optimized order (returns array of IDs)
-            const optimizedIds = await AlgorithmModule.calculateOptimizedItinerary(landmarkDistanceMap);
+            const optimizedIds = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
 
             /** * 4. Calculate the starting Index.
              * If 3 stops were already visited (indices 0, 1, 2), 
