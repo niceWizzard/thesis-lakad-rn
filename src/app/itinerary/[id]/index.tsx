@@ -645,7 +645,7 @@ function ViewingModeBottomSheetContent({
                     </Pressable>
 
                 </HStack>
-                <HStack space='md' className='w-full justify-center'>
+                <HStack space='md' className='w-full justify-center flex-wrap'>
                     <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleOptimizePress}>
                         <ButtonIcon as={ArrowDownUp} className='mr-2' />
                         <ButtonText>Optimize</ButtonText>
