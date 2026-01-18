@@ -11,20 +11,16 @@ import { feature, featureCollection } from '@turf/turf';
 import * as Location from 'expo-location';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Pressable, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, View } from 'react-native';
 import DraggableFlatList, { DragEndParams, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import { FlatList, ScrollView } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 
 // UI Components
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { Divider } from '@/components/ui/divider';
-import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import { CustomLocalSheet } from '@/src/components/CustomLocalSheet';
 
 // Logic & Types
 import { POI, POIWithLandmark } from '@/src/model/poi.types';
@@ -52,9 +48,14 @@ import {
     RotateCcw
 } from 'lucide-react-native';
 
+import { Divider } from '@/components/ui/divider';
+import { Heading } from '@/components/ui/heading';
+import { Icon } from '@/components/ui/icon';
 import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
+import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 const poiIcon = require('@/assets/images/red_marker.png');
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -91,6 +92,7 @@ export default function ItineraryView() {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
     const [loadingMode, setLoadingMode] = useState(LoadingMode.Hidden)
+    const bottomSheetRef = useRef<BottomSheet>(null);
 
     const { session } = useAuthStore();
     const userId = session?.user.id;
@@ -154,6 +156,16 @@ export default function ItineraryView() {
             return () => clearTimeout(timer);
         }
     }, [mode, isSheetOpen, itinerary]);
+
+    useEffect(() => {
+        if (isSheetOpen) {
+            requestAnimationFrame(() => {
+                bottomSheetRef.current?.snapToIndex(0);
+            });
+        } else {
+            bottomSheetRef.current?.close();
+        }
+    }, [isSheetOpen])
 
     const handleFocusStop = (stop: any) => {
         camera.current?.setCamera({
@@ -480,7 +492,43 @@ export default function ItineraryView() {
                     }
                 </MapView>
 
-                <CustomLocalSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
+
+
+                <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' style={{ marginBottom: isSheetOpen ? 120 : 0 }}>
+                    {!isSheetOpen && (
+                        <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
+                            <ButtonIcon as={ArrowUp} size='lg' />
+                        </Button>
+                    )}
+                    <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 })}>
+                        <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
+                    </Button>
+                    {mode === Mode.Viewing && (
+                        <HStack space='md' className='w-full justify-center'>
+                            <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1' onPress={handleOptimizePress}>
+                                <ButtonIcon as={ArrowDownUp} className='mr-2' />
+                                <ButtonText>Optimize</ButtonText>
+                            </Button>
+                            <Button className='rounded-2xl shadow-md h-14 flex-1' onPress={handleNavigationButtonClick} isDisabled={!nextUnvisitedStop}>
+                                <ButtonIcon as={Navigation} className='mr-2' />
+                                <ButtonText>Navigate</ButtonText>
+                            </Button>
+                        </HStack>
+                    )}
+                </VStack>
+            </VStack>
+            <CustomBottomSheet
+                index={0}
+                bottomSheetRef={bottomSheetRef}
+                snapPoints={["50%"]}
+                isBottomSheetOpened={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+                onChange={(index) => {
+                    console.log("CHANGED INDEX", index)
+                    if (index === -1) setIsSheetOpen(false);
+                }}
+            >
+                <BottomSheetView>
                     {mode === Mode.Viewing ? (
                         <VStack space='lg' className='pb-6 h-full'>
                             <HStack className='justify-between items-center px-4'>
@@ -620,31 +668,8 @@ export default function ItineraryView() {
                             </Box>
                         </VStack>
                     )}
-                </CustomLocalSheet>
-
-                <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' style={{ marginBottom: isSheetOpen ? 120 : 0 }}>
-                    {!isSheetOpen && (
-                        <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
-                            <ButtonIcon as={ArrowUp} size='lg' />
-                        </Button>
-                    )}
-                    <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 })}>
-                        <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
-                    </Button>
-                    {mode === Mode.Viewing && (
-                        <HStack space='md' className='w-full justify-center'>
-                            <Button action='secondary' className='rounded-2xl shadow-md h-14 flex-1' onPress={handleOptimizePress}>
-                                <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                                <ButtonText>Optimize</ButtonText>
-                            </Button>
-                            <Button className='rounded-2xl shadow-md h-14 flex-1' onPress={handleNavigationButtonClick} isDisabled={!nextUnvisitedStop}>
-                                <ButtonIcon as={Navigation} className='mr-2' />
-                                <ButtonText>Navigate</ButtonText>
-                            </Button>
-                        </HStack>
-                    )}
-                </VStack>
-            </VStack>
+                </BottomSheetView>
+            </CustomBottomSheet>
         </>
     );
 }
