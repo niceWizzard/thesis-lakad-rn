@@ -8,8 +8,8 @@ import {
 } from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Location from 'expo-location';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, View } from 'react-native';
 
 
@@ -116,7 +116,25 @@ export default function ItineraryView() {
             if (status !== 'granted') return;
             const loc = await Location.getCurrentPositionAsync({});
             setUserLocation([loc.coords.longitude, loc.coords.latitude]);
+
+            const sub = await Location.watchPositionAsync(
+                {
+                    accuracy: Location.Accuracy.Highest,
+                    timeInterval: 3000,
+                    distanceInterval: 5, // update every 5 m
+                },
+                (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setUserLocation([longitude, latitude])
+                }
+            );
+
+            return () => sub.remove();
+
         })();
+
+
+
     }, []);
 
 
@@ -129,6 +147,28 @@ export default function ItineraryView() {
             bottomSheetRef.current?.close();
         }
     }, [isSheetOpen])
+
+    useFocusEffect(useCallback(() => {
+        let timeout: any = null;
+        if (mode === Mode.Navigating) {
+            if (!nextUnvisitedStop) {
+                return;
+            }
+            timeout = setInterval(async () => {
+                const data = await fetchDirections({
+                    waypoints: [
+                        userLocation || [120.8092, 14.8605],
+                        [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                    ],
+                });
+                setNavigationRoute(data.routes);
+            }, 2500)
+        }
+        return () => {
+            if (mode === Mode.Navigating)
+                clearInterval(timeout)
+        }
+    }, [mode, userLocation]))
 
     const locatePOI = (stop: POIWithLandmark) => {
         camera.current?.setCamera({
