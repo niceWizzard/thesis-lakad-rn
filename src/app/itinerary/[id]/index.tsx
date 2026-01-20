@@ -28,7 +28,6 @@ import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
 
 // Icons
-import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import {
     ArrowDownUp,
     ArrowUp,
@@ -53,7 +52,6 @@ import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
-import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 const poiIcon = require('@/assets/images/red_marker.png');
@@ -192,65 +190,6 @@ export default function ItineraryView() {
         );
     }
 
-    const handleOptimizePress = async () => {
-        setLoadingMode(LoadingMode.Updating)
-        try {
-            // 1. Separate visited and unvisited stops
-            const visitedStops = itinerary.stops.filter(stop => !!stop.visited_at);
-            const onGoingStops = itinerary.stops.filter(stop => !stop.visited_at);
-
-            if (onGoingStops.length === 0) return;
-
-            // 2. Fetch distances only for remaining stops
-            const distanceMatrix = await fetchFullDistanceMatrix(
-                onGoingStops.map(v => ({
-                    coords: [v.landmark.longitude, v.landmark.latitude],
-                    id: v.id.toString(),
-                }))
-            );
-
-            // 3. Get the optimized order (returns array of IDs)
-            const {
-                itinerary: optimizedIds,
-                distance,
-            } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
-
-            /** * 4. Calculate the starting Index.
-             * If 3 stops were already visited (indices 0, 1, 2), 
-             * the next optimized stop should be index 3.
-             */
-            const maxVisitedOrder = visitedStops.length > 0
-                ? Math.max(...visitedStops.map(s => s.visit_order ?? 0))
-                : -1;
-            const startIndex = maxVisitedOrder + 1;
-
-            const updates = optimizedIds.map((id, index) => {
-                return supabase
-                    .from('poi')
-                    .update({
-                        visit_order: startIndex + index,
-                    })
-                    .eq('id', Number.parseInt(id));
-            });
-
-            const itineraryUpdate = supabase
-                .from('itinerary')
-                .update({ distance })
-                .eq('id', itinerary.id)
-
-
-            await Promise.allSettled([...updates, itineraryUpdate]);
-            refetch();
-            showToast("Optimization Complete", "The route has been reordered for efficiency.", "success");
-            setIsSheetOpen(true)
-
-        } catch (e: any) {
-            console.error(e)
-            showToast("Optimization Failed", "Could not connect to the server.", "error");
-        } finally {
-            setLoadingMode(LoadingMode.Hidden)
-        }
-    };
 
 
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
@@ -390,7 +329,6 @@ export default function ItineraryView() {
                             showToast={showToast}
                             locatePOI={locatePOI}
                             canOptimize={pendingStops.length > 1}
-                            handleOptimizePress={handleOptimizePress}
                             goNavigationMode={handleNavigationButtonClick}
                         />
                         <NavigatingModeBottomSheetContent
@@ -498,7 +436,6 @@ function NavigatingModeBottomSheetContent({
 function ViewingModeBottomSheetContent({
     itinerary, mode, isSheetOpen,
     goNavigationMode,
-    handleOptimizePress,
     canOptimize,
     pendingStops,
     completedStops,
@@ -514,7 +451,6 @@ function ViewingModeBottomSheetContent({
     refetch: () => Promise<any>,
     showToast: (title: string, description?: string, action?: "success" | "error" | "info") => void,
     locatePOI: (stop: POIWithLandmark) => void,
-    handleOptimizePress: () => void,
     goNavigationMode: () => void,
     canOptimize: boolean,
 }
@@ -646,10 +582,6 @@ function ViewingModeBottomSheetContent({
 
                 </HStack>
                 <HStack space='md' className='w-full justify-center flex-wrap'>
-                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleOptimizePress}>
-                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                        <ButtonText>Optimize</ButtonText>
-                    </Button>
                     <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}>
                         <ButtonIcon as={ArrowDownUp} className='mr-2' />
                         <ButtonText>Reorder</ButtonText>

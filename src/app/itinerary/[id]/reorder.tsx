@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { Check, GripVertical } from 'lucide-react-native';
+import { Check, Clock, GripVertical } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import DraggableFlatList, {
@@ -19,14 +19,26 @@ import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/t
 import { VStack } from '@/components/ui/vstack';
 
 // Custom Components & Logic
+import { Button, ButtonText } from '@/components/ui/button';
+import { Center } from '@/components/ui/center';
+import { Heading } from '@/components/ui/heading';
+import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { Landmark } from '@/src/model/landmark.types';
 import { POIWithLandmark } from '@/src/model/poi.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
+import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
 import { Pressable } from 'react-native-gesture-handler';
+
+
+enum LoadingMode {
+    Hidden,
+    Updating,
+    Optimizing,
+}
 
 const ReorderScreen = () => {
     const { id } = useLocalSearchParams();
@@ -35,9 +47,9 @@ const ReorderScreen = () => {
     const queryClient = useQueryClient();
     const toast = useToast();
 
-    const [isUpdating, setIsUpdating] = useState(false);
+    const [loadingModalMode, setLoadingModalMode] = useState(LoadingMode.Hidden);
 
-    const { data: itinerary, isLoading } = useQuery({
+    const { data: itinerary, isLoading, refetch, } = useQuery({
         queryKey: ['itinerary', id],
         enabled: !!userId && !!id,
         queryFn: () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
@@ -60,7 +72,7 @@ const ReorderScreen = () => {
     const handleDragEnd = async ({ data: reorderedPending }: DragEndParams<POIWithLandmark>) => {
         if (!itinerary) return;
 
-        setIsUpdating(true);
+        setLoadingModalMode(LoadingMode.Updating);
         try {
             const completed = itinerary.stops.filter(s => !!s.visited_at);
             // Construct the full new list: Completed stays first, then reordered pending
@@ -92,7 +104,7 @@ const ReorderScreen = () => {
             showToast("Error", "Failed to sync order.", "error");
             console.error(error);
         } finally {
-            setIsUpdating(false);
+            setLoadingModalMode(LoadingMode.Hidden);
         }
     };
 
@@ -128,23 +140,99 @@ const ReorderScreen = () => {
     if (isLoading) return <LoadingModal isShown={true} />;
     if (!itinerary) return <View className="flex-1 items-center justify-center"><Text>Itinerary not found</Text></View>;
 
+
+    const handleOptimizePress = async () => {
+        setLoadingModalMode(LoadingMode.Optimizing)
+        try {
+            // 1. Separate visited and unvisited stops
+            const visitedStops = itinerary.stops.filter(stop => !!stop.visited_at);
+            const onGoingStops = itinerary.stops.filter(stop => !stop.visited_at);
+
+            if (onGoingStops.length === 0) return;
+
+            // 2. Fetch distances only for remaining stops
+            const distanceMatrix = await fetchFullDistanceMatrix(
+                onGoingStops.map(v => ({
+                    coords: [v.landmark.longitude, v.landmark.latitude],
+                    id: v.id.toString(),
+                }))
+            );
+
+            // 3. Get the optimized order (returns array of IDs)
+            const {
+                itinerary: optimizedIds,
+                distance,
+            } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
+
+            /** * 4. Calculate the starting Index.
+             * If 3 stops were already visited (indices 0, 1, 2), 
+             * the next optimized stop should be index 3.
+             */
+            const maxVisitedOrder = visitedStops.length > 0
+                ? Math.max(...visitedStops.map(s => s.visit_order ?? 0))
+                : -1;
+            const startIndex = maxVisitedOrder + 1;
+
+            const updates = optimizedIds.map((id, index) => {
+                return supabase
+                    .from('poi')
+                    .update({
+                        visit_order: startIndex + index,
+                    })
+                    .eq('id', Number.parseInt(id));
+            });
+
+            const itineraryUpdate = supabase
+                .from('itinerary')
+                .update({ distance })
+                .eq('id', itinerary.id)
+
+
+            await Promise.allSettled([...updates, itineraryUpdate]);
+            refetch();
+            showToast("Optimization Complete", "The route has been reordered for efficiency.", "success");
+
+        } catch (e: any) {
+            console.error(e)
+            showToast("Optimization Failed", "Could not connect to the server.", "error");
+        } finally {
+            setLoadingModalMode(LoadingMode.Hidden)
+        }
+    };
+
+
     const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
 
     return (
         <>
             <Stack.Screen options={{ title: "Reorder Stops" }} />
-            <LoadingModal isShown={isUpdating} loadingText="Saving sequence..." />
+            <LoadingModal isShown={loadingModalMode !== LoadingMode.Hidden}
+                loadingText={loadingModalMode === LoadingMode.Optimizing ? 'Optimizing...' : 'Updating...'}
+            />
             <DraggableFlatList
                 data={pendingStops}
                 onDragEnd={handleDragEnd}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
+                contentContainerClassName='px-4 pt-4 pb-32'
                 ListHeaderComponent={
-                    <VStack>
+                    <VStack space='md' >
+                        <VStack>
+                            <Heading className='text-center'>{itinerary.name}</Heading>
+                            <HStack space='sm' className='items-center justify-center'>
+                                <Icon as={Clock} size='xs' className='text-typography-400' />
+                                <Text size='sm' className='text-typography-500'>
+                                    {itinerary.stops.length} Stops • {pendingStops.length} Pending
+                                </Text>
+                            </HStack>
+                            <Text className='text-typography-400 text-center'>
+                                {Math.round(itinerary.distance / 1000)} KM
+                            </Text>
+                        </VStack>
                         {completedStops.length > 0 && (
                             <>
-                                <Box className="px-4 py-2 bg-background-50">
+                                <Box className="px-4 py-2 bg-background-50 ">
                                     <Text size="xs" className="uppercase font-bold text-typography-400">Completed Stops</Text>
                                 </Box>
                                 <VStack
@@ -165,12 +253,19 @@ const ReorderScreen = () => {
                             </>
                         )}
 
-                        <Box className="px-4 py-2 bg-background-50">
+                        <Box className="py-2 bg-background-50">
                             <Text size="xs" className="uppercase font-bold text-typography-400">Drag to Reorder Stops</Text>
                         </Box>
                     </VStack>
                 }
             />
+            <Center className='absolute bottom-safe-or-6 left-4 right-4 p-4'>
+                <Button className='w-full'
+                    onPress={handleOptimizePress}
+                >
+                    <ButtonText>Optimize</ButtonText>
+                </Button>
+            </Center>
         </>
     );
 };
