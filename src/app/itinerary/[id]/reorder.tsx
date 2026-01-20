@@ -98,8 +98,7 @@ const ReorderScreen = () => {
                 throw poiError;
 
 
-            // Update local cache immediately for snappy UI
-            queryClient.setQueryData(['itinerary', id], { ...itinerary, stops: fullNewList });
+            await refetch()
             showToast("Order Updated", "Sequence saved successfully.");
         } catch (error) {
             showToast("Error", "Failed to sync order.", "error");
@@ -186,12 +185,12 @@ const ReorderScreen = () => {
 
             const itineraryUpdate = supabase
                 .from('itinerary')
-                .update({ distance })
+                .update({ distance: distance })
                 .eq('id', itinerary.id)
 
 
             await Promise.allSettled([...updates, itineraryUpdate]);
-            refetch();
+            await refetch();
             showToast("Optimization Complete", "The route has been reordered for efficiency.", "success");
 
         } catch (e: any) {
