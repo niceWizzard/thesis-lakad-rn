@@ -38,8 +38,8 @@ import { VStack } from '@/components/ui/vstack';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
-import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
+import { LANDMARK_TYPES } from '@/src/constants/type';
 import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
@@ -59,7 +59,7 @@ export default function AdminLandmarksScreen() {
 
     const [sortKey, setSortKey] = useState<SortKey>('id');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
@@ -78,12 +78,11 @@ export default function AdminLandmarksScreen() {
     const processedLandmarks = useMemo(() => {
         let result = landmarks.filter(landmark => {
             const matchesSearch = landmark.name.toLowerCase().includes(searchString.toLowerCase());
-            const matchesCategory = selectedCategories.length === 0 ||
-                selectedCategories.every(v => landmark.categories.includes(v as any));
+            const matchesType = selectedTypes.length === 0 || selectedTypes.includes(landmark.type);
             const matchesDistrict = !selectedDistrict || landmark.district === selectedDistrict;
             const matchesMuni = !selectedMunicipality || landmark.municipality === selectedMunicipality;
 
-            return matchesSearch && matchesCategory && matchesDistrict && matchesMuni;
+            return matchesSearch && matchesType && matchesDistrict && matchesMuni;
         });
 
         result.sort((a, b) => {
@@ -100,11 +99,11 @@ export default function AdminLandmarksScreen() {
         });
 
         return result;
-    }, [landmarks, searchString, sortKey, sortOrder, selectedCategories, selectedDistrict, selectedMunicipality]);
+    }, [landmarks, searchString, sortKey, sortOrder, selectedTypes, selectedDistrict, selectedMunicipality]);
 
     const resetFilters = () => {
         setSearchString('');
-        setSelectedCategories([]);
+        setSelectedTypes([]);
         setSelectedDistrict(null);
         setSelectedMunicipality(null);
         setSortKey('id');
@@ -148,19 +147,19 @@ export default function AdminLandmarksScreen() {
                                 <Text size="xs" className="text-typography-500 font-bold uppercase tracking-wider">
                                     {processedLandmarks.length} Results
                                 </Text>
-                                {(selectedDistrict || selectedMunicipality || selectedCategories.length > 0) && (
+                                {(selectedDistrict || selectedMunicipality || selectedTypes.length > 0) && (
                                     <Text size="xs" className="text-primary-600 font-medium">Filters Active</Text>
                                 )}
                             </VStack>
                             <TouchableOpacity
                                 onPress={() => setShowFilterModal(true)}
-                                className={`flex-row items-center gap-2 px-4 py-2 rounded-full border ${(selectedDistrict || selectedMunicipality || selectedCategories.length > 0)
+                                className={`flex-row items-center gap-2 px-4 py-2 rounded-full border ${(selectedDistrict || selectedMunicipality || selectedTypes.length > 0)
                                     ? 'bg-primary-600 border-primary-600'
                                     : 'bg-primary-50 border-primary-100'
                                     }`}
                             >
-                                <Icon as={Filter} size="xs" color={(selectedDistrict || selectedMunicipality || selectedCategories.length > 0) ? "white" : "#4f46e5"} />
-                                <Text size="xs" className={`font-bold ${(selectedDistrict || selectedMunicipality || selectedCategories.length > 0) ? "text-white" : "text-primary-600"}`}>
+                                <Icon as={Filter} size="xs" color={(selectedDistrict || selectedMunicipality || selectedTypes.length > 0) ? "white" : "#4f46e5"} />
+                                <Text size="xs" className={`font-bold ${(selectedDistrict || selectedMunicipality || selectedTypes.length > 0) ? "text-white" : "text-primary-600"}`}>
                                     Filters
                                 </Text>
                             </TouchableOpacity>
@@ -180,12 +179,9 @@ export default function AdminLandmarksScreen() {
                             <VStack className='flex-1 gap-1'>
                                 <HStack className="justify-between items-start">
                                     <HStack className="flex-wrap gap-1 flex-1">
-                                        {landmark.categories.slice(0, 2).map(cat => (
-                                            <Badge key={cat} action="info" variant="outline" className="rounded-md px-1">
-                                                <BadgeText className="text-[9px] uppercase font-bold">{cat}</BadgeText>
-                                            </Badge>
-                                        ))}
-                                        {landmark.categories.length > 2 && <Text size="xs">+{landmark.categories.length - 2}</Text>}
+                                        <Badge action="info" variant="outline" className="rounded-md px-1">
+                                            <BadgeText className="text-[9px] uppercase font-bold">{landmark.type}</BadgeText>
+                                        </Badge>
                                     </HStack>
 
                                     {/* --- Rating Badge on Card --- */}
@@ -317,15 +313,15 @@ export default function AdminLandmarksScreen() {
                                 <VStack className='gap-3'>
                                     <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Filter Category</Text>
                                     <View className="flex-row flex-wrap gap-2 ">
-                                        {LANDMARK_CATEGORIES.map(cat => (
+                                        {LANDMARK_TYPES.map(cat => (
                                             <TouchableOpacity
                                                 key={cat}
-                                                onPress={() => setSelectedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
-                                                className={`px-4 py-2 rounded-full border ${selectedCategories.includes(cat) ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                                onPress={() => setSelectedTypes(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
+                                                className={`px-4 py-2 rounded-full border ${selectedTypes.includes(cat) ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
                                             >
                                                 <HStack space="xs" className="items-center">
-                                                    {selectedCategories.includes(cat) && <Icon as={Check} size="xs" color="white" />}
-                                                    <Text size="xs" className={`font-bold ${selectedCategories.includes(cat) ? 'text-white' : 'text-typography-600'}`}>{cat}</Text>
+                                                    {selectedTypes.includes(cat) && <Icon as={Check} size="xs" color="white" />}
+                                                    <Text size="xs" className={`font-bold ${selectedTypes.includes(cat) ? 'text-white' : 'text-typography-600'}`}>{cat}</Text>
                                                 </HStack>
                                             </TouchableOpacity>
                                         ))}

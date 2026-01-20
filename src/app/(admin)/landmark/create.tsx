@@ -58,7 +58,7 @@ export default function AdminLandmarkCreateScreen() {
                     description: formData.description,
                     latitude: parseFloat(formData.latitude),
                     longitude: parseFloat(formData.longitude),
-                    categories: formData.categories,
+                    type: formData.type,
                     district: formData.district,
                     municipality: formData.municipality,
                     gmaps_rating: parseFloat(formData.gmaps_rating || '0'),

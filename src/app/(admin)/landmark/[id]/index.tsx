@@ -200,11 +200,9 @@ export default function AdminLandmarkDetailScreen() {
                   <Text size="xs" className="font-bold text-typography-400 uppercase">Categories</Text>
                 </HStack>
                 <HStack space="xs" className="flex-wrap">
-                  {landmark.categories?.map((cat: string) => (
-                    <Badge key={cat} size="sm" variant="outline" action='info' className="rounded-lg">
-                      <BadgeText>{cat}</BadgeText>
-                    </Badge>
-                  ))}
+                  <Badge size="sm" variant="outline" action='info' className="rounded-lg">
+                    <BadgeText>{landmark.type}</BadgeText>
+                  </Badge>
                 </HStack>
               </VStack>
             </VStack>

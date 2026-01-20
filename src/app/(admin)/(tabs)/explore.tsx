@@ -104,12 +104,9 @@ const AdminExploreTab = () => {
                                     </HStack>
 
                                     <HStack space="xs" className="flex-wrap mt-2">
-                                        {/* The Optional Chain ensures map only runs if categories exists */}
-                                        {selectedLandmark.categories?.map(cat => (
-                                            <Badge key={cat} action="info" variant="outline" className="rounded-md">
-                                                <BadgeText className="text-[10px] uppercase font-bold">{cat}</BadgeText>
-                                            </Badge>
-                                        ))}
+                                        <Badge action="info" variant="outline" className="rounded-md">
+                                            <BadgeText className="text-[10px] uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                        </Badge>
                                     </HStack>
                                 </VStack>
 

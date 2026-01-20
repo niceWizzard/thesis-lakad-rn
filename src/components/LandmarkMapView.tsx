@@ -3,7 +3,7 @@ import { Image, StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
-import { Landmark, LandmarkCategory } from '@/src/model/landmark.types';
+import { Landmark } from '@/src/model/landmark.types';
 
 import { Box } from '@/components/ui/box';
 import { Text } from '@/components/ui/text';
@@ -24,20 +24,6 @@ const NaturePin = require("@/assets/images/categories/nature.png")
 const HistoryPin = require("@/assets/images/categories/history.png")
 const ReligiousPin = require("@/assets/images/categories/religious.png")
 
-function getPin(category: LandmarkCategory) {
-    switch (category) {
-        case 'History':
-            return 'HistoryPin';
-        case 'Landscape':
-            return 'LandscapePin';
-        case 'Nature':
-            return 'NaturePin';
-        case 'Religious':
-            return 'ReligiousPin';
-        default:
-            return 'IconImage';
-    }
-}
 
 const LandmarkMapView = ({
     sheetContent,

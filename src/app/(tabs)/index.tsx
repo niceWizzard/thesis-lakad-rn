@@ -134,11 +134,10 @@ const ExploreTab = () => {
                                 </HStack>
 
                                 <HStack space="xs" className="flex-wrap mt-1">
-                                    {selectedLandmark.categories?.map(cat => (
-                                        <Badge key={cat} action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
-                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{cat}</BadgeText>
-                                        </Badge>
-                                    ))}
+                                    <Badge
+                                        action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
+                                        <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                    </Badge>
                                 </HStack>
                             </VStack>
 

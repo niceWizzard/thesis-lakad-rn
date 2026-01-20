@@ -1,11 +1,11 @@
 import z from "zod";
-import { LANDMARK_CATEGORIES } from "../constants/categories";
 import { DISTRICT_TO_MUNICIPALITY_MAP, DISTRICTS, MUNICIPALITIES } from "../constants/jurisdictions";
+import { LANDMARK_TYPES } from "../constants/type";
 import { LandmarkDistrict } from "../model/landmark.types";
 
 export const createAndEditLandmarkSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters"),
-    categories: z.array(z.enum(LANDMARK_CATEGORIES)).min(1, "Select at least one category"),
+    type: z.enum(LANDMARK_TYPES, "Select at least one category"),
     district: z.enum(DISTRICTS, "Please select a valid district"),
     municipality: z.enum(MUNICIPALITIES, "Please select a valid municipality"),
     description: z.string().min(10, "Description must be at least 10 characters"),

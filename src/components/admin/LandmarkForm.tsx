@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Mapbox, { MapView, PointAnnotation } from '@rnmapbox/maps';
 import * as ImagePicker from 'expo-image-picker';
 import debounce from 'lodash.debounce';
-import { AlertCircle, Camera, CheckCircle2, CheckIcon, ChevronDown, Globe, MapPin, Navigation2, Save, Star, Tag, Type } from 'lucide-react-native';
+import { AlertCircle, Camera, CheckCircle2, ChevronDown, Globe, MapPin, Navigation2, Save, Star, Tag, Type } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
@@ -12,18 +12,18 @@ import { Button, ButtonGroup, ButtonIcon, ButtonText } from '@/components/ui/but
 import { FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlLabel, FormControlLabelText } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
+import { CircleIcon, Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
 import { VStack } from '@/components/ui/vstack';
 
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
-import { Checkbox, CheckboxGroup, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from '@/components/ui/checkbox';
 import { Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalHeader } from '@/components/ui/modal';
+import { Radio, RadioGroup, RadioIcon, RadioIndicator, RadioLabel } from '@/components/ui/radio';
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
-import { LANDMARK_CATEGORIES } from '@/src/constants/categories';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
+import { LANDMARK_TYPES } from '@/src/constants/type';
 import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { useNavigation, useRouter } from 'expo-router';
@@ -66,10 +66,13 @@ export function LandmarkForm({
             longitude: initialData.longitude.toString(),
             gmaps_rating: initialData.gmaps_rating.toString(),
             description: initialData.description || '',
-            externalImageUrl: ''
+            externalImageUrl: '',
         } : {
-            name: '', categories: [], district: undefined, municipality: undefined,
-            description: '', latitude: '', longitude: '', gmaps_rating: '0', externalImageUrl: ''
+            name: '',
+            type: undefined,
+            district: undefined,
+            municipality: undefined,
+            description: '', latitude: '', longitude: '', gmaps_rating: '0', externalImageUrl: '',
         }
     });
 
@@ -296,7 +299,7 @@ export function LandmarkForm({
                                 <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.gmaps_rating?.message}</FormControlErrorText></FormControlError>
                             </FormControl>
 
-                            <FormControl isInvalid={!!errors.categories}>
+                            <FormControl isInvalid={!!errors.type}>
                                 <FormControlLabel className="mb-1">
                                     <HStack className="items-center gap-2">
                                         <Icon as={Tag} size="xs" />
@@ -304,18 +307,19 @@ export function LandmarkForm({
                                     </HStack>
                                 </FormControlLabel>
                                 <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
-                                    <Controller control={control} name="categories" render={({ field: { onChange, value } }) => (
-                                        <CheckboxGroup value={value} onChange={onChange}>
-                                            <VStack className="gap-3">{LANDMARK_CATEGORIES.map((cat) => (
-                                                <Checkbox key={cat} value={cat} size="md" aria-label={cat}>
-                                                    <CheckboxIndicator><CheckboxIcon as={CheckIcon} />
-                                                    </CheckboxIndicator>
-                                                    <CheckboxLabel className="ml-2">
-                                                        {cat}
-                                                    </CheckboxLabel>
-                                                </Checkbox>
+                                    <Controller control={control} name="type" render={({ field: { onChange, value } }) => (
+                                        <RadioGroup value={value} onChange={onChange}>
+                                            <VStack className="gap-3">{LANDMARK_TYPES.map((type) => (
+                                                <Radio key={type} value={type} size="md" aria-label={type}>
+                                                    <RadioIndicator>
+                                                        <RadioIcon as={CircleIcon} />
+                                                    </RadioIndicator>
+                                                    <RadioLabel className="ml-2">
+                                                        {type}
+                                                    </RadioLabel>
+                                                </Radio>
                                             ))}</VStack>
-                                        </CheckboxGroup>
+                                        </RadioGroup>
                                     )} />
                                 </Box>
                             </FormControl>
@@ -415,7 +419,7 @@ export function LandmarkForm({
                         <ButtonText className="font-bold">{submitLabel}</ButtonText>
                     </Button>
                 </Box>
-            </KeyboardAvoidingView>
+            </KeyboardAvoidingView >
         </>
     );
 }

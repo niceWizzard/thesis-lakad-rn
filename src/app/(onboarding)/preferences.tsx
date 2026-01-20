@@ -2,31 +2,27 @@ import { Button, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
 import { StorageKey } from '@/src/constants/Key'
-import { LandmarkCategory } from '@/src/model/landmark.types'
+import { LANDMARK_TYPES } from '@/src/constants/type'
+import { LandmarkType } from '@/src/model/landmark.types'
 import { mmkvStorage } from '@/src/utils/mmkv'
 import { getCategoryPreferences, setCategoryPreferences } from '@/src/utils/preferencesManager'
 import { Stack, useRouter } from 'expo-router'
 import {
     Check,
-    History,
-    Mountain,
-    Music,
-    Palmtree,
-    Utensils
+    Palmtree
 } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import { ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-// 1. Define the categories
-const CATEGORIES = [
-    { id: 'History', label: 'History', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
-    { id: 'Landscape', label: 'Landscape', icon: Utensils, color: 'bg-orange-100', text: 'text-orange-700' },
-    { id: 'Nature', label: 'Nature', icon: History, color: 'bg-amber-100', text: 'text-amber-700' },
-    { id: 'Religious', label: 'Religious', icon: Music, color: 'bg-purple-100', text: 'text-purple-700' },
-    { id: 'Water', label: 'Water', icon: Mountain, color: 'bg-blue-100', text: 'text-blue-700' },
-] satisfies {
-    id: LandmarkCategory,
+const TYPES = LANDMARK_TYPES.map(v => ({
+    id: v,
+    label: v,
+    icon: Palmtree,
+    color: 'bg-green-100',
+    text: 'text-green-700'
+})) satisfies {
+    id: LandmarkType,
     label: string,
     icon: React.FC<any>,
     color: string,
@@ -81,7 +77,7 @@ const OnboardingPreferences = () => {
 
                     {/* Grid of Categories */}
                     <View className="flex-row flex-wrap justify-between gap-y-4">
-                        {CATEGORIES.map((item) => {
+                        {TYPES.map((item) => {
                             const isSelected = selected.includes(item.id)
 
                             return (

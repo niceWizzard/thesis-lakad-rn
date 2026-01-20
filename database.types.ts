@@ -40,7 +40,6 @@ export type Database = {
       }
       landmark: {
         Row: {
-          categories: Database["public"]["Enums"]["landmark_category"][]
           created_at: string
           created_by_user: boolean
           deleted_at: string | null
@@ -53,10 +52,10 @@ export type Database = {
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
           name: string
+          type: Database["public"]["Enums"]["landmark_type"]
           updated_at: string
         }
         Insert: {
-          categories?: Database["public"]["Enums"]["landmark_category"][]
           created_at?: string
           created_by_user?: boolean
           deleted_at?: string | null
@@ -69,10 +68,10 @@ export type Database = {
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
           name?: string
+          type?: Database["public"]["Enums"]["landmark_type"]
           updated_at?: string
         }
         Update: {
-          categories?: Database["public"]["Enums"]["landmark_category"][]
           created_at?: string
           created_by_user?: boolean
           deleted_at?: string | null
@@ -85,6 +84,7 @@ export type Database = {
           longitude?: number
           municipality?: Database["public"]["Enums"]["municipality"]
           name?: string
+          type?: Database["public"]["Enums"]["landmark_type"]
           updated_at?: string
         }
         Relationships: []
@@ -185,6 +185,33 @@ export type Database = {
         | "Water"
         | "History"
         | "Religious"
+      landmark_type:
+        | "Caves"
+        | "Historic Monuments"
+        | "Religious Site"
+        | "Historical Cultural Attraction"
+        | "Museum"
+        | "Cultural Heritage"
+        | "Structure & Buildings"
+        | "Church"
+        | "Farm / Ranch"
+        | "Monument"
+        | "Fluvial Restaurant"
+        | "Historical Road/Trails"
+        | "Natural Attraction"
+        | "Malls"
+        | "Archaeological/Historic Sites"
+        | "Coastal Landscape and Seascape"
+        | "PARK/ BOTANICAL GARDEN"
+        | "CHURCH/RELIGIOUS SITE"
+        | "River and Landscape"
+        | "RESORT"
+        | "Structures and Buildings"
+        | "Falls"
+        | "Mountains/Hills/Highlands"
+        | "Unique Natural Landscape / Seascape"
+        | "Unique Cultural Heritage"
+        | "Other"
       municipality:
         | "Bulakan"
         | "Calumpit"
@@ -345,6 +372,34 @@ export const Constants = {
         "Water",
         "History",
         "Religious",
+      ],
+      landmark_type: [
+        "Caves",
+        "Historic Monuments",
+        "Religious Site",
+        "Historical Cultural Attraction",
+        "Museum",
+        "Cultural Heritage",
+        "Structure & Buildings",
+        "Church",
+        "Farm / Ranch",
+        "Monument",
+        "Fluvial Restaurant",
+        "Historical Road/Trails",
+        "Natural Attraction",
+        "Malls",
+        "Archaeological/Historic Sites",
+        "Coastal Landscape and Seascape",
+        "PARK/ BOTANICAL GARDEN",
+        "CHURCH/RELIGIOUS SITE",
+        "River and Landscape",
+        "RESORT",
+        "Structures and Buildings",
+        "Falls",
+        "Mountains/Hills/Highlands",
+        "Unique Natural Landscape / Seascape",
+        "Unique Cultural Heritage",
+        "Other",
       ],
       municipality: [
         "Bulakan",

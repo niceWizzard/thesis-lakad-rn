@@ -40,6 +40,7 @@ import { VStack } from '@/components/ui/vstack';
 // Stores & Utils
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
+import { LANDMARK_TYPES } from '@/src/constants/type';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
@@ -59,14 +60,10 @@ const DISTRICTS: {
     ];
 
 
-const CATEGORIES = [
-    { id: 'History', label: 'History' },
-    { id: 'Nature', label: 'Nature' },
-    { id: 'Landscape', label: 'Landscape' },
-    { id: 'Water', label: 'Water' },
-    { id: 'Religious', label: 'Religious' },
-];
-
+const TYPES = LANDMARK_TYPES.map(v => ({
+    id: v,
+    label: v,
+}))
 const schema = z.object({
     maxDistance: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Enter valid KM"),
     maxPoi: z.string().refine((val) => {
@@ -77,7 +74,7 @@ const schema = z.object({
         return n <= 50;
     }, "AGAM only supports up to 50 stopovers"),
     districts: z.array(z.string()).min(1, "Select at least one district"),
-    categories: z.array(z.string()).min(1, "Select at least one category"),
+    types: z.array(z.string()).min(1, "Select at least one category"),
     municipalities: z.array(z.string()).min(1, "Select at least one municipality"),
 });
 
@@ -95,14 +92,14 @@ const CreateWithAgamScreen = () => {
             maxDistance: '100',
             maxPoi: '10',
             districts: DISTRICTS.map(d => d.id),
-            categories: CATEGORIES.map(c => c.id),
+            types: TYPES.map(c => c.id),
             municipalities: MUNICIPALITIES,
         },
         mode: 'onChange',
     });
 
     const selectedDistricts = watch('districts');
-    const selectedCategories = watch('categories');
+    const selectedTypes = watch('types');
     const selectedMunicipalities = watch('municipalities');
 
     const validMunicipalities = useMemo(() => {
@@ -125,13 +122,13 @@ const CreateWithAgamScreen = () => {
         return landmarks.filter(l =>
             selectedDistricts.includes(l.district) &&
             selectedMunicipalities.includes(l.municipality) &&
-            l.categories.some(cat => selectedCategories.includes(cat))
+            selectedTypes.includes(l.type)
         ).length;
-    }, [landmarks, selectedDistricts, selectedCategories, selectedMunicipalities]);
+    }, [landmarks, selectedDistricts, selectedTypes, selectedMunicipalities]);
 
 
 
-    const toggleItem = (current: string[], id: string, field: 'districts' | 'categories' | 'municipalities') => {
+    const toggleItem = (current: string[], id: string, field: 'districts' | 'types' | 'municipalities') => {
         const next = current.includes(id) ? current.filter(i => i !== id) : [...current, id];
         setValue(field, next, { shouldValidate: true });
     };
@@ -142,7 +139,7 @@ const CreateWithAgamScreen = () => {
             const filteredLandmarks = landmarks.filter(l =>
                 formData.districts.includes(l.district) &&
                 selectedMunicipalities.includes(l.municipality) &&
-                l.categories.some(cat => formData.categories.includes(cat))
+                formData.types.includes(l.type)
             );
 
             if (filteredLandmarks.length < 2) throw new Error("Not enough landmarks found.");
@@ -304,12 +301,12 @@ const CreateWithAgamScreen = () => {
                                 </AccordionHeader>
                                 <AccordionContent>
                                     <View className="flex-row flex-wrap gap-2 p-2">
-                                        {CATEGORIES.map(c => {
-                                            const active = selectedCategories.includes(c.id);
+                                        {TYPES.map(c => {
+                                            const active = selectedTypes.includes(c.id);
                                             return (
                                                 <TouchableOpacity
                                                     key={c.id}
-                                                    onPress={() => toggleItem(selectedCategories, c.id, 'categories')}
+                                                    onPress={() => toggleItem(selectedTypes, c.id, 'types')}
                                                     className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-600 border-primary-600' : 'bg-background-0 border-outline-200'}`}
                                                 >
                                                     <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{c.label}</Text>
