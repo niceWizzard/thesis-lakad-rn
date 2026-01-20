@@ -39,6 +39,8 @@ enum LoadingMode {
     Hidden,
     Updating,
     Optimizing,
+    Fetching,
+    Saving,
 }
 
 const ReorderScreen = () => {
@@ -143,7 +145,7 @@ const ReorderScreen = () => {
 
 
     const handleOptimizePress = async () => {
-        setLoadingModalMode(LoadingMode.Optimizing)
+        setLoadingModalMode(LoadingMode.Fetching)
         try {
             // 1. Separate visited and unvisited stops
             const visitedStops = itinerary.stops.filter(stop => !!stop.visited_at);
@@ -160,6 +162,7 @@ const ReorderScreen = () => {
             );
 
             // 3. Get the optimized order (returns array of IDs)
+            setLoadingModalMode(LoadingMode.Optimizing)
             const {
                 itinerary: optimizedIds,
                 distance,
@@ -173,6 +176,8 @@ const ReorderScreen = () => {
                 ? Math.max(...visitedStops.map(s => s.visit_order ?? 0))
                 : -1;
             const startIndex = maxVisitedOrder + 1;
+
+            setLoadingModalMode(LoadingMode.Saving)
 
             const updates = optimizedIds.map((id, index) => {
                 return supabase
@@ -201,7 +206,22 @@ const ReorderScreen = () => {
         }
     };
 
-
+    function getLoadingModalText() {
+        switch (loadingModalMode) {
+            case LoadingMode.Hidden:
+                return "";
+            case LoadingMode.Optimizing:
+                return 'Optimizing...';
+            case LoadingMode.Updating:
+                return 'Updating...';
+            case LoadingMode.Fetching:
+                return 'Fetching...';
+            case LoadingMode.Saving:
+                return 'Saving...';
+            default:
+                return "";
+        }
+    }
     const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
 
@@ -209,7 +229,7 @@ const ReorderScreen = () => {
         <>
             <Stack.Screen options={{ title: "Reorder Stops" }} />
             <LoadingModal isShown={loadingModalMode !== LoadingMode.Hidden}
-                loadingText={loadingModalMode === LoadingMode.Optimizing ? 'Optimizing...' : 'Updating...'}
+                loadingText={getLoadingModalText()}
             />
             <DraggableFlatList
                 data={pendingStops}
