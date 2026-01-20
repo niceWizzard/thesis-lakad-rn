@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { GripVertical } from 'lucide-react-native';
+import { Check, GripVertical } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import DraggableFlatList, {
@@ -20,7 +20,7 @@ import { VStack } from '@/components/ui/vstack';
 
 // Custom Components & Logic
 import LoadingModal from '@/src/components/LoadingModal';
-import StopListItem from '@/src/components/StopListItem';
+import { Landmark } from '@/src/model/landmark.types';
 import { POIWithLandmark } from '@/src/model/poi.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
@@ -109,18 +109,14 @@ const ReorderScreen = () => {
                         drag();
                     }}
                     disabled={isActive}
-                    className={`px-4 py-3 bg-background-0 border-b border-outline-50 ${isActive ? 'bg-background-50' : ''}`}
                 >
-                    <HStack space="md" className="items-center">
+                    <HStack space="md" className={`items-center px-4 py-2 ${isActive ? 'bg-background-200 border border-outline-50' : ''}`}>
                         <Icon as={GripVertical} className="text-typography-300" />
                         <Box className="flex-1">
-                            <StopListItem
+                            <ReorderListItem
                                 displayNumber={displayNumber}
                                 isVisited={false}
                                 landmark={item.landmark}
-                                onVisitToggle={() => { }}
-                                onDelete={() => { }}
-                                onLocate={() => { }}
                             />
                         </Box>
                     </HStack>
@@ -136,10 +132,9 @@ const ReorderScreen = () => {
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
 
     return (
-        <Box className="flex-1 bg-background-0">
+        <>
             <Stack.Screen options={{ title: "Reorder Stops" }} />
             <LoadingModal isShown={isUpdating} loadingText="Saving sequence..." />
-
             <DraggableFlatList
                 data={pendingStops}
                 onDragEnd={handleDragEnd}
@@ -148,30 +143,75 @@ const ReorderScreen = () => {
                 ListHeaderComponent={
                     <VStack>
                         {completedStops.length > 0 && (
-                            <Box className="px-4 py-2 bg-background-50">
-                                <Text size="xs" className="uppercase font-bold text-typography-400">Completed Stops (Fixed)</Text>
-                            </Box>
+                            <>
+                                <Box className="px-4 py-2 bg-background-50">
+                                    <Text size="xs" className="uppercase font-bold text-typography-400">Completed Stops</Text>
+                                </Box>
+                                <VStack
+                                    className='p-4'
+                                >
+                                    {completedStops.map((stop, idx) => {
+                                        const displayNumber = idx + 1
+                                        return (
+                                            <ReorderListItem
+                                                key={stop.id}
+                                                displayNumber={displayNumber}
+                                                isVisited={true}
+                                                landmark={stop.landmark}
+                                            />
+                                        )
+                                    })}
+                                </VStack>
+                            </>
                         )}
-                        {completedStops.map((item, idx) => (
-                            <Box className="px-4 py-4 border-b border-outline-50 opacity-60" key={item.id}>
-                                <StopListItem
-                                    displayNumber={idx + 1}
-                                    isVisited={true}
-                                    landmark={item.landmark}
-                                    onVisitToggle={() => { }}
-                                    onDelete={() => { }}
-                                    onLocate={() => { }}
-                                />
-                            </Box>
-                        ))}
+
                         <Box className="px-4 py-2 bg-background-50">
-                            <Text size="xs" className="uppercase font-bold text-typography-400">Drag to Reorder Pending</Text>
+                            <Text size="xs" className="uppercase font-bold text-typography-400">Drag to Reorder Stops</Text>
                         </Box>
                     </VStack>
                 }
             />
-        </Box>
+        </>
     );
 };
 
 export default ReorderScreen;
+
+
+function ReorderListItem({
+    displayNumber,
+    isVisited,
+    landmark,
+}: { landmark: Landmark, isVisited: boolean, displayNumber: number }) {
+    return (
+        <HStack space='md' className='flex-1 items-center min-w-0 justify-center'>
+            <Box className={`w-8 h-8 rounded-full items-center justify-center ${isVisited ? 'bg-success-500' : 'bg-background-100'}`}>
+                {isVisited ? (
+                    <Icon as={Check} size="xs" />
+                ) : (
+                    <Text size='xs' className='font-bold text-typography-900'>
+                        {displayNumber}
+                    </Text>
+                )}
+            </Box>
+
+            <VStack className='flex-1 '>
+                <Text
+                    className={`font-semibold ${isVisited ? 'text-typography-300 line-through' : 'text-typography-900'}`}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                >
+                    {landmark.name}
+                </Text>
+                <Text
+                    size="xs"
+                    className="text-typography-400"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                >
+                    {landmark.municipality}
+                </Text>
+            </VStack>
+        </HStack>
+    )
+}
