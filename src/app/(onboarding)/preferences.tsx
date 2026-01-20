@@ -2,32 +2,67 @@ import { Button, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
 import { StorageKey } from '@/src/constants/Key'
-import { LANDMARK_TYPES } from '@/src/constants/type'
 import { LandmarkType } from '@/src/model/landmark.types'
 import { mmkvStorage } from '@/src/utils/mmkv'
 import { getCategoryPreferences, setCategoryPreferences } from '@/src/utils/preferencesManager'
 import { Stack, useRouter } from 'expo-router'
 import {
+    Building,
+    Building2,
+    Castle,
     Check,
-    Palmtree
+    Church,
+    Fence,
+    Footprints,
+    History,
+    Landmark,
+    MoreHorizontal,
+    Mountain,
+    Palmtree,
+    ShoppingBag,
+    Tent,
+    Trees,
+    Utensils,
+    Waves,
 } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import { ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const TYPES = LANDMARK_TYPES.map(v => ({
-    id: v,
-    label: v,
-    icon: Palmtree,
-    color: 'bg-green-100',
-    text: 'text-green-700'
-})) satisfies {
+export const TYPES: {
     id: LandmarkType,
     label: string,
     icon: React.FC<any>,
     color: string,
     text: string
-}[]
+}[] = [
+        { id: 'Caves', label: 'Caves', icon: Mountain, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Historic Monuments', label: 'Historic Monuments', icon: Landmark, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Religious Site', label: 'Religious Site', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Historical Cultural Attraction', label: 'Historical Cultural Attraction', icon: History, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Museum', label: 'Museum', icon: Building, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Cultural Heritage', label: 'Cultural Heritage', icon: Castle, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Church', label: 'Church', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Farm / Ranch', label: 'Farm / Ranch', icon: Fence, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Monument', label: 'Monument', icon: Landmark, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Structure & Buildings', label: 'Structure & Buildings', icon: Building2, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Fluvial Restaurant', label: 'Fluvial Restaurant', icon: Utensils, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Historical Road/Trails', label: 'Historical Road/Trails', icon: Footprints, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Natural Attraction', label: 'Natural Attraction', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Malls', label: 'Malls', icon: ShoppingBag, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Archaeological/Historic Sites', label: 'Archaeological/Historic Sites', icon: History, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Coastal Landscape and Seascape', label: 'Coastal Landscape and Seascape', icon: Waves, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'PARK/ BOTANICAL GARDEN', label: 'PARK/ BOTANICAL GARDEN', icon: Trees, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'CHURCH/RELIGIOUS SITE', label: 'CHURCH/RELIGIOUS SITE', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'River and Landscape', label: 'River and Landscape', icon: Waves, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'RESORT', label: 'RESORT', icon: Tent, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Structures and Buildings', label: 'Structures and Buildings', icon: Building2, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Falls', label: 'Falls', icon: Waves, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Mountains/Hills/Highlands', label: 'Mountains/Hills/Highlands', icon: Mountain, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Unique Natural Landscape / Seascape', label: 'Unique Natural Landscape / Seascape', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Unique Cultural Heritage', label: 'Unique Cultural Heritage', icon: Castle, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Other', label: 'Other', icon: MoreHorizontal, color: 'bg-green-100', text: 'text-green-700' },
+    ];
 
 const OnboardingPreferences = () => {
     const router = useRouter()
