@@ -45,6 +45,7 @@ import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.typ
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
+import { useTypePreferences } from '@/src/utils/preferencesManager';
 
 const DISTRICTS: {
     id: LandmarkDistrict,
@@ -85,6 +86,7 @@ const CreateWithAgamScreen = () => {
     const landmarks = useLandmarkStore(v => v.landmarks);
     const queryClient = useQueryClient();
     const [isGenerating, setIsGenerating] = useState(false);
+    const preferredTypes = useTypePreferences();
 
     const { control, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -145,7 +147,8 @@ const CreateWithAgamScreen = () => {
             if (filteredLandmarks.length < 2) throw new Error("Not enough landmarks found.");
 
             const pois = filteredLandmarks.reduce((obj, cur) => {
-                obj[cur.id] = { interest: 1, rating: cur.gmaps_rating / 5.0 };
+                const interest = preferredTypes.includes(cur.type) ? 1 : 0;
+                obj[cur.id] = { interest: interest, rating: cur.gmaps_rating / 5.0 };
                 return obj;
             }, {} as any);
 
