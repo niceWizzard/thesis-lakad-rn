@@ -71,12 +71,12 @@ const OnboardingPreferences = () => {
                     <View className="mb-8">
                         <Heading size="3xl" className="text-typography-900 mb-2">Personalize</Heading>
                         <Text size="lg" className="text-typography-600">
-                            Select at least 3 categories that interest you to help us tailor your itineraries.
+                            Select at least 3 types that interest you to help us tailor your itineraries.
                         </Text>
                     </View>
 
                     {/* Grid of Categories */}
-                    <View className="flex-row flex-wrap justify-between gap-y-4">
+                    <View className="flex-row flex-wrap justify-between gap-y-4 pb-16">
                         {TYPES.map((item) => {
                             const isSelected = selected.includes(item.id)
 
