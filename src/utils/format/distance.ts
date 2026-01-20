@@ -7,9 +7,9 @@ export function formatDistance(meters: number): string {
 
     if (km < 100) {
         // Standard precision for local trips
-        return `${km.toFixed(1)} km`;
+        return `${km.toFixed(3)} km`;
     } else {
         // High-level overview for long trips
-        return `${Math.round(km)} km`;
+        return `${km.toFixed(2)} km`;
     }
 }
