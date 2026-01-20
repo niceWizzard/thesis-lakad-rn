@@ -163,10 +163,24 @@ const ReorderScreen = () => {
 
             // 3. Get the optimized order (returns array of IDs)
             setLoadingModalMode(LoadingMode.Optimizing)
-            const {
-                itinerary: optimizedIds,
-                distance,
-            } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
+            let optimizedIds: string[] = [];
+            let distance = 0;
+            let bestDistance = Number.MAX_VALUE;
+            for (let i = 0; i < 15; i++) {
+                const {
+                    itinerary: optimizedItinerary,
+                    distance: calculatedDistance,
+                } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
+                bestDistance = Math.min(bestDistance, calculatedDistance);
+                if (calculatedDistance <= itinerary.distance) {
+                    optimizedIds = optimizedItinerary;
+                    distance = calculatedDistance;
+                    break;
+                }
+                if (i == 14) {
+                    throw new Error("Could not optimize any further.")
+                }
+            }
 
             /** * 4. Calculate the starting Index.
              * If 3 stops were already visited (indices 0, 1, 2), 
@@ -199,8 +213,8 @@ const ReorderScreen = () => {
             showToast("Optimization Complete", "The route has been reordered for efficiency.", "success");
 
         } catch (e: any) {
+            showToast("Optimization Failed", e.message ?? "Could not optimize", "error");
             console.error(e)
-            showToast("Optimization Failed", "Could not connect to the server.", "error");
         } finally {
             setLoadingModalMode(LoadingMode.Hidden)
         }
