@@ -52,6 +52,7 @@ import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { formatDistance } from '@/src/utils/format/distance';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 const poiIcon = require('@/assets/images/red_marker.png');
@@ -567,19 +568,18 @@ function ViewingModeBottomSheetContent({
             />
             <VStack space='lg' className='pb-6 h-full flex-1'>
                 <HStack className='justify-between items-center px-4'>
-                    <VStack>
+                    <VStack className='flex-1'>
                         <Heading size='xl'>{itinerary.name}</Heading>
                         <HStack space='sm' className='items-center'>
                             <Icon as={Clock} size='xs' className='text-typography-400' />
                             <Text size='sm' className='text-typography-500'>
-                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining  • {itinerary.distance} m
+                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining  • {formatDistance(itinerary.distance)}
                             </Text>
                         </HStack>
                     </VStack>
                     <Pressable onPress={handleAddPoi}>
                         <Icon as={PlusCircle} size='xl' className='text-primary-600' />
                     </Pressable>
-
                 </HStack>
                 <HStack space='md' className='w-full justify-center flex-wrap'>
                     <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}>

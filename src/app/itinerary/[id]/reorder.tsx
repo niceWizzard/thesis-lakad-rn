@@ -30,6 +30,7 @@ import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
+import { formatDistance } from '@/src/utils/format/distance';
 import { supabase } from '@/src/utils/supabase';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -69,8 +70,8 @@ const ReorderScreen = () => {
         });
     };
 
-    const handleDragEnd = async ({ data: reorderedPending }: DragEndParams<POIWithLandmark>) => {
-        if (!itinerary) return;
+    const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<POIWithLandmark>) => {
+        if (!itinerary || from == to) return;
 
         setLoadingModalMode(LoadingMode.Updating);
         try {
@@ -116,6 +117,7 @@ const ReorderScreen = () => {
         return (
             <ScaleDecorator>
                 <Pressable
+                    delayLongPress={500}
                     onLongPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                         drag();
@@ -227,7 +229,7 @@ const ReorderScreen = () => {
                                 </Text>
                             </HStack>
                             <Text className='text-typography-400 text-center'>
-                                {Math.round(itinerary.distance / 1000)} KM
+                                {formatDistance(itinerary.distance)}
                             </Text>
                         </VStack>
                         {completedStops.length > 0 && (

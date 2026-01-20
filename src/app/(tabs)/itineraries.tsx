@@ -20,6 +20,7 @@ import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
+import { formatDistance } from '@/src/utils/format/distance';
 import { useQuery } from '@tanstack/react-query';
 
 export default function ItinerariesScreen() {
@@ -143,7 +144,7 @@ export default function ItinerariesScreen() {
                                             </Text>
                                             <Icon as={Ruler} size="xs" className="text-primary-600" />
                                             <Text size="xs" className="uppercase font-bold text-primary-600 tracking-wider">
-                                                {itinerary.distance || 0} m
+                                                {formatDistance(itinerary.distance)}
                                             </Text>
                                         </HStack>
                                         <Heading size="lg" className="text-typography-900 leading-tight">
