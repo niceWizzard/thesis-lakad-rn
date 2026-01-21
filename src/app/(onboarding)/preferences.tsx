@@ -110,7 +110,7 @@ const OnboardingPreferences = () => {
                         </Text>
                     </View>
 
-                    {/* Grid of Categories */}
+                    {/* Grid of Types */}
                     <View className="flex-row flex-wrap justify-between gap-y-4 pb-16">
                         {TYPES.map((item) => {
                             const isSelected = selected.includes(item.id)

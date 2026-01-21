@@ -303,7 +303,7 @@ export function LandmarkForm({
                                 <FormControlLabel className="mb-1">
                                     <HStack className="items-center gap-2">
                                         <Icon as={Tag} size="xs" />
-                                        <FormControlLabelText size="xs" className="uppercase font-bold">Categories</FormControlLabelText>
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">Types</FormControlLabelText>
                                     </HStack>
                                 </FormControlLabel>
                                 <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">

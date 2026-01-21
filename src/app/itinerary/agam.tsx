@@ -350,14 +350,14 @@ const CreateWithAgamScreen = () => {
                                 </AccordionItem>
 
 
-                                <AccordionItem value="categories" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
+                                <AccordionItem value="types" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
                                     <AccordionHeader>
                                         <AccordionTrigger>
                                             {({ isExpanded }: any) => (
                                                 <HStack className="items-center justify-between w-full pr-4">
                                                     <HStack className="items-center gap-3">
                                                         <Icon as={Layers} className="text-primary-600" />
-                                                        <AccordionTitleText className="font-bold">Categories</AccordionTitleText>
+                                                        <AccordionTitleText className="font-bold">Types</AccordionTitleText>
                                                     </HStack>
                                                     <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
                                                 </HStack>

@@ -192,7 +192,7 @@ export default function AdminLandmarkDetailScreen() {
               <VStack className="gap-2">
                 <HStack className="items-center gap-2">
                   <Icon as={Tag} size="xs" className="text-primary-600" />
-                  <Text size="xs" className="font-bold text-typography-400 uppercase">Categories</Text>
+                  <Text size="xs" className="font-bold text-typography-400 uppercase">Type</Text>
                 </HStack>
                 <HStack space="xs" className="flex-wrap">
                   <Badge size="sm" variant="outline" action='info' className="rounded-lg">
