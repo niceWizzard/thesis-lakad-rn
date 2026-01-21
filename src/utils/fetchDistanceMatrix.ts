@@ -47,7 +47,7 @@ export const fetchFullDistanceMatrix = async (
                 const response = await fetch(url);
                 const data = await response.json();
 
-                if (data.code !== "Ok") throw new Error(`Mapbox Error: ${data.code}`);
+                if (data.code !== "Ok") throw new Error(`Mapbox Error: ${data}`);
 
                 data.distances.forEach((row: number[], sIdx: number) => {
                     const sourceId = sources[sIdx].id;
