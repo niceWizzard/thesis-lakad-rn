@@ -151,7 +151,14 @@ export default function ItinerariesScreen() {
                                             {itinerary.name}
                                         </Heading>
                                     </VStack>
-                                    <Pressable hitSlop={20}>
+                                    <Pressable hitSlop={20}
+                                        onPress={() => {
+                                            router.navigate({
+                                                pathname: '/itinerary/[id]/info',
+                                                params: { id: itinerary.id },
+                                            })
+                                        }}
+                                    >
                                         <Icon as={EllipsisVertical} className="text-typography-400 mt-1" />
                                     </Pressable>
                                 </HStack>
