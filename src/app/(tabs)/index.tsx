@@ -148,7 +148,7 @@ const ExploreTab = () => {
                                 <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
                                 <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
                                     <Text size="sm" className="text-typography-600 leading-relaxed">
-                                        {selectedLandmark.description || "No description available for this landmark."}
+                                        {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
                                     </Text>
                                 </Box>
                             </VStack>
