@@ -187,6 +187,27 @@ export type Database = {
         | "Religious"
       landmark_type:
         | "Caves"
+        | "Church"
+        | "Cultural Heritage"
+        | "Falls"
+        | "Farm"
+        | "Garden"
+        | "Historic Monuments"
+        | "Historical Cultural Attraction"
+        | "Historical Road/Trails"
+        | "Historical Site"
+        | "Landscape/Seascape"
+        | "Mall"
+        | "Monument"
+        | "Mountain/Hill/Highland"
+        | "Museum"
+        | "Natural Attraction"
+        | "Religious Site"
+        | "Restaurant"
+        | "River/Landscape"
+        | "Structures"
+      landmark_type2:
+        | "Caves"
         | "Historic Monuments"
         | "Religious Site"
         | "Historical Cultural Attraction"
@@ -374,6 +395,28 @@ export const Constants = {
         "Religious",
       ],
       landmark_type: [
+        "Caves",
+        "Church",
+        "Cultural Heritage",
+        "Falls",
+        "Farm",
+        "Garden",
+        "Historic Monuments",
+        "Historical Cultural Attraction",
+        "Historical Road/Trails",
+        "Historical Site",
+        "Landscape/Seascape",
+        "Mall",
+        "Monument",
+        "Mountain/Hill/Highland",
+        "Museum",
+        "Natural Attraction",
+        "Religious Site",
+        "Restaurant",
+        "River/Landscape",
+        "Structures",
+      ],
+      landmark_type2: [
         "Caves",
         "Historic Monuments",
         "Religious Site",
