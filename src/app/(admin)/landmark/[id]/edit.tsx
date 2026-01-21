@@ -84,9 +84,9 @@ export default function AdminLandmarkEditScreen() {
                 updated_at: new Date().toISOString(),
             }).eq('id', id as any);
             if (error) throw error;
+            await queryClient.refetchQueries({ queryKey: ['landmarks'], });
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['landmarks'] });
+        onSuccess: async () => {
             queryClient.invalidateQueries({ queryKey: ['landmark', id] });
             showToast({
                 title: "Landmark Updated!",

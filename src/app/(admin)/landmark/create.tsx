@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
+import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -67,9 +68,9 @@ export default function AdminLandmarkCreateScreen() {
                 }]);
 
             if (dbError) throw dbError;
+            await queryClient.fetchQuery({ queryKey: ['landmarks'], queryFn: fetchLandmarks });
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['landmarks'] });
             showToast({
                 title: "Landmark Published!",
             })

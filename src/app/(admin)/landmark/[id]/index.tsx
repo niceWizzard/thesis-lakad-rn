@@ -33,6 +33,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -70,10 +71,9 @@ export default function AdminLandmarkDetailScreen() {
         })
         .eq('id', id as any);
       if (error) throw error;
+      await queryClient.fetchQuery({ queryKey: ['landmarks'], queryFn: fetchLandmarks });
     },
     onSuccess: (_, isRestoring) => {
-      queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-      queryClient.invalidateQueries({ queryKey: ['landmarks'] });
       showToast({
         title: isRestoring ? "Landmark Restored" : "Landmark Archived",
       })
