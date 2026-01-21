@@ -85,12 +85,7 @@ const ExploreTab = () => {
         <Box className="flex-1 bg-background-0">
             <LandmarkMapView
                 mapViewProps={{
-                    style: StyleSheet.absoluteFill,
-                    logoEnabled: false,
-                    attributionEnabled: false,
                     onPress: () => setSelectedLandmark(null),
-                    compassEnabled: true,
-                    compassPosition: { top: 60, right: 10 },
                 }}
                 cameraRef={camera}
                 selectedLandmark={selectedLandmark}
