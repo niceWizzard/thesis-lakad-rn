@@ -14,7 +14,6 @@ import {
 import React, { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
-    Alert,
     Keyboard,
     KeyboardAvoidingView,
     Platform,
@@ -42,6 +41,7 @@ import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
 import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
@@ -96,6 +96,8 @@ const CreateWithAgamScreen = () => {
     const queryClient = useQueryClient();
     const preferredTypes = useTypePreferences();
     const [state, setState] = useState(GeneratingState.Idle)
+
+    const { showToast } = useToastNotification()
 
     const isGenerating = state !== GeneratingState.Idle;
 
@@ -179,12 +181,13 @@ const CreateWithAgamScreen = () => {
             } = await AlgorithmModule.generateItinerary(
                 Number.parseFloat(formData.maxDistance) * 1000,
                 Number.parseInt(formData.maxPoi),
-                formData.districts.map(d => (d === 'Lone' ? 0 : parseInt(d))),
+                [1, 1, 1, 1],
                 pois,
                 landmarkDistanceMap,
             );
 
             if (!result || result.length === 0) throw new Error("No valid route found.");
+
 
             setState(GeneratingState.Saving)
 
@@ -196,7 +199,12 @@ const CreateWithAgamScreen = () => {
             queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
         } catch (err: any) {
-            Alert.alert("Planner Error", err);
+            console.log(err)
+            showToast({
+                title: "Generation Error",
+                description: err.message ?? "Something went wrong.",
+                action: "error",
+            })
         } finally {
             setState(GeneratingState.Idle)
         }
