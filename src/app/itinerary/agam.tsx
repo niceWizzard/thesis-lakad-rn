@@ -235,9 +235,12 @@ const CreateWithAgamScreen = () => {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="flex-1 bg-background-0"
             >
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View className="flex-1">
-                        <ScrollView contentContainerClassName="p-6 pb-32">
+                <ScrollView >
+                    <TouchableWithoutFeedback
+                        onPress={Keyboard.dismiss}
+
+                    >
+                        <View className="p-6 pb-32">
                             {/* Header & Pool Counter */}
                             <VStack className="mb-6 gap-2">
                                 <HStack className="items-center justify-between">
@@ -451,25 +454,26 @@ const CreateWithAgamScreen = () => {
                                     <Text size="xs" className="text-warning-700">Select more filters to generate a valid route.</Text>
                                 </HStack>
                             )}
-                        </ScrollView>
 
-                        {/* Bottom Action */}
-                        <Box className="p-6 bg-background-0 border-t border-outline-50 pb-8">
-                            <Button
-                                onPress={handleSubmit(onGenerate)}
-                                isDisabled={isGenerating || !isValid || availableCount < 2}
-                                className="rounded-xl h-14 bg-primary-600 shadow-none"
-                            >
-                                {isGenerating ? <ButtonSpinner color="white" /> : (
-                                    <HStack className="items-center gap-2">
-                                        <ButtonText className="font-bold">Generate Itinerary</ButtonText>
-                                        <ButtonIcon as={Sparkles} />
-                                    </HStack>
-                                )}
-                            </Button>
-                        </Box>
-                    </View>
-                </TouchableWithoutFeedback>
+
+                        </View>
+                    </TouchableWithoutFeedback>
+                </ScrollView>
+                {/* Bottom Action */}
+                <Box className="p-6 bg-background-0 border-t border-outline-50 pb-8">
+                    <Button
+                        onPress={handleSubmit(onGenerate)}
+                        isDisabled={isGenerating || !isValid || availableCount < 2}
+                        className="rounded-xl h-14 bg-primary-600 shadow-none"
+                    >
+                        {isGenerating ? <ButtonSpinner color="white" /> : (
+                            <HStack className="items-center gap-2">
+                                <ButtonText className="font-bold">Generate Itinerary</ButtonText>
+                                <ButtonIcon as={Sparkles} />
+                            </HStack>
+                        )}
+                    </Button>
+                </Box>
             </KeyboardAvoidingView>
         </>
     );
