@@ -308,13 +308,22 @@ const CreateWithAgamScreen = () => {
                                     </AccordionHeader>
                                     <AccordionContent>
                                         <View className="flex-row flex-wrap gap-2 p-2">
-                                            {validMunicipalities.map(c => {
+                                            {MUNICIPALITIES.map(c => {
                                                 const active = selectedMunicipalities.includes(c);
+                                                const isValid = validMunicipalities.includes(c)
+                                                let extraDesign = 'bg-background-0 border-outline-200';
+                                                if (!isValid) {
+                                                    extraDesign = 'bg-background-400 border-outline-100'
+                                                }
+                                                else if (active) {
+                                                    extraDesign = 'bg-primary-600 border-primary-600'
+                                                }
                                                 return (
                                                     <TouchableOpacity
                                                         key={c}
                                                         onPress={() => toggleItem(selectedMunicipalities, c, 'municipalities')}
-                                                        className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-600 border-primary-600' : 'bg-background-0 border-outline-200'}`}
+                                                        disabled={!isValid}
+                                                        className={`px-3 py-1.5 rounded-md border ${extraDesign}`}
                                                     >
                                                         <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{c}</Text>
                                                     </TouchableOpacity>
@@ -322,7 +331,7 @@ const CreateWithAgamScreen = () => {
                                             })}
                                             {
                                                 validMunicipalities.length === 0 && (
-                                                    <Text>No municipalities found</Text>
+                                                    <Text>No valid municipalities found</Text>
                                                 )
                                             }
                                         </View>
