@@ -120,6 +120,8 @@ export function LandmarkForm({
         onSubmit(data, pendingImageData)
     }
 
+    const isValidCoordinates = longitude && latitude && Math.abs(Number.parseFloat(longitude)) <= 180 && Math.abs(Number.parseFloat(latitude)) <= 90;
+
     return (
         <>
             <AlertDialog isOpen={showDiscardAlert} onClose={() => setShowDiscardAlert(false)}>
@@ -340,7 +342,7 @@ export function LandmarkForm({
                                 <Heading size='xs' className='uppercase mb-4'>
                                     Coordinates</Heading>
                                 {
-                                    longitude && latitude && (
+                                    isValidCoordinates && (
                                         <MapView
                                             style={{
                                                 height: 480
