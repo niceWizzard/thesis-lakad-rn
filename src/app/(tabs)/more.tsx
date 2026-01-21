@@ -18,7 +18,8 @@ import {
     Mail,
     Settings,
     Sliders,
-    User
+    User,
+    UserCheck2
 } from 'lucide-react-native';
 
 const coverImage = require('@/assets/images/lakad-cover.png');
@@ -60,7 +61,7 @@ function MoreTab() {
             {
                 id: '5',
                 title: 'Admin Mode',
-                icon: Info,
+                icon: UserCheck2,
                 onPress: () => router.replace("/(admin)/(tabs)/more"),
             })
 
