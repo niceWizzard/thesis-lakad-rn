@@ -18,8 +18,8 @@ import { VStack } from '@/components/ui/vstack';
 // Custom Components & Stores
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
+import { useLandmarks } from '@/src/hooks/useLandmarks';
 import { Landmark } from '@/src/model/landmark.types';
-import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
 const ExploreTab = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -32,7 +32,7 @@ const ExploreTab = () => {
     // Define snap points: 0 is closed, 1 is the 40% mark
     const snapPoints = useMemo(() => ["60%",], []);
 
-    const landmarks = useLandmarkStore(v => v.landmarks);
+    const { landmarks } = useLandmarks()
 
     // Sync BottomSheet with selectedLandmark state
     useEffect(() => {

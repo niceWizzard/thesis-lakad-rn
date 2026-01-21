@@ -40,10 +40,9 @@ import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
+import { useLandmarks } from '@/src/hooks/useLandmarks';
+import { LandmarkDistrict } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
-import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
-import { useQuery } from '@tanstack/react-query';
 
 // --- Updated SortKey Type ---
 type SortKey = 'id' | 'name' | 'rating';
@@ -64,15 +63,11 @@ export default function AdminLandmarksScreen() {
     const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
     const {
-        data: landmarks = [],
+        landmarks,
         isLoading,
         isRefetching,
         refetch
-    } = useQuery<Landmark[]>({
-        queryKey: ['landmarks'],
-        queryFn: fetchLandmarks,
-        enabled: !!userId,
-    });
+    } = useLandmarks()
 
     // --- ENHANCED FILTERING & SORTING LOGIC ---
     const processedLandmarks = useMemo(() => {

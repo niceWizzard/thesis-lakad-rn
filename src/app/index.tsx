@@ -13,7 +13,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'expo-network';
 import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
-import { useLandmarkStore } from '../stores/useLandmarkStore';
 import { fetchAdminStatus as fetchUserType } from '../utils/fetchAdminStatus';
 import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
 import { fetchLandmarks } from '../utils/fetchLandmarks';
@@ -29,7 +28,6 @@ const LoadingSplashScreen = () => {
     const initialURL = Linking.useLinkingURL();
     const [networkState, setNetworkState] = useState<NetworkState | null>(null);
     const [loadingError, setLoadingError] = useState<Error | null | undefined>()
-    const setLandmarks = useLandmarkStore(v => v.setLandmarks);
 
     const queryClient = useQueryClient();
 
@@ -61,8 +59,7 @@ const LoadingSplashScreen = () => {
                     throw new Error("No internet connection. Please try again later.")
                 }
 
-                const landmarks = await fetchLandmarks();
-                setLandmarks(landmarks);
+
 
                 // 2. Check Onboarding Status
                 const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded) ?? false;
@@ -99,6 +96,13 @@ const LoadingSplashScreen = () => {
                 const userType = await fetchUserType(session.user.id);
                 // 4. Set global auth state and enter the app
                 setAuth(session, userType);
+
+                await queryClient.prefetchQuery({
+                    queryKey: ['landmarks'],
+                    queryFn: () => fetchLandmarks(),
+                    staleTime: 1000 * 60 * 2,
+                    initialData: [],
+                })
 
                 await queryClient.fetchQuery({
                     queryKey: ['itineraries'],

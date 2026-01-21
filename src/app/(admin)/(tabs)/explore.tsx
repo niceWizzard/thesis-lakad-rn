@@ -9,10 +9,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet } from 'react-native';
 
 import { Landmark } from '@/src/model/landmark.types';
-import { useLandmarkStore } from '@/src/stores/useLandmarkStore';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
+import { useLandmarks } from '@/src/hooks/useLandmarks';
 import { Camera } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -25,7 +25,7 @@ const AdminExploreTab = () => {
     const camera = useRef<Camera | null>(null)
 
 
-    const landmarks = useLandmarkStore(v => v.landmarks);
+    const { landmarks } = useLandmarks();
 
     useEffect(() => {
         (async () => {
