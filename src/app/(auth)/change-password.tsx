@@ -11,8 +11,8 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
-import { AlertCircle, CheckCircle2, KeyRound, Lock, RefreshCw } from 'lucide-react-native'
+import { useToastNotification } from '@/src/hooks/useToastNotification'
+import { KeyRound, Lock, RefreshCw } from 'lucide-react-native'
 
 const changePasswordSchema = z.object({
     currentPassword: z.string().min(1, "Current password is required"),
@@ -31,7 +31,7 @@ type ChangePasswordSchema = z.infer<typeof changePasswordSchema>
 
 const ChangePasswordHandler = () => {
     const router = useRouter()
-    const toast = useToast()
+    const { showToast } = useToastNotification()
     const [submitting, setSubmitting] = useState(false)
     const { session } = useAuthStore()
 
@@ -44,26 +44,6 @@ const ChangePasswordHandler = () => {
         mode: "onChange"
     })
 
-    const showToast = (title: string, description: string, action: "error" | "success") => {
-        toast.show({
-            placement: "top",
-            duration: 1000,
-            render: ({ id }) => {
-                const toastId = "toast-" + id
-                return (
-                    <Toast nativeID={toastId} action={action}>
-                        <View className="flex-row items-center gap-3">
-                            {action === "error" ? <AlertCircle size={20} color="#dc2626" /> : <CheckCircle2 size={20} color="#16a34a" />}
-                            <View>
-                                <ToastTitle>{title}</ToastTitle>
-                                <ToastDescription>{description}</ToastDescription>
-                            </View>
-                        </View>
-                    </Toast>
-                )
-            },
-        })
-    }
 
     const onChangePassword = async (data: ChangePasswordSchema) => {
         setSubmitting(true)
@@ -84,12 +64,18 @@ const ChangePasswordHandler = () => {
             })
             if (updateError) throw updateError
 
-            showToast("Success", "Your password has been updated.", "success")
+            showToast({
+                title: "Success",
+                description: "Your password has been updated.",
+            })
             reset()
             router.back()
 
         } catch (err: any) {
-            showToast("Update Failed", err.message || "An unexpected error occurred", "error")
+            showToast({
+                title: "Error",
+                description: err.message ?? "Something went wrong. Please try again.",
+            })
         } finally {
             setSubmitting(false)
         }

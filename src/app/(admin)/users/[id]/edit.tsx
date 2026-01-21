@@ -16,10 +16,10 @@ import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
 import { Center } from '@/components/ui/center';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -27,7 +27,7 @@ export default function AdminUserEditScreen() {
     // id is the user_id passed from the search screen
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const toast = useToast();
+    const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
 
     // 1. Fetch current user data
@@ -59,19 +59,11 @@ export default function AdminUserEditScreen() {
             queryClient.invalidateQueries({ queryKey: ['admin_user_detail', id] });
             queryClient.invalidateQueries({ queryKey: ['admin_user_search'] });
 
-            toast.show({
-                placement: "top",
-                render: ({ id: toastId }) => (
-                    <Toast nativeID={toastId} action="success" variant="solid">
-                        <VStack space="xs">
-                            <ToastTitle>Role Updated</ToastTitle>
-                            <ToastDescription>
-                                User is now {newStatus ? 'an Admin' : 'a Member'}.
-                            </ToastDescription>
-                        </VStack>
-                    </Toast>
-                ),
-            });
+            showToast({
+                title: "Role updated",
+                description: `User is now ${newStatus ? 'an Admin' : 'a Member'}.`,
+            })
+
         },
     });
 

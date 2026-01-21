@@ -47,10 +47,10 @@ import {
 import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { Icon } from '@/components/ui/icon';
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { formatDistance } from '@/src/utils/format/distance';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -108,7 +108,7 @@ export default function ItineraryView() {
 
     const [isOptimizationFinished, setIsOptimizationFinished] = useState(false);
 
-    const toast = useToast();
+    const { showToast } = useToastNotification();
 
     useEffect(() => {
         (async () => {
@@ -182,7 +182,11 @@ export default function ItineraryView() {
 
     const handleNavigationButtonClick = async () => {
         if (!nextUnvisitedStop) {
-            showToast("No Stops Left", "You have completed all points in this itinerary.", "info");
+            showToast({
+                title: "No stops left",
+                description: "You have completed all points in this itinerary.",
+                action: "info"
+            })
             return;
         }
         const data = await fetchDirections({
@@ -200,25 +204,6 @@ export default function ItineraryView() {
             pitch: 55, // 3D perspective
             heading: data.routes[0].legs[0].steps[0].maneuver.bearing_after,
             animationDuration: 1500,
-        });
-    };
-
-
-    const showToast = (title: string, description?: string, action: "success" | "error" | "info" = "success") => {
-        toast.show({
-            placement: "top",
-            duration: 1000,
-            render: ({ id }) => {
-                const uniqueId = "toast-" + id;
-                return (
-                    <Toast nativeID={uniqueId} action={action} className="rounded-2xl shadow-lg mt-10">
-                        <VStack space="xs">
-                            <ToastTitle className="font-bold">{title}</ToastTitle>
-                            {description && <ToastDescription>{description}</ToastDescription>}
-                        </VStack>
-                    </Toast>
-                );
-            },
         });
     };
 
@@ -490,7 +475,7 @@ function ViewingModeBottomSheetContent({
     pendingStops: POIWithLandmark[],
     completedStops: POIWithLandmark[],
     refetch: () => Promise<any>,
-    showToast: (title: string, description?: string, action?: "success" | "error" | "info") => void,
+    showToast: ReturnType<typeof useToastNotification>['showToast'],
     locatePOI: (stop: POIWithLandmark) => void,
     goNavigationMode: () => void,
     canOptimize: boolean,
@@ -572,7 +557,11 @@ function ViewingModeBottomSheetContent({
             await refetch();
         } catch (e: any) {
             console.error("Error updating status:", e.message);
-            showToast("Something went wrong.", e.message, 'error')
+            showToast({
+                title: "Something went wrong.",
+                description: e.message ?? "Some error happened.",
+                action: 'error'
+            })
         } finally {
             setIsUpdating(false);
         }
@@ -592,7 +581,11 @@ function ViewingModeBottomSheetContent({
             if (error) throw error;
             await refetch();
         } catch (err: any) {
-            showToast("Something went wrong.", err.message, 'error')
+            showToast({
+                title: "Something went wrong.",
+                description: err.message ?? "Some error happened.",
+                action: 'error'
+            })
         } finally {
             setIsUpdating(false);
         }

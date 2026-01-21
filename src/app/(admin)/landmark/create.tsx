@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import * as z from 'zod';
 
-import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ type CreateFormData = z.infer<typeof createAndEditLandmarkSchema>;
 
 export default function AdminLandmarkCreateScreen() {
     const router = useRouter();
-    const toast = useToast();
+    const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
     const [disregardDiscardDialog, setDisregardDiscardDialog] = useState(false)
 
@@ -70,14 +70,9 @@ export default function AdminLandmarkCreateScreen() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['landmarks'] });
-            toast.show({
-                placement: "top",
-                render: ({ id }) => (
-                    <Toast nativeID={id} action="success" variant="solid">
-                        <ToastTitle>Landmark Published!</ToastTitle>
-                    </Toast>
-                ),
-            });
+            showToast({
+                title: "Landmark Published!",
+            })
             setDisregardDiscardDialog(true);
             setTimeout(() => {
                 router.back();

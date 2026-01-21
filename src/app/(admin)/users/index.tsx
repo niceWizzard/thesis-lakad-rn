@@ -31,7 +31,6 @@ import {
     ModalHeader
 } from '@/components/ui/modal';
 import { Text } from '@/components/ui/text';
-import { useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
 import { supabase } from '@/src/utils/supabase';
@@ -44,7 +43,6 @@ export default function AdminUserSearchScreen() {
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [typeFilter, setTypeFilter] = useState<UserType>('All');
 
-    const toast = useToast();
     const router = useRouter();
 
     const { data: users = [], isLoading, refetch } = useQuery({

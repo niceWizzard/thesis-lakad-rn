@@ -7,9 +7,9 @@ import {
 import * as z from 'zod';
 
 import { Box } from '@/components/ui/box';
-import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -20,7 +20,7 @@ type LandmarkFormData = z.infer<typeof createAndEditLandmarkSchema>;
 export default function AdminLandmarkEditScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const toast = useToast();
+    const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
     const [disregardDiscardDialog, setDisregardDiscardDialog] = useState(false)
 
@@ -88,10 +88,9 @@ export default function AdminLandmarkEditScreen() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['landmarks'] });
             queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-            toast.show({
-                placement: "top",
-                render: ({ id }) => <Toast nativeID={id} action="success" variant="solid"><ToastTitle>Landmark Updated</ToastTitle></Toast>,
-            });
+            showToast({
+                title: "Landmark Updated!",
+            })
             setDisregardDiscardDialog(true);
             setTimeout(() => {
                 router.back();

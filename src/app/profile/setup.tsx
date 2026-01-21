@@ -1,7 +1,7 @@
 import { supabase } from '@/src/utils/supabase';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { ArrowRight, CheckCircle2, UserCircle2 } from 'lucide-react-native';
+import { ArrowRight, UserCircle2 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, View } from 'react-native';
@@ -12,8 +12,8 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 
 const profileSchema = z.object({
@@ -27,7 +27,7 @@ type ProfileSchema = z.infer<typeof profileSchema>;
 
 export default function SetupProfileScreen() {
     const router = useRouter();
-    const toast = useToast();
+    const { showToast } = useToastNotification();
     const [loading, setLoading] = useState(false);
     const auth = useAuthStore();
     const user = auth.session?.user;
@@ -54,28 +54,19 @@ export default function SetupProfileScreen() {
 
             if (error) throw error;
 
-            toast.show({
-                placement: "top",
-                render: ({ id }) => (
-                    <Toast nativeID={id} action="success" variant="solid" className='flex-row gap-2'>
-                        <CheckCircle2 size={18} color="white" className="mr-2" />
-                        <ToastTitle>Profile Set Up!</ToastTitle>
-                    </Toast>
-                ),
-            });
+            showToast({
+                title: "Profile Set Up!",
+                description: "Welcome to Lakad!",
+            })
 
-            // Redirect to the main app flow
             router.replace('/');
         } catch (error: any) {
             console.error(error);
-            toast.show({
-                placement: "top",
-                render: ({ id }) => (
-                    <Toast nativeID={id} action="error" variant="solid">
-                        <ToastTitle>Error saving profile</ToastTitle>
-                    </Toast>
-                ),
-            });
+            showToast({
+                title: "Error saving profile.",
+                description: error.message ?? "Could not save profile.",
+                action: "error"
+            })
         } finally {
             setLoading(false);
         }

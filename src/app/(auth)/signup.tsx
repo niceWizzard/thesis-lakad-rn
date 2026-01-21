@@ -20,8 +20,8 @@ import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
-import { AlertCircle, CheckCircle2, Lock, Mail, User, UserPlus } from 'lucide-react-native';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { Lock, Mail, User, UserPlus } from 'lucide-react-native';
 
 // --- 1. VALIDATION SCHEMA ---
 const signupSchema = z.object({
@@ -42,7 +42,9 @@ type SignupSchema = z.infer<typeof signupSchema>;
 
 const SignupPage = () => {
     const router = useRouter();
-    const toast = useToast();
+    const {
+        showToast
+    } = useToastNotification();
     const [loading, setLoading] = useState(false);
 
     // Refs for seamless keyboard navigation
@@ -64,27 +66,6 @@ const SignupPage = () => {
         },
         mode: "onChange"
     });
-
-    const showToast = (title: string, description: string, action: "error" | "success") => {
-        toast.show({
-            placement: "top",
-            duration: 3000,
-            render: ({ id }) => (
-                <Toast nativeID={"toast-" + id} action={action} variant="solid">
-                    <View className="flex-row items-center gap-3">
-                        {action === "error" ?
-                            <AlertCircle size={20} color="white" /> :
-                            <CheckCircle2 size={20} color="white" />
-                        }
-                        <View>
-                            <ToastTitle className="text-white">{title}</ToastTitle>
-                            <ToastDescription className="text-white">{description}</ToastDescription>
-                        </View>
-                    </View>
-                </Toast>
-            ),
-        });
-    };
 
     const onSignup = async (data: SignupSchema) => {
         setLoading(true);
@@ -112,15 +93,18 @@ const SignupPage = () => {
                     console.error("Profile creation failed:", profileError.message);
                 }
 
-                showToast(
-                    "Account Created",
-                    "Welcome! Please check your email for verification.",
-                    "success"
-                );
+                showToast({
+                    title: "Account Created",
+                    description: "Welcome! Please check your email for verification.",
+                })
                 router.replace('/(auth)/signin');
             }
         } catch (error: any) {
-            showToast("Signup Error", error.message, "error");
+            showToast({
+                title: "Signup Error",
+                description: error.message,
+                action: 'error',
+            })
         } finally {
             setLoading(false);
         }

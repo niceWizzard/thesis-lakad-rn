@@ -15,7 +15,6 @@ import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
 // Custom Components & Logic
@@ -24,6 +23,7 @@ import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Landmark } from '@/src/model/landmark.types';
 import { POIWithLandmark } from '@/src/model/poi.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -48,7 +48,7 @@ const ReorderScreen = () => {
     const { session } = useAuthStore();
     const userId = session?.user.id;
     const queryClient = useQueryClient();
-    const toast = useToast();
+    const { showToast } = useToastNotification();
 
     const [loadingModalMode, setLoadingModalMode] = useState(LoadingMode.Hidden);
 
@@ -58,19 +58,6 @@ const ReorderScreen = () => {
         queryFn: () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
     });
 
-    const showToast = (title: string, description?: string, action: "success" | "error" = "success") => {
-        toast.show({
-            placement: "top",
-            render: ({ id: toastId }) => (
-                <Toast nativeID={"toast-" + toastId} action={action} className="rounded-2xl shadow-xl mt-12">
-                    <VStack space="xs">
-                        <ToastTitle className="font-bold">{title}</ToastTitle>
-                        {description && <ToastDescription>{description}</ToastDescription>}
-                    </VStack>
-                </Toast>
-            ),
-        });
-    };
 
     const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<POIWithLandmark>) => {
         if (!itinerary || from == to) return;
@@ -101,9 +88,17 @@ const ReorderScreen = () => {
 
 
             await refetch()
-            showToast("Order Updated", "Sequence saved successfully.");
+            showToast({
+                title: "Order Updated",
+                description: "Sequence saved successfully.",
+                action: "success"
+            })
         } catch (error) {
-            showToast("Error", "Failed to sync order.", "error");
+            showToast({
+                title: "Error",
+                description: "Failed to sync stop order.",
+                action: "error"
+            })
             console.error(error);
         } finally {
             setLoadingModalMode(LoadingMode.Hidden);
@@ -210,10 +205,18 @@ const ReorderScreen = () => {
 
             await Promise.allSettled([...updates, itineraryUpdate]);
             await refetch();
-            showToast("Optimization Complete", "The route has been reordered for efficiency.", "success");
+            showToast({
+                title: "Optimization Complete",
+                description: "The route has been reordered for efficiency.",
+                action: "success"
+            })
 
         } catch (e: any) {
-            showToast("Optimization Failed", e.message ?? "Could not optimize", "error");
+            showToast({
+                title: "Optimization Failed",
+                description: e.message ?? "Could not optimize",
+                action: "error"
+            })
             console.error(e)
         } finally {
             setLoadingModalMode(LoadingMode.Hidden)

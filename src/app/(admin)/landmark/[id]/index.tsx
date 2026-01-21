@@ -30,16 +30,16 @@ import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { Toast, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
 
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function AdminLandmarkDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const toast = useToast();
+  const { showToast } = useToastNotification();
   const queryClient = useQueryClient();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
@@ -74,14 +74,9 @@ export default function AdminLandmarkDetailScreen() {
     onSuccess: (_, isRestoring) => {
       queryClient.invalidateQueries({ queryKey: ['landmark', id] });
       queryClient.invalidateQueries({ queryKey: ['landmarks'] });
-      toast.show({
-        placement: "top",
-        render: ({ id }) => (
-          <Toast nativeID={id} action="success" variant="solid">
-            <ToastTitle>{isRestoring ? "Landmark Restored" : "Landmark Archived"}</ToastTitle>
-          </Toast>
-        ),
-      });
+      showToast({
+        title: isRestoring ? "Landmark Restored" : "Landmark Archived",
+      })
       if (!isRestoring) router.back();
     },
   });

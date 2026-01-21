@@ -12,8 +12,8 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
-import { AlertCircle, CheckCircle2, Lock, RefreshCw } from 'lucide-react-native'
+import { useToastNotification } from '@/src/hooks/useToastNotification'
+import { AlertCircle, Lock, RefreshCw } from 'lucide-react-native'
 
 // 1. Validation Schema
 const resetPasswordSchema = z.object({
@@ -32,7 +32,7 @@ type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>
 
 const ResetPasswordHandler = () => {
     const router = useRouter()
-    const toast = useToast()
+    const { showToast } = useToastNotification()
     const [verifying, setVerifying] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
@@ -47,29 +47,6 @@ const ResetPasswordHandler = () => {
         mode: "onChange"
     })
 
-    // Helper to trigger Gluestack Toasts
-    const showToast = (title: string, description: string, action: "error" | "success") => {
-        toast.show({
-            placement: "top",
-            duration: 1500,
-            render: ({ id }) => {
-                const toastId = "toast-" + id
-                return (
-                    <Toast nativeID={toastId} action={action} >
-                        <View className="flex-row items-center gap-3">
-                            {action === "error" ? <AlertCircle size={20} color="#dc2626" /> : <CheckCircle2 size={20} color="#16a34a" />}
-                            <View>
-                                <ToastTitle>{title}</ToastTitle>
-                                <ToastDescription>{description}</ToastDescription>
-                            </View>
-                        </View>
-                    </Toast>
-                )
-            },
-        })
-    }
-
-    // 2. Handle the Recovery Link Session
     useEffect(() => {
         const handleDeepLink = async () => {
             if (session) {
@@ -97,7 +74,11 @@ const ResetPasswordHandler = () => {
 
             } catch (err: any) {
                 setError(err.message || 'Verification failed')
-                showToast("Link Error", err.message || "Failed to verify reset link", "error")
+                showToast({
+                    title: "Link Error",
+                    description: err.message || "Failed to verify reset link",
+                    action: 'error',
+                })
             } finally {
                 setVerifying(false)
             }
@@ -113,10 +94,17 @@ const ResetPasswordHandler = () => {
             })
             if (error) throw error
 
-            showToast("Success", "Password updated successfully. Please sign in.", "success")
+            showToast({
+                title: "Success",
+                description: "Your password has been updated.",
+            })
+
             router.replace('/(auth)/signin')
         } catch (err: any) {
-            showToast("Update Failed", err.message, "error")
+            showToast({
+                title: "Error",
+                description: err.message ?? "Something went wrong. Please try again.",
+            })
         } finally {
             setSubmitting(false)
         }

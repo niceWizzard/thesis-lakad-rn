@@ -10,8 +10,8 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
-import { AlertCircle, Lock, LogIn, Mail } from 'lucide-react-native'
+import { useToastNotification } from '@/src/hooks/useToastNotification'
+import { Lock, LogIn, Mail } from 'lucide-react-native'
 
 // Validation Schema
 const signinSchema = z.object({
@@ -24,7 +24,7 @@ type SigninSchema = z.infer<typeof signinSchema>
 const SigninPage = () => {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
-    const toast = useToast()
+    const { showToast } = useToastNotification()
 
     // Ref for keyboard navigation
     const passwordRef = useRef<TextInput>(null)
@@ -35,24 +35,6 @@ const SigninPage = () => {
         mode: "onChange"
     })
 
-    // Reusable Toast Helper
-    const showToast = (title: string, description: string) => {
-        toast.show({
-            placement: "top",
-            duration: 1500,
-            render: ({ id }) => (
-                <Toast nativeID={"toast-" + id} action="error">
-                    <View className="flex-row items-center gap-3">
-                        <AlertCircle size={20} color="#dc2626" />
-                        <View>
-                            <ToastTitle className="font-bold">{title}</ToastTitle>
-                            <ToastDescription>{description}</ToastDescription>
-                        </View>
-                    </View>
-                </Toast>
-            ),
-        })
-    }
 
     const onSignin = async (data: SigninSchema) => {
         setLoading(true);
@@ -68,7 +50,11 @@ const SigninPage = () => {
                 router.replace('/');
             }
         } catch (error: any) {
-            showToast("Login Failed", error.message || "Please check your credentials.")
+            showToast({
+                title: "Login Failed",
+                description: error.message || "Please check your credentials.",
+                action: 'error',
+            })
         } finally {
             setLoading(false);
         }

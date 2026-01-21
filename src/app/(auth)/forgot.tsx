@@ -1,7 +1,7 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Input, InputField } from '@/components/ui/input'
 import { Text } from '@/components/ui/text'
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast'
+import { useToastNotification } from '@/src/hooks/useToastNotification'
 import { supabase } from '@/src/utils/supabase'
 import { useRouter } from 'expo-router'
 import { ArrowLeft, CheckCircle } from 'lucide-react-native'
@@ -13,7 +13,7 @@ const ForgotPasswordScreen = () => {
     const [loading, setLoading] = useState(false)
     const [emailSent, setEmailSent] = useState(false)
     const router = useRouter()
-    const toast = useToast();
+    const { showToast } = useToastNotification();
 
 
     const handleBack = () => {
@@ -25,29 +25,24 @@ const ForgotPasswordScreen = () => {
         }
     }
 
-    const showToast = (title: string, description: string, action: "error" | "success" | "info" = "error") => {
-        toast.show({
-            placement: "top",
-            render: ({ id }) => (
-                <Toast nativeID={"toast-" + id} action={action} variant="solid" className="mt-10">
-                    <View className="flex-column">
-                        <ToastTitle className="font-bold">{title}</ToastTitle>
-                        <ToastDescription>{description}</ToastDescription>
-                    </View>
-                </Toast>
-            ),
-        });
-    };
 
     const handleResetPassword = async () => {
         if (!email) {
-            showToast("Required", "Please enter your email address", "error");
+            showToast({
+                title: "Required",
+                description: "Please enter your email address",
+                action: 'error',
+            })
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            showToast("Invalid Email", "Please enter a valid email address", "error");
+            showToast({
+                title: "Invalid Email",
+                description: "Please enter a valid email address",
+                action: 'error',
+            })
             return;
         }
 
@@ -60,10 +55,17 @@ const ForgotPasswordScreen = () => {
             if (error) throw error;
 
             setEmailSent(true);
-            showToast("Success", "Reset link has been sent to your email", "success");
+            showToast({
+                title: "Success",
+                description: "Reset link has been sent to your email",
+            })
 
         } catch (error: any) {
-            showToast("Error", error.message || 'Failed to send reset email', "error");
+            showToast({
+                title: "Error",
+                description: error.message || 'Failed to send reset email. Please try again.',
+                action: 'error',
+            })
         } finally {
             setLoading(false);
         }

@@ -4,8 +4,8 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
-import { Toast, ToastDescription, ToastTitle, useToast } from '@/components/ui/toast';
 import { VStack } from '@/components/ui/vstack';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { supabase } from '@/src/utils/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,7 +16,7 @@ import { ActivityIndicator, FlatList } from 'react-native';
 export default function AddPOIScreen() {
     const { id: itineraryId, currentCount } = useLocalSearchParams();
     const router = useRouter();
-    const toast = useToast();
+    const { showToast } = useToastNotification();
     const [searchQuery, setSearchQuery] = useState('');
     const [isAdding, setIsAdding] = useState<number | null>(null);
     const queryClient = useQueryClient()
@@ -49,31 +49,19 @@ export default function AddPOIScreen() {
 
             if (error) throw error;
 
-            toast.show({
-                placement: "top",
-                render: ({ id }) => (
-                    <Toast nativeID={"toast-" + id} action="success" className="rounded-2xl mt-10">
-                        <VStack space="xs">
-                            <ToastTitle>Added to Itinerary</ToastTitle>
-                        </VStack>
-                    </Toast>
-                ),
-            });
+            showToast({
+                title: "Added to Itinerary",
+            })
+
             await queryClient.refetchQueries({ queryKey: ['itinerary', itineraryId] })
             router.back(); // Return to the itinerary view
         } catch (e: any) {
             console.error(e);
-            toast.show({
-                placement: "top",
-                render: ({ id }) => (
-                    <Toast nativeID={"toast-" + id} action="error" className="rounded-2xl mt-10">
-                        <VStack space="xs">
-                            <ToastTitle>Added to Itinerary</ToastTitle>
-                            <ToastDescription>{e.message}</ToastDescription>
-                        </VStack>
-                    </Toast>
-                ),
-            });
+            showToast({
+                title: "Error",
+                description: e.message,
+                action: 'error',
+            })
         } finally {
             setIsAdding(null);
         }
