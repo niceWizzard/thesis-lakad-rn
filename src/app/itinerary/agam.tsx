@@ -279,7 +279,18 @@ const CreateWithAgamScreen = () => {
                                                 return (
                                                     <TouchableOpacity
                                                         key={d.id}
-                                                        onPress={() => toggleItem(selectedDistricts, d.id, 'districts')}
+                                                        onPress={() => {
+                                                            const isActivating = !selectedDistricts.includes(d.id);
+                                                            toggleItem(selectedDistricts, d.id, 'districts');
+
+                                                            if (isActivating) {
+                                                                // Get all municipalities for this specific district
+                                                                const newMunis = DISTRICT_TO_MUNICIPALITY_MAP[d.id] || [];
+                                                                // Merge with existing, avoiding duplicates
+                                                                const merged = Array.from(new Set([...selectedMunicipalities, ...newMunis]));
+                                                                setValue('municipalities', merged, { shouldValidate: true });
+                                                            }
+                                                        }}
                                                         className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-600 border-primary-600' : 'bg-background-0 border-outline-200'}`}
                                                     >
                                                         <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{d.label}</Text>
