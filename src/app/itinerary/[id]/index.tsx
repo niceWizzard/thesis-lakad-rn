@@ -54,20 +54,15 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { Landmark } from '@/src/model/landmark.types';
 import { formatDistance } from '@/src/utils/format/distance';
+import { getHaversineDistance } from '@/src/utils/getHaversineDistance';
+import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
-const poiIcon = require('@/assets/images/red_marker.png');
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 enum Mode {
     Viewing,
     Navigating,
-}
-
-enum LoadingMode {
-    Hidden,
-    Updating,
-    Deleting,
 }
 
 const getStepIcon = (instruction: string) => {
@@ -89,8 +84,8 @@ export default function ItineraryView() {
     const [isSheetOpen, setIsSheetOpen] = useState(true);
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
-    const [loadingMode, setLoadingMode] = useState(LoadingMode.Hidden)
     const bottomSheetRef = useRef<BottomSheet>(null);
+
 
     const { session } = useAuthStore();
     const userId = session?.user.id;
@@ -106,8 +101,6 @@ export default function ItineraryView() {
         if (!itinerary) return null;
         return itinerary.stops.find(stop => !stop.visited_at) || null;
     }, [itinerary]);
-
-    const [isOptimizationFinished, setIsOptimizationFinished] = useState(false);
 
     const { showToast } = useToastNotification();
 
@@ -131,11 +124,7 @@ export default function ItineraryView() {
             );
 
             return () => sub.remove();
-
         })();
-
-
-
     }, []);
 
 
@@ -149,27 +138,70 @@ export default function ItineraryView() {
         }
     }, [isSheetOpen])
 
-    useFocusEffect(useCallback(() => {
-        let timeout: any = null;
-        if (mode === Mode.Navigating) {
-            if (!nextUnvisitedStop) {
+
+    const finishedNavigating = useCallback(async (visitedStop: POIWithLandmark) => {
+        try {
+            await toggleStopStatus(visitedStop)
+            await refetch();
+            setNavigationRoute([])
+            setMode(Mode.Viewing)
+            showToast({
+                title: "You have arrived!",
+            })
+        } catch (e: any) {
+            showToast({
+                title: "Error",
+                description: e.message ?? "Some error happened while updating finishing navigation.",
+                action: "error"
+            })
+        }
+    }, [refetch, showToast])
+
+    useFocusEffect(
+        useCallback(() => {
+            if (mode !== Mode.Navigating || !nextUnvisitedStop || !userLocation) {
                 return;
             }
-            timeout = setInterval(async () => {
-                const data = await fetchDirections({
-                    waypoints: [
-                        userLocation || [120.8092, 14.8605],
-                        [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
-                    ],
-                });
-                setNavigationRoute(data.routes);
-            }, 2500)
-        }
-        return () => {
-            if (mode === Mode.Navigating)
-                clearInterval(timeout)
-        }
-    }, [mode, userLocation]))
+
+            // 1. Calculate distance to the actual DESTINATION (the landmark)
+            const distanceToDestination = getHaversineDistance(
+                userLocation,
+                [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+            );
+
+            // 2. Arrival Logic: Check if within 10 meters of the final stop
+            if (distanceToDestination <= 10) {
+                console.log("Arrived at destination!");
+                finishedNavigating(nextUnvisitedStop);
+                return;
+            }
+
+            // 3. Rerouting Logic: Check if we are far from the current route path
+            if (navigationRoute.length && navigationRoute[0].legs.length) {
+                const currentLeg = navigationRoute[0].legs[0];
+                const nextStep = currentLeg.steps[0];
+
+                // Distance to the next maneuver point (turn)
+                const distanceToNextStep = getHaversineDistance(
+                    userLocation,
+                    nextStep.maneuver.location
+                );
+
+                // If we are more than 50m away from the expected maneuver point, recalculate
+                if (distanceToNextStep > 50) {
+                    (async () => {
+                        const data = await fetchDirections({
+                            waypoints: [
+                                userLocation,
+                                [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                            ],
+                        });
+                        setNavigationRoute(data.routes);
+                    })();
+                }
+            }
+        }, [mode, nextUnvisitedStop, navigationRoute, userLocation, finishedNavigating])
+    );
 
     const locatePOI = (stop: POIWithLandmark) => {
         camera.current?.setCamera({
@@ -239,11 +271,6 @@ export default function ItineraryView() {
                         </Button>
                     )
                 }}
-            />
-
-            <LoadingModal
-                isShown={loadingMode !== LoadingMode.Hidden}
-                loadingText={loadingMode === LoadingMode.Updating ? 'Updating stop...' : 'Removing stop...'}
             />
 
             <VStack className='flex-1'>
@@ -511,45 +538,7 @@ function ViewingModeBottomSheetContent({
     const handleVisitedPress = async (poi: POI) => {
         setIsUpdating(true)
         try {
-            const isMarkingAsVisited = !poi.visited_at;
-            const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
-
-            const { error: updateError } = await supabase
-                .from('poi')
-                .update({ visited_at: newVisitedAt })
-                .eq('id', poi.id);
-
-            if (updateError) throw updateError;
-
-            const { data: allPois, error: fetchError } = await supabase
-                .from('poi')
-                .select('*')
-                .eq('itinerary_id', poi.itinerary_id);
-
-            if (fetchError || !allPois) throw fetchError || new Error("No data");
-
-            const sortedPois = [...allPois].sort((a, b) => {
-                if (a.visited_at && !b.visited_at) return -1;
-                if (!a.visited_at && b.visited_at) return 1;
-                if (a.visited_at && b.visited_at) {
-                    return new Date(a.visited_at).getTime() - new Date(b.visited_at).getTime();
-                }
-                return (a.visit_order ?? 0) - (b.visit_order ?? 0);
-            });
-
-            const updates = sortedPois.map((item, index) => ({
-                id: item.id,
-                itinerary_id: item.itinerary_id,
-                landmark_id: item.landmark_id,
-                visit_order: index + 1,
-                visited_at: item.visited_at
-            }));
-
-            const { error: bulkError } = await supabase
-                .from('poi')
-                .upsert(updates, { onConflict: 'id' });
-
-            if (bulkError) throw bulkError;
+            await toggleStopStatus(poi)
 
             await refetch();
         } catch (e: any) {

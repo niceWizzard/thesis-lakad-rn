@@ -19,7 +19,7 @@ interface MapboxStep {
     driving_side: "left" | "right" | "straight"
     weight: number
     mode: "driving" | "walking" | "cycling"
-    geometry: GeoJSON.Geometry
+    geometry: GeoJSON.LineString
     maneuver: MapboxManeuver
 }
 
