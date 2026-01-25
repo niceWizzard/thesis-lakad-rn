@@ -7,8 +7,8 @@ import {
     Share2,
     Star
 } from 'lucide-react-native';
-import React from 'react';
-import { Image, ScrollView, Share, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, Share, TouchableOpacity, View } from 'react-native';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
@@ -20,7 +20,18 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import {
+    AlertDialog,
+    AlertDialogBackdrop,
+    AlertDialogBody,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+} from '@/components/ui/alert-dialog';
+import { Center } from '@/components/ui/center';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { useAuthStore } from '@/src/stores/useAuth';
+import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { fetchLandmarkById } from '@/src/utils/fetchLandmarks';
 import { insertLandmarkToItinerary } from '@/src/utils/insertLandmark';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -32,6 +43,19 @@ export default function LandmarkViewerScreen() {
     const { showToast } = useToastNotification()
     const queryClient = useQueryClient()
 
+    const { session } = useAuthStore()
+    const userId = session?.user.id;
+    const [showNoItineraryAlert, setShowNoItineraryAlert] = useState(false);
+
+    const [isCreating, setIsCreating] = React.useState(false);
+
+    const [selectedItinerary, setSelectedItinerary] = useState<{
+        id: string;
+        name: string;
+        stopCount: number;
+    } | null>(null);
+
+
     const { data: landmark } = useQuery({
         queryKey: ['landmark', id],
         queryFn: () => fetchLandmarkById(Number.parseInt(id!.toString())),
@@ -39,7 +63,7 @@ export default function LandmarkViewerScreen() {
     })
 
     const {
-        isPending,
+        isPending: isAddingStop,
         mutate: addStopMutation
     } = useMutation({
         mutationFn: async (landmarkId: number) => insertLandmarkToItinerary({
@@ -51,11 +75,21 @@ export default function LandmarkViewerScreen() {
             // Invalidate queries so the itinerary refreshes when we go back
             queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
             showToast({ title: "Added to Itinerary", action: "success" });
-            router.back();
+            router.dismissAll()
+            router.navigate({
+                pathname: '/itinerary/[id]',
+                params: { id: itineraryId.toString() },
+            })
         },
         onError: (error: any) => {
             showToast({ title: "Error", description: error.message, action: "error" });
         }
+    });
+
+    const { data: itineraries, isLoading: isLoadingItineraries } = useQuery({
+        queryKey: ['itineraries', userId!],
+        queryFn: async () => fetchItinerariesOfUser(userId!),
+        enabled: !!userId && showNoItineraryAlert,
     });
 
     if (!landmark)
@@ -75,8 +109,67 @@ export default function LandmarkViewerScreen() {
         if (itineraryId && currentCount) {
             addStopMutation(landmark.id);
         } else {
+            setShowNoItineraryAlert(true);
         }
     }
+
+    const handleAddToNewItinerary = async () => {
+        setIsCreating(true); // Start pending state
+        try {
+            const newId = await createItinerary({
+                distance: 0,
+                poiIds: [landmark.id],
+            });
+            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
+        } catch (e: any) {
+            setIsCreating(false); // Reset if failed
+            showToast({
+                title: "Error",
+                description: e.message ?? "Something went wrong.",
+                action: "error",
+            });
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const handleAddToExistingItinerary = async ({ currentCount, name, itineraryId, landmarkId }: {
+        itineraryId: string, currentCount: string, landmarkId: string,
+        name: string,
+    }) => {
+        setIsCreating(true)
+        try {
+            await insertLandmarkToItinerary({
+                currentCount,
+                itineraryId,
+                landmarkId,
+            })
+            setShowNoItineraryAlert(false);
+            showToast({ title: `Added to ${name}`, action: "success" });
+            await queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
+            router.dismissAll()
+            router.navigate({
+                pathname: '/itinerary/[id]',
+                params: { id: itineraryId },
+            })
+        } catch (e: any) {
+            showToast({ title: "Error", description: e.message, action: "error" });
+        } finally {
+            setIsCreating(false)
+        }
+    }
+
+    const handleConfirmSelection = () => {
+        if (!selectedItinerary) return;
+
+        handleAddToExistingItinerary({
+            currentCount: selectedItinerary.stopCount.toString(),
+            itineraryId: selectedItinerary.id,
+            landmarkId: landmark.id.toString(),
+            name: selectedItinerary.name
+        });
+    };
 
 
 
@@ -84,6 +177,99 @@ export default function LandmarkViewerScreen() {
         <Box className="flex-1 bg-background-0">
             {/* Custom Header Overlays */}
             <Stack.Screen options={{ headerShown: false }} />
+
+            <AlertDialog
+                isOpen={showNoItineraryAlert}
+                onClose={() => !isAddingStop && !isCreating && setShowNoItineraryAlert(false)}
+                size="lg"
+            >
+                <AlertDialogBackdrop />
+                <AlertDialogContent className="max-h-[80%] rounded-[32px]">
+                    <AlertDialogHeader className="border-b border-outline-50 p-6">
+                        <VStack space="xs">
+                            <Heading size="lg">Add to Trip</Heading>
+                            <Text size="sm" className="text-typography-500">Select a trip to continue.</Text>
+                        </VStack>
+                    </AlertDialogHeader>
+
+                    <AlertDialogBody >
+                        <View className="px-6 py-4">
+                            {isLoadingItineraries ? (
+                                <Center className="py-10"><ActivityIndicator color="#0891b2" /></Center>
+                            ) : (
+                                <VStack space="md">
+                                    {itineraries?.map((itinerary) => {
+                                        const isSelected = selectedItinerary?.id === itinerary.id.toString();
+                                        return (
+                                            <Pressable
+                                                key={itinerary.id}
+                                                disabled={isAddingStop || isCreating}
+                                                onPress={() => setSelectedItinerary({
+                                                    id: itinerary.id.toString(),
+                                                    name: itinerary.name,
+                                                    stopCount: itinerary.stops.length || 0
+                                                })}
+                                            >
+                                                <HStack
+                                                    className={`justify-between items-center p-4 rounded-2xl border-2 ${isSelected ? 'bg-primary-50 border-primary-500' : 'bg-background-50 border-outline-100'
+                                                        } ${(isAddingStop || isCreating) ? 'opacity-50' : ''}`}
+
+                                                >
+                                                    <VStack space="xs">
+                                                        <Text className={`font-bold ${isSelected ? 'text-primary-700' : 'text-typography-900'}`}>{itinerary.name}</Text>
+                                                        <Text size="xs" className="text-typography-500">{itinerary.stops.length} stops</Text>
+                                                    </VStack>
+                                                    <Box className={`h-5 w-5 rounded-full border-2 items-center justify-center ${isSelected ? 'border-primary-600 bg-primary-600' : 'border-outline-300'}`}>
+                                                        {isSelected && <Box className="h-2 w-2 rounded-full bg-white" />}
+                                                    </Box>
+                                                </HStack>
+                                            </Pressable>
+                                        );
+                                    })}
+                                </VStack>
+                            )}
+                        </View>
+                    </AlertDialogBody>
+
+                    <AlertDialogFooter className="border-t border-outline-50 p-6 gap-3">
+                        <VStack space="md" className="w-full">
+                            {/* Create New Trip Button */}
+                            <Button
+                                variant="link"
+                                action="primary"
+                                isDisabled={isAddingStop || isCreating}
+                                onPress={handleAddToNewItinerary}
+                            >
+                                {isCreating ? <ButtonSpinner className="mr-2" /> : null}
+                                <ButtonText>{isCreating ? "Creating..." : "+ Create New Itinerary"}</ButtonText>
+                            </Button>
+
+                            <HStack space="md">
+                                <Button
+                                    variant="outline"
+                                    action="secondary"
+                                    onPress={() => setShowNoItineraryAlert(false)}
+                                    className="flex-1 rounded-xl"
+                                    isDisabled={isAddingStop || isCreating}
+                                >
+                                    <ButtonText>Cancel</ButtonText>
+                                </Button>
+
+                                {/* Confirm Button */}
+                                <Button
+                                    action="primary"
+                                    isDisabled={!selectedItinerary || isAddingStop || isCreating}
+                                    onPress={handleConfirmSelection}
+                                    className="flex-1 rounded-xl bg-primary-600"
+                                >
+                                    {isCreating ? <ButtonSpinner className="mr-2" /> : null}
+                                    <ButtonText>{isCreating ? "Adding..." : "Confirm"}</ButtonText>
+                                </Button>
+                            </HStack>
+                        </VStack>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}
                 style={{ flex: 1 }}
@@ -183,14 +369,14 @@ export default function LandmarkViewerScreen() {
                             onPress={handleAddToItinerary}
                             size="lg"
                             className="rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                            isDisabled={isPending}
+                            isDisabled={isAddingStop}
                         >
                             {
-                                isPending && <ButtonSpinner />
+                                isAddingStop && <ButtonSpinner />
                             }
                             <ButtonText className="font-bold">
                                 {
-                                    isPending ? 'Adding...' : 'Add to Itinerary '
+                                    isAddingStop ? 'Adding...' : 'Add to Itinerary '
                                 }
                             </ButtonText>
                         </Button>
