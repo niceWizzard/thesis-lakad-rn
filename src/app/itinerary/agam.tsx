@@ -11,7 +11,7 @@ import {
     Navigation2,
     Sparkles
 } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     KeyboardAvoidingView,
@@ -45,6 +45,13 @@ import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.typ
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
+import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+
+
+const CopilotBox = walkthroughable(Box);
+const CopilotAccordionItem = walkthroughable(AccordionItem);
+const CopilotButton = walkthroughable(Button);
+const CopilotVStack = walkthroughable(VStack);
 
 const DISTRICTS: {
     id: LandmarkDistrict,
@@ -94,12 +101,15 @@ const CreateWithAgamScreen = () => {
     const queryClient = useQueryClient();
     const preferredTypes = useTypePreferences();
     const [state, setState] = useState(GeneratingState.Idle)
+    const scrollViewRef = useRef<ScrollView>(null);
+    const { start } = useCopilot();
 
     const { showToast } = useToastNotification()
 
     const isGenerating = state !== GeneratingState.Idle;
 
     const [queryProgress, setQueryProgress] = useState(0)
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
 
     const { control, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<FormData>({
@@ -130,7 +140,6 @@ const CreateWithAgamScreen = () => {
             selectedTypes.includes(l.type)
         ).length;
     }, [landmarks, selectedDistricts, selectedTypes, selectedMunicipalities]);
-
 
 
     const toggleItem = (current: string[], id: string, field: 'districts' | 'types' | 'municipalities') => {
@@ -291,6 +300,7 @@ const CreateWithAgamScreen = () => {
                 style={{ flex: 1 }}
             >
                 <ScrollView
+                    ref={scrollViewRef}
                     keyboardShouldPersistTaps="handled"
                     contentContainerClassName='p-6 gap-4'
                     stickyHeaderIndices={[0]}
@@ -304,182 +314,217 @@ const CreateWithAgamScreen = () => {
                                     <Heading size="lg">Agam Planner</Heading>
                                 </HStack>
                                 <Text size="sm" className="text-typography-500">Smart-Generated Itineraries</Text>
+                                <TouchableOpacity onPress={() => start()}>
+                                    <Text size="sm" className="text-primary-600 font-bold">How to use Agam?</Text>
+                                </TouchableOpacity>
                             </VStack>
 
-                            <Box className="bg-primary-50 px-4 py-2 rounded-lg border border-primary-100 items-center">
-                                <Text size="xs" className="font-bold text-primary-700 uppercase tracking-tighter">Pool Size</Text>
-                                <Heading size="md" className="text-primary-800">{availableCount} / {landmarks.length}</Heading>
-                            </Box>
+                            <CopilotStep
+                                text="The 'Pool' shows how many landmarks match your current filters. More is usually better!"
+                                order={1}
+                                name="poolCounter"
+                            >
+                                <CopilotBox className="bg-primary-50 px-4 py-2 rounded-lg border border-primary-100 items-center">
+                                    <Text size="xs" className="font-bold text-primary-700 uppercase tracking-tighter">Pool Size</Text>
+                                    <Heading size="md" className="text-primary-800">{availableCount} / {landmarks.length}</Heading>
+                                </CopilotBox>
+                            </CopilotStep>
                         </HStack>
                     </VStack>
                     {/* Constraints Accordion */}
-                    <Accordion variant='unfilled' className="gap-3">
-                        <AccordionItem value="location" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
-                            <AccordionHeader>
-                                <AccordionTrigger>
-                                    {({ isExpanded }: any) => (
-                                        <HStack className="items-center justify-between w-full pr-4">
-                                            <HStack className="items-center gap-3">
-                                                <Icon as={MapIcon} className="text-primary-600" />
-                                                <AccordionTitleText className="font-bold">Location (Districts & Municipalities)</AccordionTitleText>
-                                            </HStack>
-                                            <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
-                                        </HStack>
-                                    )}
-                                </AccordionTrigger>
-                            </AccordionHeader>
-                            <AccordionContent>
-                                <HStack className="justify-start px-2">
-                                    <TouchableOpacity onPress={toggleAllLocations}>
-                                        <Text size="xs" className="text-primary-600 font-bold uppercase tracking-wider">
-                                            {selectedDistricts.length === DISTRICTS.length ? "Deselect All Districts" : "Select All Districts"}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </HStack>
-                                <VStack className="p-2 gap-4">
-                                    {DISTRICTS.map((district) => {
-                                        const isDistrictActive = selectedDistricts.includes(district.id);
-                                        const children = DISTRICT_TO_MUNICIPALITY_MAP[district.id] || [];
-
-                                        return (
-                                            <VStack key={district.id} className="gap-2 pb-2 border-b border-outline-50">
-                                                {/* District Header Toggle */}
-                                                <HStack className="justify-between items-center bg-background-100 p-2 rounded-lg">
-                                                    <Text size="sm" className="font-bold text-typography-900">{district.label}</Text>
-                                                    <TouchableOpacity onPress={() => toggleDistrictWithChildren(district.id)}>
-                                                        <Text size="xs" className="text-primary-600 font-bold">
-                                                            {isDistrictActive ? "Deselect All" : "Select All"}
-                                                        </Text>
-                                                    </TouchableOpacity>
+                    <Accordion
+                        variant='unfilled'
+                        className="gap-3"
+                        value={expandedItems}
+                        onValueChange={(item) => setExpandedItems(item)}
+                    >
+                        <CopilotStep
+                            text="You can filter by the location of landmarks."
+                            order={2}
+                            name="locationFilter"
+                        >
+                            <CopilotAccordionItem value="location" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
+                                <AccordionHeader>
+                                    <AccordionTrigger>
+                                        {({ isExpanded }: any) => (
+                                            <HStack className="items-center justify-between w-full pr-4">
+                                                <HStack className="items-center gap-3">
+                                                    <Icon as={MapIcon} className="text-primary-600" />
+                                                    <AccordionTitleText className="font-bold">Location (Districts & Municipalities)</AccordionTitleText>
                                                 </HStack>
-
-                                                {/* Municipalities in this District */}
-                                                <View className="flex-row flex-wrap gap-2 px-1">
-                                                    {children.map((muni) => {
-                                                        const isMuniActive = selectedMunicipalities.includes(muni);
-                                                        return (
-                                                            <TouchableOpacity
-                                                                key={muni}
-                                                                onPress={() => toggleItem(selectedMunicipalities, muni, 'municipalities')}
-                                                                className={`px-3 py-1.5 rounded-md border ${isMuniActive
-                                                                    ? 'bg-primary-100 border-primary-600'
-                                                                    : 'bg-background-0 border-outline-200'
-                                                                    }`}
-                                                            >
-                                                                <Text size="xs" className={isMuniActive ? 'text-typography-900 font-bold' : 'text-typography-500'}>
-                                                                    {muni}
-                                                                </Text>
-                                                            </TouchableOpacity>
-                                                        );
-                                                    })}
-                                                </View>
-                                            </VStack>
-                                        );
-                                    })}
-                                </VStack>
-                            </AccordionContent>
-                        </AccordionItem>
-
-
-                        <AccordionItem value="types" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
-                            <AccordionHeader>
-                                <AccordionTrigger>
-                                    {({ isExpanded }: any) => (
-                                        <HStack className="items-center justify-between w-full pr-4">
-                                            <HStack className="items-center gap-3">
-                                                <Icon as={Layers} className="text-primary-600" />
-                                                <AccordionTitleText className="font-bold">Types</AccordionTitleText>
+                                                <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
                                             </HStack>
-                                            <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
-                                        </HStack>
-                                    )}
-                                </AccordionTrigger>
-                            </AccordionHeader>
-                            <AccordionContent>
-                                <HStack className="justify-end gap-4 px-2 mb-2">
-                                    <TouchableOpacity onPress={() => toggleAll('types', selectedTypes.length === LANDMARK_TYPES.length ? 'deselect' : 'select')}>
-                                        <Text size="xs" className="text-primary-600 font-bold">
-                                            {selectedTypes.length === LANDMARK_TYPES.length ? "Deselect All" : "Select All"}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </HStack>
-                                <View className="flex-row flex-wrap gap-2 p-2">
-                                    {TYPES.map(c => {
-                                        const active = selectedTypes.includes(c.id);
-                                        return (
-                                            <TouchableOpacity
-                                                key={c.id}
-                                                onPress={() => toggleItem(selectedTypes, c.id, 'types')}
-                                                className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-100 border-primary-600' : 'bg-background-0 border-outline-200'}`}
-                                            >
-                                                <Text size="xs" className={active ? 'text-typography-900 font-bold' : 'text-typography-500'}>{c.label}</Text>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
-                            </AccordionContent>
-                        </AccordionItem>
+                                        )}
+                                    </AccordionTrigger>
+                                </AccordionHeader>
+                                <AccordionContent>
+                                    <HStack className="justify-start px-2">
+                                        <TouchableOpacity onPress={toggleAllLocations}>
+                                            <Text size="xs" className="text-primary-600 font-bold uppercase tracking-wider">
+                                                {selectedDistricts.length === DISTRICTS.length ? "Deselect All Districts" : "Select All Districts"}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </HStack>
+                                    <VStack className="p-2 gap-4">
+                                        {DISTRICTS.map((district) => {
+                                            const isDistrictActive = selectedDistricts.includes(district.id);
+                                            const children = DISTRICT_TO_MUNICIPALITY_MAP[district.id] || [];
+
+                                            return (
+                                                <VStack key={district.id} className="gap-2 pb-2 border-b border-outline-50">
+                                                    {/* District Header Toggle */}
+                                                    <HStack className="justify-between items-center bg-background-100 p-2 rounded-lg">
+                                                        <Text size="sm" className="font-bold text-typography-900">{district.label}</Text>
+                                                        <TouchableOpacity onPress={() => toggleDistrictWithChildren(district.id)}>
+                                                            <Text size="xs" className="text-primary-600 font-bold">
+                                                                {isDistrictActive ? "Deselect All" : "Select All"}
+                                                            </Text>
+                                                        </TouchableOpacity>
+                                                    </HStack>
+
+                                                    {/* Municipalities in this District */}
+                                                    <View className="flex-row flex-wrap gap-2 px-1">
+                                                        {children.map((muni) => {
+                                                            const isMuniActive = selectedMunicipalities.includes(muni);
+                                                            return (
+                                                                <TouchableOpacity
+                                                                    key={muni}
+                                                                    onPress={() => toggleItem(selectedMunicipalities, muni, 'municipalities')}
+                                                                    className={`px-3 py-1.5 rounded-md border ${isMuniActive
+                                                                        ? 'bg-primary-100 border-primary-600'
+                                                                        : 'bg-background-0 border-outline-200'
+                                                                        }`}
+                                                                >
+                                                                    <Text size="xs" className={isMuniActive ? 'text-typography-900 font-bold' : 'text-typography-500'}>
+                                                                        {muni}
+                                                                    </Text>
+                                                                </TouchableOpacity>
+                                                            );
+                                                        })}
+                                                    </View>
+                                                </VStack>
+                                            );
+                                        })}
+                                    </VStack>
+                                </AccordionContent>
+                            </CopilotAccordionItem>
+                        </CopilotStep>
+                        <CopilotStep
+                            text="You can also filter by the types of landmarks you want to explor sdasdae."
+                            order={3}
+                            name="typeFilter"
+                        >
+                            <CopilotAccordionItem value="types" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
+                                <AccordionHeader>
+                                    <AccordionTrigger>
+                                        {({ isExpanded }: any) => (
+                                            <HStack className="items-center justify-between w-full pr-4">
+                                                <HStack className="items-center gap-3">
+                                                    <Icon as={Layers} className="text-primary-600" />
+                                                    <AccordionTitleText className="font-bold">Types</AccordionTitleText>
+                                                </HStack>
+                                                <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
+                                            </HStack>
+                                        )}
+                                    </AccordionTrigger>
+                                </AccordionHeader>
+                                <AccordionContent>
+                                    <HStack className="justify-end gap-4 px-2 mb-2">
+                                        <TouchableOpacity onPress={() => toggleAll('types', selectedTypes.length === LANDMARK_TYPES.length ? 'deselect' : 'select')}>
+                                            <Text size="xs" className="text-primary-600 font-bold">
+                                                {selectedTypes.length === LANDMARK_TYPES.length ? "Deselect All" : "Select All"}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </HStack>
+                                    <View className="flex-row flex-wrap gap-2 p-2">
+                                        {TYPES.map(c => {
+                                            const active = selectedTypes.includes(c.id);
+                                            return (
+                                                <TouchableOpacity
+                                                    key={c.id}
+                                                    onPress={() => toggleItem(selectedTypes, c.id, 'types')}
+                                                    className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-100 border-primary-600' : 'bg-background-0 border-outline-200'}`}
+                                                >
+                                                    <Text size="xs" className={active ? 'text-typography-900 font-bold' : 'text-typography-500'}>{c.label}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
+                                </AccordionContent>
+                            </CopilotAccordionItem>
+                        </CopilotStep>
                     </Accordion>
 
                     {/* Configuration Inputs */}
                     <VStack className="gap-4">
-                        <Box className="bg-background-50 p-4 rounded-xl border border-outline-100">
-                            <FormControl isInvalid={!!errors.maxDistance}>
-                                <FormControlLabel className="mb-2">
-                                    <HStack className="items-center gap-2">
-                                        <Icon as={Navigation2} size="xs" className="text-primary-600" />
-                                        <FormControlLabelText size="sm" className="font-bold">Max Distance (KM)</FormControlLabelText>
-                                    </HStack>
-                                </FormControlLabel>
-                                <Controller
-                                    control={control}
-                                    name="maxDistance"
-                                    render={({ field: { onChange, value } }) => (
-                                        <Input variant="outline" size="md" className="h-12 bg-background-0 rounded-lg">
-                                            <InputField
-                                                value={value}
-                                                onChangeText={onChange}
-                                                keyboardType="numeric"
-                                                placeholder="e.g. 5"
-                                            />
-                                        </Input>
-                                    )}
-                                />
-                                <FormControlError className="mt-1">
-                                    <FormControlErrorIcon as={AlertCircle} size="xs" />
-                                    <FormControlErrorText size="xs">{errors.maxDistance?.message}</FormControlErrorText>
-                                </FormControlError>
-                            </FormControl>
-                        </Box>
-
-                        <Box className="bg-background-50 p-4 rounded-xl border border-outline-100">
-                            <FormControl isInvalid={!!errors.maxPoi}>
-                                <FormControlLabel className="mb-2">
-                                    <HStack className="items-center gap-2">
-                                        <Icon as={CheckCircle2} size="xs" className="text-primary-600" />
-                                        <FormControlLabelText size="sm" className="font-bold">Max Stopovers</FormControlLabelText>
-                                    </HStack>
-                                </FormControlLabel>
-                                <Controller
-                                    control={control}
-                                    name="maxPoi"
-                                    render={({ field: { onChange, value } }) => (
-                                        <Input variant="outline" size="md" className="h-12 bg-background-0 rounded-lg">
-                                            <InputField
-                                                value={value}
-                                                onChangeText={onChange}
-                                                keyboardType="number-pad"
-                                                placeholder="e.g. 8"
-                                            />
-                                        </Input>
-                                    )}
-                                />
-                                <FormControlError className="mt-1">
-                                    <FormControlErrorIcon as={AlertCircle} size="xs" />
-                                    <FormControlErrorText size="xs">{errors.maxPoi?.message}</FormControlErrorText>
-                                </FormControlError>
-                            </FormControl>
-                        </Box>
+                        <CopilotStep
+                            text="You can set a maximum distance for the itinerary"
+                            order={4}
+                            name="maxDistanceInput"
+                        >
+                            <CopilotBox className="bg-background-50 p-4 rounded-xl border border-outline-100">
+                                <FormControl isInvalid={!!errors.maxDistance}>
+                                    <FormControlLabel className="mb-2">
+                                        <HStack className="items-center gap-2">
+                                            <Icon as={Navigation2} size="xs" className="text-primary-600" />
+                                            <FormControlLabelText size="sm" className="font-bold">Max Distance (KM)</FormControlLabelText>
+                                        </HStack>
+                                    </FormControlLabel>
+                                    <Controller
+                                        control={control}
+                                        name="maxDistance"
+                                        render={({ field: { onChange, value } }) => (
+                                            <Input variant="outline" size="md" className="h-12 bg-background-0 rounded-lg">
+                                                <InputField
+                                                    value={value}
+                                                    onChangeText={onChange}
+                                                    keyboardType="numeric"
+                                                    placeholder="e.g. 5"
+                                                />
+                                            </Input>
+                                        )}
+                                    />
+                                    <FormControlError className="mt-1">
+                                        <FormControlErrorIcon as={AlertCircle} size="xs" />
+                                        <FormControlErrorText size="xs">{errors.maxDistance?.message}</FormControlErrorText>
+                                    </FormControlError>
+                                </FormControl>
+                            </CopilotBox>
+                        </CopilotStep>
+                        <CopilotStep
+                            text="You can set a maximum stopovers for the itinerary"
+                            order={5}
+                            name="maxStopoverInput"
+                        >
+                            <CopilotBox className="bg-background-50 p-4 rounded-xl border border-outline-100">
+                                <FormControl isInvalid={!!errors.maxPoi}>
+                                    <FormControlLabel className="mb-2">
+                                        <HStack className="items-center gap-2">
+                                            <Icon as={CheckCircle2} size="xs" className="text-primary-600" />
+                                            <FormControlLabelText size="sm" className="font-bold">Max Stopovers</FormControlLabelText>
+                                        </HStack>
+                                    </FormControlLabel>
+                                    <Controller
+                                        control={control}
+                                        name="maxPoi"
+                                        render={({ field: { onChange, value } }) => (
+                                            <Input variant="outline" size="md" className="h-12 bg-background-0 rounded-lg">
+                                                <InputField
+                                                    value={value}
+                                                    onChangeText={onChange}
+                                                    keyboardType="number-pad"
+                                                    placeholder="e.g. 8"
+                                                />
+                                            </Input>
+                                        )}
+                                    />
+                                    <FormControlError className="mt-1">
+                                        <FormControlErrorIcon as={AlertCircle} size="xs" />
+                                        <FormControlErrorText size="xs">{errors.maxPoi?.message}</FormControlErrorText>
+                                    </FormControlError>
+                                </FormControl>
+                            </CopilotBox>
+                        </CopilotStep>
                     </VStack>
 
                     {/* Warning Hint */}
@@ -489,22 +534,27 @@ const CreateWithAgamScreen = () => {
                             <Text size="xs" className="text-warning-700">Select more filters to generate a valid route.</Text>
                         </HStack>
                     )}
-                    <Box className="bg-background-0 border-t border-outline-50 pb-8">
-                        {/* Bottom Action */}
-
-                        <Button
-                            onPress={handleSubmit(onGenerate)}
-                            isDisabled={isGenerating || !isValid || availableCount < 2}
-                            className="rounded-xl h-14 bg-primary-600 shadow-none"
-                        >
-                            {isGenerating ? <ButtonSpinner color="white" /> : (
-                                <HStack className="items-center gap-2">
-                                    <ButtonText className="font-bold">Generate Itinerary</ButtonText>
-                                    <ButtonIcon as={Sparkles} />
-                                </HStack>
-                            )}
-                        </Button>
-                    </Box>
+                    <CopilotStep
+                        text="After selecting your filters, you can then proceed to generate your itinerary."
+                        order={6}
+                        name="submitButton"
+                    >
+                        <CopilotBox className="bg-background-0 border-t border-outline-50 pb-8">
+                            {/* Bottom Action */}
+                            <Button
+                                onPress={handleSubmit(onGenerate)}
+                                isDisabled={isGenerating || !isValid || availableCount < 2}
+                                className="rounded-xl h-14 bg-primary-600 shadow-none"
+                            >
+                                {isGenerating ? <ButtonSpinner color="white" /> : (
+                                    <HStack className="items-center gap-2">
+                                        <ButtonText className="font-bold">Generate Itinerary</ButtonText>
+                                        <ButtonIcon as={Sparkles} />
+                                    </HStack>
+                                )}
+                            </Button>
+                        </CopilotBox>
+                    </CopilotStep>
 
                 </ScrollView>
 
