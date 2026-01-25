@@ -17,18 +17,16 @@ import { VStack } from '@/components/ui/vstack';
 
 // Logic & Utils
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { useAuthStore } from '@/src/stores/useAuth';
+import { insertLandmarkToItinerary } from '@/src/utils/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 
 export default function AddPOIScreen() {
     const { id: itineraryId, currentCount } = useLocalSearchParams();
-    const { session } = useAuthStore();
     const router = useRouter();
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
 
     const [searchQuery, setSearchQuery] = useState('');
-    const userId = session?.user.id;
 
     // 1. Debounced Search Logic
     const debouncedSearch = useMemo(
@@ -54,15 +52,11 @@ export default function AddPOIScreen() {
 
     // 2. Optimized Mutation
     const addStopMutation = useMutation({
-        mutationFn: async (landmarkId: number) => {
-            const nextOrder = Number(currentCount) + 1;
-            const { error } = await supabase.from('stops').insert({
-                itinerary_id: Number(itineraryId),
-                landmark_id: landmarkId,
-                visit_order: nextOrder,
-            });
-            if (error) throw error;
-        },
+        mutationFn: async (landmarkId: number) => insertLandmarkToItinerary({
+            currentCount: currentCount.toString(),
+            itineraryId: itineraryId.toString(),
+            landmarkId: landmarkId.toString(),
+        }),
         onSuccess: () => {
             // Invalidate queries so the itinerary refreshes when we go back
             queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
@@ -118,7 +112,11 @@ export default function AddPOIScreen() {
                                 className="mb-4 bg-background-0 border border-outline-100 rounded-3xl overflow-hidden active:bg-background-50"
                                 onPress={() => router.navigate({
                                     pathname: '/landmark/[id]/view',
-                                    params: { id: item.id.toString() },
+                                    params: {
+                                        id: item.id.toString(),
+                                        itineraryId: itineraryId.toString(),
+                                        currentCount: currentCount,
+                                    },
                                 })}
                             >
                                 <HStack className="items-center p-3" space="md">

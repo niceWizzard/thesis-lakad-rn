@@ -12,7 +12,7 @@ import { Image, ScrollView, Share, TouchableOpacity } from 'react-native';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
-import { Button, ButtonText } from '@/components/ui/button';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
@@ -20,18 +20,43 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { fetchLandmarkById } from '@/src/utils/fetchLandmarks';
-import { useQuery } from '@tanstack/react-query';
+import { insertLandmarkToItinerary } from '@/src/utils/insertLandmark';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function LandmarkViewerScreen() {
-    const { id, previewMode } = useLocalSearchParams();
+    const { id, previewMode, itineraryId, currentCount } = useLocalSearchParams();
     const router = useRouter();
+
+    const { showToast } = useToastNotification()
+    const queryClient = useQueryClient()
 
     const { data: landmark } = useQuery({
         queryKey: ['landmark', id],
         queryFn: () => fetchLandmarkById(Number.parseInt(id!.toString())),
         enabled: !!id,
     })
+
+    const {
+        isPending,
+        mutate: addStopMutation
+    } = useMutation({
+        mutationFn: async (landmarkId: number) => insertLandmarkToItinerary({
+            currentCount: currentCount.toString(),
+            itineraryId: itineraryId.toString(),
+            landmarkId: landmarkId.toString(),
+        }),
+        onSuccess: () => {
+            // Invalidate queries so the itinerary refreshes when we go back
+            queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
+            showToast({ title: "Added to Itinerary", action: "success" });
+            router.back();
+        },
+        onError: (error: any) => {
+            showToast({ title: "Error", description: error.message, action: "error" });
+        }
+    });
 
     if (!landmark)
         return <Text>Landmark not found</Text>;
@@ -45,6 +70,15 @@ export default function LandmarkViewerScreen() {
             console.error(error);
         }
     };
+
+    const handleAddToItinerary = () => {
+        if (itineraryId && currentCount) {
+            addStopMutation(landmark.id);
+        } else {
+        }
+    }
+
+
 
     return (
         <Box className="flex-1 bg-background-0">
@@ -146,11 +180,19 @@ export default function LandmarkViewerScreen() {
                 previewMode ? null : (
                     <Box className="p-6 bg-background-0 border-t border-outline-50">
                         <Button
-                            onPress={() => { }}
+                            onPress={handleAddToItinerary}
                             size="lg"
                             className="rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                            isDisabled={isPending}
                         >
-                            <ButtonText className="font-bold">Add to My Itinerary </ButtonText>
+                            {
+                                isPending && <ButtonSpinner />
+                            }
+                            <ButtonText className="font-bold">
+                                {
+                                    isPending ? 'Adding...' : 'Add to Itinerary '
+                                }
+                            </ButtonText>
                         </Button>
                     </Box>
                 )
