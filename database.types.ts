@@ -41,7 +41,7 @@ export type Database = {
       landmark: {
         Row: {
           created_at: string
-          created_by_user: boolean
+          creation_type: Database["public"]["Enums"]["LandmarkCreationType"]
           deleted_at: string | null
           description: string | null
           district: Database["public"]["Enums"]["district"]
@@ -57,7 +57,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by_user?: boolean
+          creation_type?: Database["public"]["Enums"]["LandmarkCreationType"]
           deleted_at?: string | null
           description?: string | null
           district: Database["public"]["Enums"]["district"]
@@ -73,7 +73,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by_user?: boolean
+          creation_type?: Database["public"]["Enums"]["LandmarkCreationType"]
           deleted_at?: string | null
           description?: string | null
           district?: Database["public"]["Enums"]["district"]
@@ -206,6 +206,7 @@ export type Database = {
         | "Restaurant"
         | "River/Landscape"
         | "Structures"
+      LandmarkCreationType: "TOURIST_ATTRACTION" | "COMMERCIAL" | "PERSONAL"
       municipality:
         | "Bulakan"
         | "Calumpit"
@@ -389,6 +390,7 @@ export const Constants = {
         "River/Landscape",
         "Structures",
       ],
+      LandmarkCreationType: ["TOURIST_ATTRACTION", "COMMERCIAL", "PERSONAL"],
       municipality: [
         "Bulakan",
         "Calumpit",

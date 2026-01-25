@@ -323,6 +323,7 @@ function ReorderListItem({
     isVisited,
     landmark,
 }: { landmark: Landmark, isVisited: boolean, displayNumber: number }) {
+    const isPersonal = landmark.creation_type === "PERSONAL"
     return (
         <HStack space='md' className='flex-1 items-center min-w-0 justify-center'>
             <Box className={`w-8 h-8 rounded-full items-center justify-center ${isVisited ? 'bg-success-500' : 'bg-background-100'}`}>
@@ -349,7 +350,7 @@ function ReorderListItem({
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >
-                    {landmark.created_by_user ? "Custom" : landmark.municipality}
+                    {isPersonal ? "Custom" : landmark.municipality}
                 </Text>
             </VStack>
         </HStack>

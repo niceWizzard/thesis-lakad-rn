@@ -4,7 +4,7 @@ export const fetchLandmarks = async () => {
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
-        .eq('created_by_user', false)
+        .eq('creation_type', "TOURIST_ATTRACTION")
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
@@ -20,7 +20,7 @@ export const fetchArchivedLandmarks = async () => {
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
-        .eq('created_by_user', false)
+        .eq('creation_type', "TOURIST_ATTRACTION")
         .not('deleted_at', 'is', null)
         .order('created_at', { ascending: false });
 
@@ -41,7 +41,7 @@ export const fetchLandmarkById = async (id: number | string) => {
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
-        .eq('created_by_user', false)
+        .eq('creation_type', "TOURIST_ATTRACTION")
         .eq('id', parsedId)
         .order('created_at', { ascending: false })
         .single();

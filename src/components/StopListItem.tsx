@@ -26,6 +26,9 @@ const StopListItem = ({
 }) => {
     const [isOpen, setIsOpen] = useState(false)
 
+    const isPersonal = landmark.creation_type === "PERSONAL";
+
+
     return (
         <HStack className='items-center justify-between'>
             <HStack space='md' className='flex-1 items-center min-w-0 justify-center'>
@@ -53,7 +56,7 @@ const StopListItem = ({
                         numberOfLines={1}
                         ellipsizeMode="tail"
                     >
-                        {landmark.created_by_user ? "Custom" : landmark.municipality}
+                        {isPersonal ? "Custom" : landmark.municipality}
                     </Text>
                 </VStack>
             </HStack>

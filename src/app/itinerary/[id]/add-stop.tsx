@@ -80,7 +80,7 @@ export default function AddPOIScreen() {
                 latitude: location[1],
                 district: "1",
                 municipality: 'Angat',
-                created_by_user: true,
+                creation_type: "PERSONAL",
             });
             await addStopMutation.mutateAsync(landmarkId)
 
