@@ -280,6 +280,7 @@ const ReorderScreen = () => {
                                 </Box>
                                 <VStack
                                     className='p-4'
+                                    space='md'
                                 >
                                     {completedStops.map((stop, idx) => {
                                         const displayNumber = idx + 1
