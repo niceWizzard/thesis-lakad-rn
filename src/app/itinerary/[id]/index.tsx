@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as Location from 'expo-location';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Dimensions, ScrollView, View } from 'react-native';
 
 
 // UI Components
@@ -620,9 +620,13 @@ function ViewingModeBottomSheetContent({
                             </Text>
                         </HStack>
                     </VStack>
-                    <Pressable onPress={handleAddPoi}>
-                        <Icon as={PlusCircle} size='xl' className='text-primary-600' />
-                    </Pressable>
+                    <Button
+                        variant='link'
+                        onPress={handleAddPoi}
+                    >
+                        <ButtonIcon as={PlusCircle} size='xl' className='text-primary-600' />
+                        <ButtonText>Add</ButtonText>
+                    </Button>
                 </HStack>
                 <HStack space='md' className='w-full justify-center flex-wrap'>
                     <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
