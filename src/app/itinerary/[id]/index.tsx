@@ -276,51 +276,10 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
-                    {
-                        itinerary.stops.map(stop => (
-                            <MarkerView
-                                key={stop.id}
-                                coordinate={[stop.landmark.longitude, stop.landmark.latitude]}
-                                anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
-                                allowOverlap={!stop.visited_at}     // Better for readability
-                            >
-                                <Pressable style={{ alignItems: 'center' }}>
-                                    {/* Avatar Container */}
-                                    <Box
-                                        style={{ elevation: 5 }}
-
-                                        className={`p-1 bg-background-900 rounded-full shadow-lg 
-                                    ${stop.visited_at ? 'opacity-50' : ''}`
-                                        }
-                                    >
-                                        <Image
-                                            source={{ uri: stop.landmark.image_url || "https://via.placeholder.com/150" }}
-                                            style={{ width: 24, height: 24, borderRadius: 22 }}
-                                        />
-                                    </Box>
-
-                                    {/* The "Pointer" Triangle */}
-                                    <Box
-                                        className="bg-primary-500"
-                                        style={{
-                                            width: 12,
-                                            height: 12,
-                                            transform: [{ rotate: '45deg' }],
-                                            marginTop: -6,
-                                            zIndex: -1
-                                        }}
-                                    />
-
-                                    {/* Label with better padding */}
-                                    <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
-                                        <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
-                                            {stop.landmark.name}
-                                        </Text>
-                                    </Box>
-                                </Pressable>
-                            </MarkerView>
-                        ))
-                    }
+                    <ViewingModeMapViewContent
+                        stops={itinerary.stops}
+                        mode={mode}
+                    />
                 </MapView>
 
                 <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' >
@@ -371,6 +330,60 @@ export default function ItineraryView() {
             </VStack>
         </>
     );
+}
+
+
+
+function ViewingModeMapViewContent({ stops, mode }: { stops: POIWithLandmark[], mode: Mode }) {
+    return (
+        <>
+            {
+                stops.map(stop => (
+                    <MarkerView
+                        key={stop.id}
+                        coordinate={[stop.landmark.longitude, stop.landmark.latitude]}
+                        anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
+                        allowOverlap={!stop.visited_at}     // Better for readability
+                    >
+                        <Pressable style={{ alignItems: 'center' }}>
+                            {/* Avatar Container */}
+                            <Box
+                                style={{ elevation: 5 }}
+
+                                className={`p-1 bg-background-900 rounded-full shadow-lg 
+                                    ${stop.visited_at ? 'opacity-50' : ''}`
+                                }
+                            >
+                                <Image
+                                    source={{ uri: stop.landmark.image_url || "https://via.placeholder.com/150" }}
+                                    style={{ width: 24, height: 24, borderRadius: 22 }}
+                                />
+                            </Box>
+
+                            {/* The "Pointer" Triangle */}
+                            <Box
+                                className="bg-primary-500"
+                                style={{
+                                    width: 12,
+                                    height: 12,
+                                    transform: [{ rotate: '45deg' }],
+                                    marginTop: -6,
+                                    zIndex: -1
+                                }}
+                            />
+
+                            {/* Label with better padding */}
+                            <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
+                                <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
+                                    {stop.landmark.name}
+                                </Text>
+                            </Box>
+                        </Pressable>
+                    </MarkerView>
+                ))
+            }
+        </>
+    )
 }
 
 
