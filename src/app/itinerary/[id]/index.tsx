@@ -139,12 +139,35 @@ export default function ItineraryView() {
     }, [isSheetOpen])
 
 
+    const switchMode = useCallback((mode: Mode) => {
+        switch (mode) {
+            case Mode.Viewing:
+                setIsSheetOpen(true);
+                setNavigationRoute([])
+                setMode(Mode.Viewing);
+                camera.current?.setCamera({
+                    centerCoordinate: userLocation ?? [120.8092, 14.8605],
+                    zoomLevel: 14,
+                    animationDuration: 400,
+                    pitch: 0,
+                    heading: 0
+                })
+                return
+            case Mode.Navigating:
+                setMode(Mode.Navigating);
+                setIsSheetOpen(true);
+                return
+            default:
+                return
+        }
+    }, [userLocation])
+
+
     const finishedNavigating = useCallback(async (visitedStop: POIWithLandmark) => {
         try {
             await toggleStopStatus(visitedStop)
             await refetch();
-            setNavigationRoute([])
-            setMode(Mode.Viewing)
+            switchMode(Mode.Viewing)
             showToast({
                 title: "You have arrived!",
             })
@@ -155,7 +178,7 @@ export default function ItineraryView() {
                 action: "error"
             })
         }
-    }, [refetch, showToast])
+    }, [refetch, showToast, switchMode])
 
     useFocusEffect(
         useCallback(() => {
@@ -203,6 +226,9 @@ export default function ItineraryView() {
         }, [mode, nextUnvisitedStop, navigationRoute, userLocation, finishedNavigating])
     );
 
+
+
+
     const locatePOI = (stop: POIWithLandmark) => {
         camera.current?.setCamera({
             centerCoordinate: [stop.landmark.longitude, stop.landmark.latitude],
@@ -229,8 +255,7 @@ export default function ItineraryView() {
             ],
         });
         setNavigationRoute(data.routes);
-        setMode(Mode.Navigating);
-        setIsSheetOpen(true);
+        switchMode(Mode.Navigating)
         camera.current?.setCamera({
             centerCoordinate: userLocation || [120.8092, 14.8605],
             zoomLevel: 18,
@@ -282,7 +307,6 @@ export default function ItineraryView() {
                 >
                     <Camera
                         ref={camera}
-                        followUserLocation={mode === Mode.Navigating}
                         defaultSettings={{
                             centerCoordinate: itinerary.stops.length > 0 ?
                                 [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude] :
@@ -320,7 +344,10 @@ export default function ItineraryView() {
                             <ButtonIcon as={ArrowUp} size='lg' />
                         </Button>
                     )}
-                    <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 })}>
+                    <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => {
+                        console.log("CLICKED", userLocation, camera.current)
+                        return userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 });
+                    }}>
                         <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
                     </Button>
 
@@ -352,10 +379,7 @@ export default function ItineraryView() {
                             navigationRoute={navigationRoute}
                             mode={mode}
                             nextUnvisitedStop={nextUnvisitedStop}
-                            exitNavigationMode={() => {
-                                setMode(Mode.Viewing);
-                                setNavigationRoute([]);
-                            }}
+                            exitNavigationMode={() => switchMode(Mode.Viewing)}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>
