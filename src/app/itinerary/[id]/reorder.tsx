@@ -300,6 +300,7 @@ const ReorderScreen = () => {
             <Center className='absolute bottom-safe-or-6 left-4 right-4 p-4'>
                 <Button className='w-full'
                     onPress={handleOptimizePress}
+                    isDisabled={pendingStops.length < 2}
                 >
                     <ButtonText>Optimize</ButtonText>
                 </Button>

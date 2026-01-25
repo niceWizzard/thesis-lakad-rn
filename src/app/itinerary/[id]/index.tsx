@@ -615,7 +615,9 @@ function ViewingModeBottomSheetContent({
                     </Pressable>
                 </HStack>
                 <HStack space='md' className='w-full justify-center flex-wrap'>
-                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}>
+                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
+                        isDisabled={pendingStops.length < 2}
+                    >
                         <ButtonIcon as={ArrowDownUp} className='mr-2' />
                         <ButtonText>Reorder</ButtonText>
                     </Button>
