@@ -3,14 +3,13 @@ import {
     LineLayer,
     LocationPuck,
     MapView,
-    MarkerView,
     ShapeSource
 } from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Location from 'expo-location';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, View } from 'react-native';
 
 
 // UI Components
@@ -48,6 +47,7 @@ import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { Icon } from '@/components/ui/icon';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
+import LandmarkMarker from '@/src/components/LandmarkMarker';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -334,52 +334,17 @@ export default function ItineraryView() {
 
 
 
+
+
 function ViewingModeMapViewContent({ stops, mode }: { stops: POIWithLandmark[], mode: Mode }) {
     return (
         <>
             {
                 stops.map(stop => (
-                    <MarkerView
+                    <LandmarkMarker
+                        landmark={stop.landmark}
                         key={stop.id}
-                        coordinate={[stop.landmark.longitude, stop.landmark.latitude]}
-                        anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
-                        allowOverlap={!stop.visited_at}     // Better for readability
-                    >
-                        <Pressable style={{ alignItems: 'center' }}>
-                            {/* Avatar Container */}
-                            <Box
-                                style={{ elevation: 5 }}
-
-                                className={`p-1 bg-background-900 rounded-full shadow-lg 
-                                    ${stop.visited_at ? 'opacity-50' : ''}`
-                                }
-                            >
-                                <Image
-                                    source={{ uri: stop.landmark.image_url || "https://via.placeholder.com/150" }}
-                                    style={{ width: 24, height: 24, borderRadius: 22 }}
-                                />
-                            </Box>
-
-                            {/* The "Pointer" Triangle */}
-                            <Box
-                                className="bg-primary-500"
-                                style={{
-                                    width: 12,
-                                    height: 12,
-                                    transform: [{ rotate: '45deg' }],
-                                    marginTop: -6,
-                                    zIndex: -1
-                                }}
-                            />
-
-                            {/* Label with better padding */}
-                            <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
-                                <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
-                                    {stop.landmark.name}
-                                </Text>
-                            </Box>
-                        </Pressable>
-                    </MarkerView>
+                    />
                 ))
             }
         </>
