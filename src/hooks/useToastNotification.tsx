@@ -7,8 +7,8 @@ export const useToastNotification = () => {
 
     const showToast = ({ title, description, action = "success" }: { title: string, description?: string, action?: "error" | "success" | 'info' }) => {
         toast.show({
-            placement: "bottom left",
-            duration: 1000,
+            placement: "bottom",
+            duration: 1500,
             render: ({ id }) => {
                 const toastId = "toast-" + id
                 return (
