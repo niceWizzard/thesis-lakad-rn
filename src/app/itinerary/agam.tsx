@@ -39,7 +39,7 @@ import { VStack } from '@/components/ui/vstack';
 // Stores & Utils
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
-import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
+import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useLandmarks } from '@/src/hooks/useLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -109,7 +109,7 @@ const CreateWithAgamScreen = () => {
             maxPoi: '10',
             districts: [],
             types: [],
-            municipalities: [],
+            municipalities: [] as string[],
         },
         mode: 'onChange',
     });
@@ -165,6 +165,32 @@ const CreateWithAgamScreen = () => {
         }
 
         setValue(field, itemsToSelect, { shouldValidate: true });
+    };
+
+    const toggleDistrictWithChildren = (districtId: string) => {
+        // 1. Create a mutable copy of the children array
+        const districtChildren = DISTRICT_TO_MUNICIPALITY_MAP[districtId as LandmarkDistrict] || [];
+        const children = [...districtChildren]; // This creates a mutable string[] copy
+
+        const isDistrictSelected = selectedDistricts.includes(districtId);
+
+        if (isDistrictSelected) {
+            // Deselect logic
+            setValue('districts', selectedDistricts.filter(id => id !== districtId));
+
+            // Filter out the children of this district
+            const nextMunicipalities = selectedMunicipalities.filter(
+                m => !children.includes(m as LandmarkMunicipality)
+            );
+            setValue('municipalities', nextMunicipalities, { shouldValidate: true });
+        } else {
+            // Select logic
+            setValue('districts', [...selectedDistricts, districtId]);
+
+            // Combine existing selections with the new children
+            const merged = Array.from(new Set([...selectedMunicipalities, ...children]));
+            setValue('municipalities', merged as LandmarkMunicipality[], { shouldValidate: true });
+        }
     };
 
     const onGenerate = async (formData: FormData) => {
@@ -294,64 +320,14 @@ const CreateWithAgamScreen = () => {
 
                             {/* Constraints Accordion */}
                             <Accordion variant='unfilled' className="gap-3 mb-6">
-                                <AccordionItem value="districts" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
-                                    <AccordionHeader>
-                                        <AccordionTrigger>
-                                            {({ isExpanded }: any) => (
-                                                <HStack className="it`ems-center justify-between w-full pr-4">
-                                                    <HStack className="items-center gap-3">
-                                                        <Icon as={MapIcon} className="text-primary-600" />
-                                                        <AccordionTitleText className="font-bold">Districts</AccordionTitleText>
-                                                    </HStack>
-                                                    <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
-                                                </HStack>
-                                            )}
-                                        </AccordionTrigger>
-                                    </AccordionHeader>
-                                    <AccordionContent>
-                                        <ToggleButtons
-                                            field="districts"
-                                            currentLength={selectedDistricts.length}
-                                            totalLength={DISTRICTS.length}
-                                        />
-                                        <View className="flex-row flex-wrap gap-2 p-2">
-                                            {DISTRICTS.map(d => {
-                                                const active = selectedDistricts.includes(d.id);
-                                                return (
-                                                    <TouchableOpacity
-                                                        key={d.id}
-                                                        onPress={() => {
-                                                            const isActivating = !selectedDistricts.includes(d.id);
-                                                            toggleItem(selectedDistricts, d.id, 'districts');
-
-                                                            if (isActivating) {
-                                                                // Get all municipalities for this specific district
-                                                                const newMunis = DISTRICT_TO_MUNICIPALITY_MAP[d.id] || [];
-                                                                // Merge with existing, avoiding duplicates
-                                                                const merged = Array.from(new Set([...selectedMunicipalities, ...newMunis]));
-                                                                setValue('municipalities', merged, { shouldValidate: true });
-                                                            }
-                                                        }}
-                                                        className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-600 border-primary-600' : 'bg-background-0 border-outline-200'}`}
-                                                    >
-                                                        <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{d.label}</Text>
-                                                    </TouchableOpacity>
-                                                );
-                                            })}
-                                        </View>
-                                    </AccordionContent>
-                                </AccordionItem>
-
-
-
-                                <AccordionItem value="municipalities" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
+                                <AccordionItem value="location" className="border border-outline-100 rounded-lg bg-background-50 overflow-hidden">
                                     <AccordionHeader>
                                         <AccordionTrigger>
                                             {({ isExpanded }: any) => (
                                                 <HStack className="items-center justify-between w-full pr-4">
                                                     <HStack className="items-center gap-3">
-                                                        <Icon as={Layers} className="text-primary-600" />
-                                                        <AccordionTitleText className="font-bold">Municipalities</AccordionTitleText>
+                                                        <Icon as={MapIcon} className="text-primary-600" />
+                                                        <AccordionTitleText className="font-bold">Location (Districts & Municipalities)</AccordionTitleText>
                                                     </HStack>
                                                     <Icon as={isExpanded ? ChevronUp : ChevronDown} size="sm" />
                                                 </HStack>
@@ -359,39 +335,47 @@ const CreateWithAgamScreen = () => {
                                         </AccordionTrigger>
                                     </AccordionHeader>
                                     <AccordionContent>
-                                        <ToggleButtons
-                                            field="municipalities"
-                                            currentLength={selectedDistricts.length}
-                                            totalLength={DISTRICTS.length}
-                                        />
-                                        <View className="flex-row flex-wrap gap-2 p-2">
-                                            {MUNICIPALITIES.map(c => {
-                                                const active = selectedMunicipalities.includes(c);
-                                                const isValid = validMunicipalities.includes(c)
-                                                let extraDesign = 'bg-background-0 border-outline-200';
-                                                if (!isValid) {
-                                                    extraDesign = 'bg-background-400 border-outline-100'
-                                                }
-                                                else if (active) {
-                                                    extraDesign = 'bg-primary-600 border-primary-600'
-                                                }
+                                        <VStack className="p-2 gap-4">
+                                            {DISTRICTS.map((district) => {
+                                                const isDistrictActive = selectedDistricts.includes(district.id);
+                                                const children = DISTRICT_TO_MUNICIPALITY_MAP[district.id] || [];
+
                                                 return (
-                                                    <TouchableOpacity
-                                                        key={c}
-                                                        onPress={() => toggleItem(selectedMunicipalities, c, 'municipalities')}
-                                                        disabled={!isValid}
-                                                        className={`px-3 py-1.5 rounded-md border ${extraDesign}`}
-                                                    >
-                                                        <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{c}</Text>
-                                                    </TouchableOpacity>
+                                                    <VStack key={district.id} className="gap-2 pb-2 border-b border-outline-50">
+                                                        {/* District Header Toggle */}
+                                                        <HStack className="justify-between items-center bg-background-100 p-2 rounded-lg">
+                                                            <Text size="sm" className="font-bold text-typography-900">{district.label}</Text>
+                                                            <TouchableOpacity onPress={() => toggleDistrictWithChildren(district.id)}>
+                                                                <Text size="xs" className="text-primary-600 font-bold">
+                                                                    {isDistrictActive ? "Deselect All" : "Select All"}
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        </HStack>
+
+                                                        {/* Municipalities in this District */}
+                                                        <View className="flex-row flex-wrap gap-2 px-1">
+                                                            {children.map((muni) => {
+                                                                const isMuniActive = selectedMunicipalities.includes(muni);
+                                                                return (
+                                                                    <TouchableOpacity
+                                                                        key={muni}
+                                                                        onPress={() => toggleItem(selectedMunicipalities, muni, 'municipalities')}
+                                                                        className={`px-3 py-1.5 rounded-md border ${isMuniActive
+                                                                            ? 'bg-primary-600 border-primary-600'
+                                                                            : 'bg-background-0 border-outline-200'
+                                                                            }`}
+                                                                    >
+                                                                        <Text size="xs" className={isMuniActive ? 'text-white font-bold' : 'text-typography-600'}>
+                                                                            {muni}
+                                                                        </Text>
+                                                                    </TouchableOpacity>
+                                                                );
+                                                            })}
+                                                        </View>
+                                                    </VStack>
                                                 );
                                             })}
-                                            {
-                                                validMunicipalities.length === 0 && (
-                                                    <Text>No valid municipalities found</Text>
-                                                )
-                                            }
-                                        </View>
+                                        </VStack>
                                     </AccordionContent>
                                 </AccordionItem>
 
