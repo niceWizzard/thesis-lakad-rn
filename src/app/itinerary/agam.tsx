@@ -11,7 +11,7 @@ import {
     Navigation2,
     Sparkles
 } from 'lucide-react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     Keyboard,
@@ -123,17 +123,6 @@ const CreateWithAgamScreen = () => {
     const validMunicipalities = useMemo(() => {
         return selectedDistricts.flatMap(v => DISTRICT_TO_MUNICIPALITY_MAP[v as LandmarkDistrict] || []).sort((a, b) => a.localeCompare(b));
     }, [selectedDistricts]);
-
-    useEffect(() => {
-        const nextMunicipalities = selectedMunicipalities.filter(v =>
-            validMunicipalities.includes(v as LandmarkMunicipality)
-        );
-
-        if (JSON.stringify(nextMunicipalities) !== JSON.stringify(selectedMunicipalities)) {
-            setValue('municipalities', nextMunicipalities, { shouldValidate: true });
-        }
-    }, [validMunicipalities, selectedMunicipalities, setValue]);
-
 
     // Dynamic counter logic
     const availableCount = useMemo(() => {
@@ -276,20 +265,6 @@ const CreateWithAgamScreen = () => {
         }
     };
 
-    const ToggleButtons = ({ field, currentLength, totalLength }: {
-        field: 'districts' | 'types' | 'municipalities',
-        currentLength: number,
-        totalLength: number
-    }) => (
-        <HStack className="justify-end gap-4 px-2 mb-2">
-            <TouchableOpacity onPress={() => toggleAll(field, 'select')}>
-                <Text size="xs" className="text-primary-600 font-bold">Select All</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => toggleAll(field, 'deselect')}>
-                <Text size="xs" className="text-typography-500">Deselect All</Text>
-            </TouchableOpacity>
-        </HStack>
-    );
 
 
     function getLoadingText() {
@@ -390,11 +365,11 @@ const CreateWithAgamScreen = () => {
                                                                         key={muni}
                                                                         onPress={() => toggleItem(selectedMunicipalities, muni, 'municipalities')}
                                                                         className={`px-3 py-1.5 rounded-md border ${isMuniActive
-                                                                            ? 'bg-primary-600 border-primary-600'
+                                                                            ? 'bg-primary-100 border-primary-600'
                                                                             : 'bg-background-0 border-outline-200'
                                                                             }`}
                                                                     >
-                                                                        <Text size="xs" className={isMuniActive ? 'text-white font-bold' : 'text-typography-600'}>
+                                                                        <Text size="xs" className={isMuniActive ? 'text-typography-900 font-bold' : 'text-typography-500'}>
                                                                             {muni}
                                                                         </Text>
                                                                     </TouchableOpacity>
@@ -424,11 +399,13 @@ const CreateWithAgamScreen = () => {
                                         </AccordionTrigger>
                                     </AccordionHeader>
                                     <AccordionContent>
-                                        <ToggleButtons
-                                            field="types"
-                                            currentLength={selectedDistricts.length}
-                                            totalLength={DISTRICTS.length}
-                                        />
+                                        <HStack className="justify-end gap-4 px-2 mb-2">
+                                            <TouchableOpacity onPress={() => toggleAll('types', selectedTypes.length === LANDMARK_TYPES.length ? 'deselect' : 'select')}>
+                                                <Text size="xs" className="text-primary-600 font-bold">
+                                                    {selectedTypes.length === LANDMARK_TYPES.length ? "Deselect All" : "Select All"}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </HStack>
                                         <View className="flex-row flex-wrap gap-2 p-2">
                                             {TYPES.map(c => {
                                                 const active = selectedTypes.includes(c.id);
@@ -436,9 +413,9 @@ const CreateWithAgamScreen = () => {
                                                     <TouchableOpacity
                                                         key={c.id}
                                                         onPress={() => toggleItem(selectedTypes, c.id, 'types')}
-                                                        className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-600 border-primary-600' : 'bg-background-0 border-outline-200'}`}
+                                                        className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-100 border-primary-600' : 'bg-background-0 border-outline-200'}`}
                                                     >
-                                                        <Text size="xs" className={active ? 'text-white font-bold' : 'text-typography-600'}>{c.label}</Text>
+                                                        <Text size="xs" className={active ? 'text-typography-900 font-bold' : 'text-typography-500'}>{c.label}</Text>
                                                     </TouchableOpacity>
                                                 );
                                             })}
