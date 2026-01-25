@@ -1,20 +1,20 @@
-import { POI } from "../model/poi.types";
+import { Stop } from "../model/stops.types";
 import { supabase } from "./supabase";
 
-export async function toggleStopStatus(poi : POI) {
-    const isMarkingAsVisited = !poi.visited_at;
+export async function toggleStopStatus(stop : Stop) {
+    const isMarkingAsVisited = !stop.visited_at;
     const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
     const { error: updateError } = await supabase
-        .from('poi')
+        .from('stops')
         .update({ visited_at: newVisitedAt })
-        .eq('id', poi.id);
+        .eq('id', stop.id);
 
     if (updateError) throw updateError;
 
     const { data: allPois, error: fetchError } = await supabase
-        .from('poi')
+        .from('stops')
         .select('*')
-        .eq('itinerary_id', poi.itinerary_id);
+        .eq('itinerary_id', stop.itinerary_id);
 
     if (fetchError || !allPois) throw fetchError || new Error("No data");
 
@@ -36,7 +36,7 @@ export async function toggleStopStatus(poi : POI) {
     }));
 
     const { error: bulkError } = await supabase
-        .from('poi')
+        .from('stops')
         .upsert(updates, { onConflict: 'id' });
 
     if (bulkError) throw bulkError;

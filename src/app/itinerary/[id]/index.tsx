@@ -20,7 +20,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 // Logic & Types
-import { POI, POIWithLandmark } from '@/src/model/poi.types';
+import { Stop, StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchDirections, MapboxRoute } from '@/src/utils/fetchDirections';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
@@ -163,7 +163,7 @@ export default function ItineraryView() {
     }, [userLocation])
 
 
-    const finishedNavigating = useCallback(async (visitedStop: POIWithLandmark) => {
+    const finishedNavigating = useCallback(async (visitedStop: StopWithLandmark) => {
         try {
             await toggleStopStatus(visitedStop)
             await refetch();
@@ -229,7 +229,7 @@ export default function ItineraryView() {
 
 
 
-    const locatePOI = (stop: POIWithLandmark) => {
+    const locatePOI = (stop: StopWithLandmark) => {
         camera.current?.setCamera({
             centerCoordinate: [stop.landmark.longitude, stop.landmark.latitude],
             zoomLevel: 18,
@@ -404,7 +404,7 @@ function NavigatingModeMapViewContent({ show, targetLandmark }: { show: boolean,
 }
 
 
-function ViewingModeMapViewContent({ stops, show }: { stops: POIWithLandmark[], show: boolean }) {
+function ViewingModeMapViewContent({ stops, show }: { stops: StopWithLandmark[], show: boolean }) {
     if (!show)
         return null
     return (
@@ -431,7 +431,7 @@ function NavigatingModeBottomSheetContent({
 }: {
     navigationRoute: MapboxRoute[],
     mode: Mode,
-    nextUnvisitedStop: POIWithLandmark | null,
+    nextUnvisitedStop: StopWithLandmark | null,
     exitNavigationMode: () => void,
 }) {
     if (mode !== Mode.Navigating)
@@ -520,11 +520,11 @@ function ViewingModeBottomSheetContent({
     itinerary: ItineraryWithStops,
     mode: Mode,
     isSheetOpen: boolean,
-    pendingStops: POIWithLandmark[],
-    completedStops: POIWithLandmark[],
+    pendingStops: StopWithLandmark[],
+    completedStops: StopWithLandmark[],
     refetch: () => Promise<any>,
     showToast: ReturnType<typeof useToastNotification>['showToast'],
-    locatePOI: (stop: POIWithLandmark) => void,
+    locatePOI: (stop: StopWithLandmark) => void,
     goNavigationMode: () => void,
     canOptimize: boolean,
 }
@@ -554,15 +554,15 @@ function ViewingModeBottomSheetContent({
 
     const handleAddPoi = async () => {
         router.navigate({
-            pathname: '/itinerary/[id]/add-poi',
+            pathname: '/itinerary/[id]/add-stop',
             params: { id: itinerary.id, currentCount: itinerary.stops.length },
         })
     }
 
-    const handleVisitedPress = async (poi: POI) => {
+    const handleVisitedPress = async (stop: Stop) => {
         setIsUpdating(true)
         try {
-            await toggleStopStatus(poi)
+            await toggleStopStatus(stop)
 
             await refetch();
         } catch (e: any) {
@@ -587,7 +587,7 @@ function ViewingModeBottomSheetContent({
     const handleRemoveStop = async (id: number) => {
         setIsUpdating(true)
         try {
-            const { error } = await supabase.from('poi').delete().eq('id', id);
+            const { error } = await supabase.from('stops').delete().eq('id', id);
             if (error) throw error;
             await refetch();
         } catch (err: any) {

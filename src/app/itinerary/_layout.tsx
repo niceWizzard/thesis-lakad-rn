@@ -17,9 +17,9 @@ const ItineraryLayout = () => {
                 }}
             />
             <Stack.Screen
-                name='[id]/add-poi'
+                name='[id]/add-stop'
                 options={{
-                    headerTitle: 'Add POI'
+                    headerTitle: 'Add Stops'
                 }}
             />
             <Stack.Screen

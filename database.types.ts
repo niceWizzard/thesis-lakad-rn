@@ -89,7 +89,37 @@ export type Database = {
         }
         Relationships: []
       }
-      poi: {
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: number
+          updated_at: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: number
+          updated_at?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: number
+          updated_at?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
+      stops: {
         Row: {
           created_at: string
           id: number
@@ -130,36 +160,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          email: string
-          full_name: string
-          id: number
-          updated_at: string
-          user_id: string
-          user_type: Database["public"]["Enums"]["user_type"]
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          full_name: string
-          id?: number
-          updated_at?: string
-          user_id?: string
-          user_type?: Database["public"]["Enums"]["user_type"]
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          full_name?: string
-          id?: number
-          updated_at?: string
-          user_id?: string
-          user_type?: Database["public"]["Enums"]["user_type"]
-        }
-        Relationships: []
       }
     }
     Views: {
@@ -206,33 +206,6 @@ export type Database = {
         | "Restaurant"
         | "River/Landscape"
         | "Structures"
-      landmark_type2:
-        | "Caves"
-        | "Historic Monuments"
-        | "Religious Site"
-        | "Historical Cultural Attraction"
-        | "Museum"
-        | "Cultural Heritage"
-        | "Structure & Buildings"
-        | "Church"
-        | "Farm / Ranch"
-        | "Monument"
-        | "Fluvial Restaurant"
-        | "Historical Road/Trails"
-        | "Natural Attraction"
-        | "Malls"
-        | "Archaeological/Historic Sites"
-        | "Coastal Landscape and Seascape"
-        | "PARK/ BOTANICAL GARDEN"
-        | "CHURCH/RELIGIOUS SITE"
-        | "River and Landscape"
-        | "RESORT"
-        | "Structures and Buildings"
-        | "Falls"
-        | "Mountains/Hills/Highlands"
-        | "Unique Natural Landscape / Seascape"
-        | "Unique Cultural Heritage"
-        | "Other"
       municipality:
         | "Bulakan"
         | "Calumpit"
@@ -415,34 +388,6 @@ export const Constants = {
         "Restaurant",
         "River/Landscape",
         "Structures",
-      ],
-      landmark_type2: [
-        "Caves",
-        "Historic Monuments",
-        "Religious Site",
-        "Historical Cultural Attraction",
-        "Museum",
-        "Cultural Heritage",
-        "Structure & Buildings",
-        "Church",
-        "Farm / Ranch",
-        "Monument",
-        "Fluvial Restaurant",
-        "Historical Road/Trails",
-        "Natural Attraction",
-        "Malls",
-        "Archaeological/Historic Sites",
-        "Coastal Landscape and Seascape",
-        "PARK/ BOTANICAL GARDEN",
-        "CHURCH/RELIGIOUS SITE",
-        "River and Landscape",
-        "RESORT",
-        "Structures and Buildings",
-        "Falls",
-        "Mountains/Hills/Highlands",
-        "Unique Natural Landscape / Seascape",
-        "Unique Cultural Heritage",
-        "Other",
       ],
       municipality: [
         "Bulakan",

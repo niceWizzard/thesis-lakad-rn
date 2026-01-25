@@ -10,7 +10,7 @@ export async function fetchItinerariesOfUser(userId: string) {
       created_at,
       user_id,
       distance,
-      stops:poi (
+      stops (
         id,
         visited_at,
         visit_order,
@@ -30,7 +30,7 @@ export async function fetchItinerariesOfUser(userId: string) {
       )
     `)
     .eq('user_id', userId)
-    // Order directly on the 'stops' (poi) table
+    // Order directly on the 'stops' (stops) table
     .order('visit_order', { referencedTable: 'stops', ascending: true })
 
   if (error) throw error
@@ -47,7 +47,7 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
       created_at,
       user_id,
       distance,
-      stops:poi (
+      stops (
         id,
         visited_at,
         visit_order,

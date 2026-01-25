@@ -25,7 +25,7 @@ import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Landmark } from '@/src/model/landmark.types';
-import { POIWithLandmark } from '@/src/model/poi.types';
+import { StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
 import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
@@ -61,7 +61,7 @@ const ReorderScreen = () => {
     });
 
 
-    const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<POIWithLandmark>) => {
+    const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<StopWithLandmark>) => {
         if (!itinerary || from == to) return;
 
         setLoadingModalMode(LoadingMode.Updating);
@@ -81,7 +81,7 @@ const ReorderScreen = () => {
             const itineraryUpdate = supabase.from('itinerary')
                 .update({ distance: newDistance })
                 .eq('id', itinerary.id);
-            const poiUpdate = supabase.from('poi').upsert(updates);
+            const poiUpdate = supabase.from('stops').upsert(updates);
             const [{ error: itineraryError }, { error: poiError }] = await Promise.all([itineraryUpdate, poiUpdate]);
             if (itineraryError)
                 throw itineraryError;
@@ -107,7 +107,7 @@ const ReorderScreen = () => {
         }
     };
 
-    const renderItem = useCallback(({ item, drag, isActive, getIndex }: RenderItemParams<POIWithLandmark>) => {
+    const renderItem = useCallback(({ item, drag, isActive, getIndex }: RenderItemParams<StopWithLandmark>) => {
         const currentIndex = getIndex() ?? 0;
         const completedCount = itinerary?.stops.filter(s => !!s.visited_at).length ?? 0;
         const displayNumber = currentIndex + completedCount + 1;
@@ -195,7 +195,7 @@ const ReorderScreen = () => {
 
             const updates = optimizedIds.map((id, index) => {
                 return supabase
-                    .from('poi')
+                    .from('stops')
                     .update({
                         visit_order: startIndex + index,
                     })

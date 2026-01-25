@@ -57,7 +57,7 @@ export default function AddPOIScreen() {
                 landmark_id: landmarkId,
                 visit_order: nextOrder,
             }
-            const { error } = await supabase.from('poi').insert(newPoi);
+            const { error } = await supabase.from('stops').insert(newPoi);
 
             if (error) throw error;
 
