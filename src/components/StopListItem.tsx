@@ -53,7 +53,7 @@ const StopListItem = ({
                         numberOfLines={1}
                         ellipsizeMode="tail"
                     >
-                        {landmark.municipality}
+                        {landmark.created_by_user ? "Custom" : landmark.municipality}
                     </Text>
                 </VStack>
             </HStack>
