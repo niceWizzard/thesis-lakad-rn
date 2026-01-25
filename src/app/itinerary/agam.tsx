@@ -169,6 +169,23 @@ const CreateWithAgamScreen = () => {
         setValue(field, itemsToSelect, { shouldValidate: true });
     };
 
+    const toggleAllLocations = () => {
+        // Check if all districts are already selected
+        const allDistrictIds = DISTRICTS.map(d => d.id);
+        const isEverythingSelected = selectedDistricts.length === allDistrictIds.length;
+
+        if (isEverythingSelected) {
+            // Deselect Everything
+            setValue('districts', [], { shouldValidate: true });
+            setValue('municipalities', [], { shouldValidate: true });
+        } else {
+            // Select Everything
+            const allMunicipalities = Object.values(DISTRICT_TO_MUNICIPALITY_MAP).flat();
+            setValue('districts', allDistrictIds, { shouldValidate: true });
+            setValue('municipalities', allMunicipalities, { shouldValidate: true });
+        }
+    };
+
     const toggleDistrictWithChildren = (districtId: string) => {
         // 1. Create a mutable copy of the children array
         const districtChildren = DISTRICT_TO_MUNICIPALITY_MAP[districtId as LandmarkDistrict] || [];
@@ -340,6 +357,13 @@ const CreateWithAgamScreen = () => {
                                         </AccordionTrigger>
                                     </AccordionHeader>
                                     <AccordionContent>
+                                        <HStack className="justify-start px-2">
+                                            <TouchableOpacity onPress={toggleAllLocations}>
+                                                <Text size="xs" className="text-primary-600 font-bold uppercase tracking-wider">
+                                                    {selectedDistricts.length === DISTRICTS.length ? "Deselect All Districts" : "Select All Districts"}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </HStack>
                                         <VStack className="p-2 gap-4">
                                             {DISTRICTS.map((district) => {
                                                 const isDistrictActive = selectedDistricts.includes(district.id);
