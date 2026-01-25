@@ -33,12 +33,16 @@ export const fetchArchivedLandmarks = async () => {
 
 
 
-export const fetchLandmarkById = async (id: number) => {
+export const fetchLandmarkById = async (id: number | string) => {
+    if(typeof id === 'string' && Number.isNaN(Number.parseInt(id))) {
+        throw new Error("Invalid ID. Must be a number.")
+    }
+    const parsedId = Number(id)
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
         .eq('created_by_user', false)
-        .eq('id', id)
+        .eq('id', parsedId)
         .order('created_at', { ascending: false })
         .single();
 

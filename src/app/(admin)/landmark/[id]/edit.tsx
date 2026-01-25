@@ -11,6 +11,7 @@ import { Box } from '@/components/ui/box';
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
+import { fetchLandmarkById } from '@/src/utils/fetchLandmarks';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -27,11 +28,7 @@ export default function AdminLandmarkEditScreen() {
 
     const { data: landmark, isLoading } = useQuery({
         queryKey: ['landmark', id],
-        queryFn: async () => {
-            const { data, error } = await supabase.from('landmark').select('*').eq('id', id as any).single();
-            if (error) throw error;
-            return data;
-        },
+        queryFn: () => fetchLandmarkById(id.toString()),
         enabled: !!id,
     });
 
