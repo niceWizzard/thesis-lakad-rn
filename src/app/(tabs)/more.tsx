@@ -34,7 +34,7 @@ function MoreTab() {
             id: '1',
             title: 'Account Settings',
             icon: Settings,
-            onPress: () => Alert.alert('Settings', 'Settings screen coming soon!'),
+            onPress: () => router.navigate('/profile/settings'),
         },
         {
             id: '2',
@@ -57,7 +57,9 @@ function MoreTab() {
     ];
 
     if (isAdmin)
-        menuItems.push(
+        menuItems.splice(
+            menuItems.length - 1,
+            0,
             {
                 id: '5',
                 title: 'Admin Mode',
