@@ -291,7 +291,7 @@ const ReorderScreen = () => {
                             </>
                         )}
 
-                        <Box className="py-2 bg-background-50">
+                        <Box className="p-2 bg-background-50">
                             <Text size="xs" className="uppercase font-bold text-typography-400">Drag to Reorder Stops</Text>
                         </Box>
                     </VStack>
