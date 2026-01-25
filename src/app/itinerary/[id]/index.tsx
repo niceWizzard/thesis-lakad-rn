@@ -52,6 +52,7 @@ import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { Landmark } from '@/src/model/landmark.types';
 import { formatDistance } from '@/src/utils/format/distance';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
@@ -276,9 +277,13 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
+                    <NavigatingModeMapViewContent
+                        show={mode === Mode.Navigating}
+                        targetLandmark={nextUnvisitedStop?.landmark!}
+                    />
                     <ViewingModeMapViewContent
                         stops={itinerary.stops}
-                        mode={mode}
+                        show={mode === Mode.Viewing}
                     />
                 </MapView>
 
@@ -333,10 +338,24 @@ export default function ItineraryView() {
 }
 
 
+function NavigatingModeMapViewContent({ show, targetLandmark }: { show: boolean, targetLandmark: Landmark }) {
+    if (!show)
+        return null
+
+    return (
+        <>
+            <LandmarkMarker
+                landmark={targetLandmark}
+                isSelected={false}
+            />
+        </>
+    )
+}
 
 
-
-function ViewingModeMapViewContent({ stops, mode }: { stops: POIWithLandmark[], mode: Mode }) {
+function ViewingModeMapViewContent({ stops, show }: { stops: POIWithLandmark[], show: boolean }) {
+    if (!show)
+        return null
     return (
         <>
             {
