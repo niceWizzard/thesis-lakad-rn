@@ -19,11 +19,8 @@ const PINS = {
 
 interface LandmarkMapViewProps {
     cameraRef: React.RefObject<Camera | null>;
-    sheetContent?: React.ReactNode;
     children?: React.ReactNode;
     overlays?: React.ReactNode;
-    isSheetOpen: boolean;
-    onSheetClose: () => void;
     mapViewProps?: ComponentProps<typeof MapView>
 }
 
@@ -31,9 +28,6 @@ const CustomMapView = ({
     cameraRef,
     children,        // Content INSIDE the MapView (Markers, Shapes)
     overlays,        // Content OUTSIDE the MapView (FABs, Search)
-    sheetContent,    // Content inside the Sheet
-    isSheetOpen,
-    onSheetClose,
     mapViewProps,
 }: LandmarkMapViewProps) => {
     return (
