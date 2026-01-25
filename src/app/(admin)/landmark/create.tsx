@@ -8,6 +8,7 @@ import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
+import { createLandmark } from '@/src/utils/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -52,22 +53,19 @@ export default function AdminLandmarkCreateScreen() {
 
             const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
 
-            const { error: dbError } = await supabase
-                .from('landmark')
-                .insert([{
-                    name: formData.name,
-                    description: formData.description,
-                    latitude: parseFloat(formData.latitude),
-                    longitude: parseFloat(formData.longitude),
-                    type: formData.type,
-                    district: formData.district,
-                    municipality: formData.municipality,
-                    gmaps_rating: parseFloat(formData.gmaps_rating || '0'),
-                    image_url: publicUrl,
-                    created_at: new Date().toISOString(),
-                }]);
+            await createLandmark({
+                name: formData.name,
+                description: formData.description,
+                latitude: parseFloat(formData.latitude),
+                longitude: parseFloat(formData.longitude),
+                type: formData.type,
+                district: formData.district,
+                municipality: formData.municipality,
+                gmaps_rating: parseFloat(formData.gmaps_rating || '0'),
+                image_url: publicUrl,
+                created_at: new Date().toISOString(),
+            })
 
-            if (dbError) throw dbError;
             await queryClient.fetchQuery({ queryKey: ['landmarks'], queryFn: fetchLandmarks });
         },
         onSuccess: () => {
