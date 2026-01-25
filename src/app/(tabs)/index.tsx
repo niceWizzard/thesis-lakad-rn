@@ -30,7 +30,7 @@ const ExploreTab = () => {
     const sheetRef = useRef<BottomSheet>(null);
 
     // Define snap points: 0 is closed, 1 is the 40% mark
-    const snapPoints = useMemo(() => ["60%",], []);
+    const snapPoints = useMemo(() => ["30%", "60%",], []);
 
     const { landmarks } = useLandmarks()
 
@@ -69,9 +69,9 @@ const ExploreTab = () => {
     const handleLandmarkLocate = () => {
         if (!selectedLandmark) return;
         camera.current?.setCamera({
-            zoomLevel: 16,
+            zoomLevel: 20,
             animationDuration: 1000,
-            centerCoordinate: [selectedLandmark.longitude, selectedLandmark.latitude],
+            centerCoordinate: [selectedLandmark.longitude, selectedLandmark.latitude - 0.00015],
         });
     };
 
@@ -158,9 +158,12 @@ const ExploreTab = () => {
                                 <Button
                                     className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
                                     onPress={() => {
-                                        router.push({
+                                        router.navigate({
                                             pathname: '/landmark/[id]/view',
-                                            params: { id: selectedLandmark.id.toString() },
+                                            params: {
+                                                id: selectedLandmark.id.toString(),
+                                                previewMode: 'true',
+                                            },
                                         });
                                     }}
                                 >

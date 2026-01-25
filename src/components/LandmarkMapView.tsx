@@ -24,7 +24,6 @@ const ReligiousPin = require("@/assets/images/categories/religious.png")
 
 
 const LandmarkMapView = ({
-    sheetContent,
     children,
     mapViewProps,
     overlays,
@@ -36,7 +35,7 @@ const LandmarkMapView = ({
     landmarks: Landmark[]
     selectedLandmark: Landmark | null
     setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>,
-} & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'sheetContent' | 'cameraRef'>) => {
+} & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'cameraRef'>) => {
     const camera = cameraRef;
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [searchString, setSearchString] = useState('');
@@ -84,9 +83,9 @@ const LandmarkMapView = ({
         };
     }, []);
 
-    const centerMap = (coords: [number, number], zoom = 18) => {
+    const centerMap = (coords: [number, number], zoom = 20) => {
         camera.current?.setCamera({
-            centerCoordinate: coords,
+            centerCoordinate: [coords[0], coords[1] + 0.000055],
             zoomLevel: zoom,
             animationDuration: 1000,
         });
@@ -130,11 +129,6 @@ const LandmarkMapView = ({
                 ...mapViewProps,
             }}
             cameraRef={camera}
-            isSheetOpen={selectedLandmark != null}
-            onSheetClose={() => setSelectedLandmark(null)}
-            sheetContent={(
-                sheetContent
-            )}
             overlays={(
                 <>
                     <ExploreSearchBox

@@ -101,7 +101,7 @@ export default function AdminLandmarkDetailScreen() {
             </AlertDialogHeader>
             <AlertDialogBody>
               <Text size="sm">
-                This will remove "{landmark.name}" from public searches. It will remain in the database to preserve historical itinerary data.
+                This will remove &quot;{landmark.name}&quot; from public searches. It will remain in the database to preserve historical itinerary data.
               </Text>
             </AlertDialogBody>
             <AlertDialogFooter className='mt-3'>
@@ -149,7 +149,10 @@ export default function AdminLandmarkDetailScreen() {
                   variant="outline"
                   action="secondary"
                   size="xs"
-                  onPress={() => router.navigate(`/landmark/${landmark.id}/view`)}
+                  onPress={() => router.navigate({
+                    pathname: `/landmark/[id]/view`,
+                    params: { id: landmark.id.toString(), previewMode: 'true', }
+                  })}
                 >
                   <ButtonText>User View</ButtonText>
                   <ButtonIcon as={Eye} className="ml-1" />

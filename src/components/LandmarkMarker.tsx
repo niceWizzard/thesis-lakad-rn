@@ -17,6 +17,7 @@ const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false }: {
             coordinate={[landmark.longitude, landmark.latitude]}
             anchor={{ x: 0.5, y: 1 }}
             allowOverlapWithPuck
+            isSelected={isSelected}
         >
             <Pressable onPress={() => handleMarkerPress?.(landmark)}
                 style={{ alignItems: 'center' }}
