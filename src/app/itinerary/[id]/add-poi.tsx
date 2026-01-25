@@ -6,6 +6,9 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { useAuthStore } from '@/src/stores/useAuth';
+import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
+import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -15,11 +18,14 @@ import { ActivityIndicator, FlatList } from 'react-native';
 
 export default function AddPOIScreen() {
     const { id: itineraryId, currentCount } = useLocalSearchParams();
+    const { session } = useAuthStore()
     const router = useRouter();
     const { showToast } = useToastNotification();
     const [searchQuery, setSearchQuery] = useState('');
     const [isAdding, setIsAdding] = useState<number | null>(null);
     const queryClient = useQueryClient()
+
+    const userId = session?.user.id;
 
     // Fetch Landmarks that aren't already in the itinerary might be ideal, 
     // but for now, we fetch all and filter by search.
@@ -33,12 +39,18 @@ export default function AddPOIScreen() {
             const { data, error } = await query.limit(20);
             if (error) throw error;
             return data;
-        }
+        },
+        enabled: !!userId,
     });
+
+    if (!userId || !itineraryId) {
+        return null;
+    }
 
     const handleAddStop = async (landmarkId: number) => {
         setIsAdding(landmarkId);
         try {
+            const parsedId = Number(itineraryId);
             const nextOrder = Number(currentCount) + 1;
             const newPoi = {
                 itinerary_id: Number(itineraryId),
@@ -53,7 +65,25 @@ export default function AddPOIScreen() {
                 title: "Added to Itinerary",
             })
 
-            await queryClient.refetchQueries({ queryKey: ['itinerary', itineraryId] })
+            const itinerary = await queryClient.fetchQuery({
+                queryKey: ['itinerary', itineraryId],
+                queryFn: () => fetchItineraryById(userId, parsedId)
+            })
+
+            if (itinerary.stops.length > 1) {
+
+                const newDistance = await calculateItineraryDistance(
+                    itinerary.stops.map((stop) => [stop.landmark.longitude, stop.landmark.latitude])
+                )
+
+                const { error } = await supabase.from('itinerary').update({ distance: newDistance }).eq('id', parsedId);
+                if (error) throw error;
+
+                await queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
+                await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            }
+
+
             router.back(); // Return to the itinerary view
         } catch (e: any) {
             console.error(e);
