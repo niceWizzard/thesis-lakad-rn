@@ -50,6 +50,8 @@ const ReorderScreen = () => {
     const queryClient = useQueryClient();
     const { showToast } = useToastNotification();
 
+    const [queryProgress, setQueryProgress] = useState(0)
+
     const [loadingModalMode, setLoadingModalMode] = useState(LoadingMode.Hidden);
 
     const { data: itinerary, isLoading, refetch, } = useQuery({
@@ -149,12 +151,15 @@ const ReorderScreen = () => {
             if (onGoingStops.length === 0) return;
 
             // 2. Fetch distances only for remaining stops
-            const distanceMatrix = await fetchFullDistanceMatrix(
-                onGoingStops.map(v => ({
+            const distanceMatrix = await fetchFullDistanceMatrix({
+                waypointsWithIds: onGoingStops.map(v => ({
                     coords: [v.landmark.longitude, v.landmark.latitude],
                     id: v.id.toString(),
-                }))
-            );
+                })),
+                onFetchProgress(current, total) {
+                    setQueryProgress(Math.round((current / total) * 100));
+                },
+            });
 
             // 3. Get the optimized order (returns array of IDs)
             setLoadingModalMode(LoadingMode.Optimizing)
@@ -232,7 +237,7 @@ const ReorderScreen = () => {
             case LoadingMode.Updating:
                 return 'Updating...';
             case LoadingMode.Fetching:
-                return 'Fetching...';
+                return `Fetching (${queryProgress}%)`;
             case LoadingMode.Saving:
                 return 'Saving...';
             default:

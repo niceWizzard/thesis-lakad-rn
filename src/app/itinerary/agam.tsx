@@ -101,6 +101,8 @@ const CreateWithAgamScreen = () => {
 
     const isGenerating = state !== GeneratingState.Idle;
 
+    const [queryProgress, setQueryProgress] = useState(0)
+
 
     const { control, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -210,12 +212,15 @@ const CreateWithAgamScreen = () => {
                 return obj;
             }, {} as any);
 
-            const landmarkDistanceMap = await fetchFullDistanceMatrix(
-                filteredLandmarks.map(v => ({
+            const landmarkDistanceMap = await fetchFullDistanceMatrix({
+                waypointsWithIds: filteredLandmarks.map(v => ({
                     id: v.id.toString(),
                     coords: [v.longitude, v.latitude],
-                }))
-            );
+                })),
+                onFetchProgress(current, total) {
+                    setQueryProgress(Math.round((current / total) * 100));
+                }
+            });
 
             setState(GeneratingState.Generating);
 
@@ -273,7 +278,7 @@ const CreateWithAgamScreen = () => {
     function getLoadingText() {
         switch (state) {
             case GeneratingState.Fetching:
-                return "Querying information..."
+                return `Querying information (${queryProgress}%)`
             case GeneratingState.Generating:
                 return "Generating itinerary..."
             case GeneratingState.Saving:

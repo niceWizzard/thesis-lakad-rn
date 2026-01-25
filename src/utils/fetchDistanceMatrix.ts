@@ -7,10 +7,15 @@ const MAX_WAYPOINTS = 25;
  * Fetches a complete distance matrix for any number of points by 
  * breaking them into valid Mapbox API chunks.
  */
-export const fetchFullDistanceMatrix = async (
+export const fetchFullDistanceMatrix = async ({
+    waypointsWithIds,
+    profile = 'driving',
+    onFetchProgress,
+}: {
     waypointsWithIds: { id: string, coords: [number, number] }[],
-    profile: 'driving' | 'walking' | 'cycling' = 'driving'
-): Promise<Record<string, Record<string, number>>> => {
+    profile?: 'driving' | 'walking' | 'cycling',
+    onFetchProgress?: (current: number, total: number) => void,
+}): Promise<Record<string, Record<string, number>>> => {
 
     const n = waypointsWithIds.length;
     const fullMatrix: Record<string, Record<string, number>> = {};
@@ -20,6 +25,9 @@ export const fetchFullDistanceMatrix = async (
     // 12 sources + 13 destinations = 25 total waypoints
     const SOURCE_CHUNK_SIZE = 12;
     const DEST_CHUNK_SIZE = 13;
+
+    const totalRequests = Math.ceil(n / SOURCE_CHUNK_SIZE) * Math.ceil(n / DEST_CHUNK_SIZE);
+    let completedRequests = 0;
 
     for (let i = 0; i < n; i += SOURCE_CHUNK_SIZE) {
         const sources = waypointsWithIds.slice(i, i + SOURCE_CHUNK_SIZE);
@@ -56,6 +64,8 @@ export const fetchFullDistanceMatrix = async (
                         fullMatrix[sourceId][destId] = distance;
                     });
                 });
+                completedRequests++;
+                onFetchProgress?.(completedRequests, totalRequests);
             } catch (error) {
                 console.error("Matrix Sub-request Error:", error);
                 throw error;
