@@ -173,7 +173,7 @@ const LandmarkMapView = ({
                         key={v.id}
                         coordinate={[v.longitude, v.latitude]}
                         anchor={{ x: 0.5, y: 1 }} // Ensures the bottom of the pin touches the coordinate
-                        allowOverlap={false}     // Better for readability
+                        allowOverlapWithPuck
                     >
                         <Pressable onPress={() => handleMarkerPress(v)} style={{ alignItems: 'center' }}>
                             {/* Avatar Container */}
