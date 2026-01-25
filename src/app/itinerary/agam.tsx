@@ -149,6 +149,24 @@ const CreateWithAgamScreen = () => {
         setValue(field, next, { shouldValidate: true });
     };
 
+    const toggleAll = (field: 'districts' | 'types' | 'municipalities', action: 'select' | 'deselect') => {
+        if (action === 'deselect') {
+            setValue(field, [], { shouldValidate: true });
+            return;
+        }
+
+        let itemsToSelect: string[] = [];
+        if (field === 'districts') {
+            itemsToSelect = DISTRICTS.map(d => d.id);
+        } else if (field === 'types') {
+            itemsToSelect = LANDMARK_TYPES;
+        } else if (field === 'municipalities') {
+            itemsToSelect = validMunicipalities;
+        }
+
+        setValue(field, itemsToSelect, { shouldValidate: true });
+    };
+
     const onGenerate = async (formData: FormData) => {
         setState(GeneratingState.Fetching);
         try {
@@ -209,6 +227,21 @@ const CreateWithAgamScreen = () => {
             setState(GeneratingState.Idle)
         }
     };
+
+    const ToggleButtons = ({ field, currentLength, totalLength }: {
+        field: 'districts' | 'types' | 'municipalities',
+        currentLength: number,
+        totalLength: number
+    }) => (
+        <HStack className="justify-end gap-4 px-2 mb-2">
+            <TouchableOpacity onPress={() => toggleAll(field, 'select')}>
+                <Text size="xs" className="text-primary-600 font-bold">Select All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => toggleAll(field, 'deselect')}>
+                <Text size="xs" className="text-typography-500">Deselect All</Text>
+            </TouchableOpacity>
+        </HStack>
+    );
 
 
     function getLoadingText() {
@@ -276,6 +309,11 @@ const CreateWithAgamScreen = () => {
                                         </AccordionTrigger>
                                     </AccordionHeader>
                                     <AccordionContent>
+                                        <ToggleButtons
+                                            field="districts"
+                                            currentLength={selectedDistricts.length}
+                                            totalLength={DISTRICTS.length}
+                                        />
                                         <View className="flex-row flex-wrap gap-2 p-2">
                                             {DISTRICTS.map(d => {
                                                 const active = selectedDistricts.includes(d.id);
@@ -321,6 +359,11 @@ const CreateWithAgamScreen = () => {
                                         </AccordionTrigger>
                                     </AccordionHeader>
                                     <AccordionContent>
+                                        <ToggleButtons
+                                            field="municipalities"
+                                            currentLength={selectedDistricts.length}
+                                            totalLength={DISTRICTS.length}
+                                        />
                                         <View className="flex-row flex-wrap gap-2 p-2">
                                             {MUNICIPALITIES.map(c => {
                                                 const active = selectedMunicipalities.includes(c);
@@ -368,6 +411,11 @@ const CreateWithAgamScreen = () => {
                                         </AccordionTrigger>
                                     </AccordionHeader>
                                     <AccordionContent>
+                                        <ToggleButtons
+                                            field="types"
+                                            currentLength={selectedDistricts.length}
+                                            totalLength={DISTRICTS.length}
+                                        />
                                         <View className="flex-row flex-wrap gap-2 p-2">
                                             {TYPES.map(c => {
                                                 const active = selectedTypes.includes(c.id);
@@ -480,3 +528,6 @@ const CreateWithAgamScreen = () => {
 };
 
 export default CreateWithAgamScreen;
+
+
+
