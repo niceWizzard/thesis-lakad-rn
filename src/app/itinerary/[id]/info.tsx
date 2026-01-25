@@ -4,7 +4,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertCircle, Trash, Type } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, ToastAndroid } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import z from 'zod';
 
 // UI Components
@@ -20,6 +20,7 @@ import { VStack } from '@/components/ui/vstack';
 
 // Helpers
 import { Center } from '@/components/ui/center';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { supabase } from '@/src/utils/supabase';
@@ -40,6 +41,8 @@ const ItineraryInfoScreen = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
+    const { showToast } = useToastNotification()
+
     const { data: itinerary, isLoading } = useQuery({
         queryKey: ['itinerary', id],
         enabled: !!userId && !!id,
@@ -58,16 +61,6 @@ const ItineraryInfoScreen = () => {
             reset({ name: itinerary.name });
         }
     }, [itinerary, reset]);
-
-    const notify = (message: string) => {
-        if (Platform.OS === 'android') {
-            ToastAndroid.show(message, ToastAndroid.SHORT);
-        } else {
-            Alert.alert(message);
-        }
-    };
-
-
 
     if (isLoading) {
         return (
@@ -99,9 +92,15 @@ const ItineraryInfoScreen = () => {
             await queryClient.invalidateQueries({ queryKey: ['itinerary', id] });
 
             reset({ name: form.name }); // Mark as pristine again
-            notify('Trip updated successfully');
-        } catch (e) {
-            notify('Failed to update trip');
+            showToast({
+                title: "Itinerary updated!",
+            })
+        } catch (e: any) {
+            showToast({
+                title: "Something went wrong.",
+                description: "Please try again." + e.message,
+                action: "error",
+            })
         } finally {
             setIsUpdating(false);
         }
@@ -114,11 +113,17 @@ const ItineraryInfoScreen = () => {
             const { error } = await supabase.from('itinerary').delete().eq('id', itinerary.id);
             if (error) throw error;
 
-            notify('Itinerary deleted');
+            showToast({
+                title: "Itinerary deleted!",
+            })
             await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             router.dismissTo('/(tabs)/itineraries')
-        } catch (e) {
-            notify('Failed to delete');
+        } catch (e: any) {
+            showToast({
+                title: "Something went wrong.",
+                description: "Please try again." + e.message,
+                action: "error",
+            })
         } finally {
             setIsUpdating(false);
         }

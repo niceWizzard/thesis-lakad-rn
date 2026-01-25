@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { AlertCircle, Trash, Type, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, ToastAndroid } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import z from 'zod';
 
 import { Box } from '@/components/ui/box';
@@ -18,6 +18,7 @@ import { Modal, ModalBackdrop, ModalBody, ModalContent, ModalFooter, ModalHeader
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { supabase } from '@/src/utils/supabase';
 
@@ -36,6 +37,9 @@ const AccountSettingsScreen = () => {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    const { showToast } = useToastNotification()
+
 
     // 1. Fetch Profile Data
     const { data: userProfile, isLoading } = useQuery({
@@ -62,13 +66,6 @@ const AccountSettingsScreen = () => {
         }
     }, [userProfile, reset]);
 
-    const notify = (message: string) => {
-        if (Platform.OS === 'android') {
-            ToastAndroid.show(message, ToastAndroid.SHORT);
-        } else {
-            Alert.alert(message);
-        }
-    };
 
     const onUpdateName = async (form: ProfileForm) => {
         setIsUpdating(true);
@@ -82,9 +79,15 @@ const AccountSettingsScreen = () => {
 
             await queryClient.invalidateQueries({ queryKey: ['profile', userId] });
             reset({ name: form.name });
-            notify('Profile updated successfully');
-        } catch (e) {
-            notify('Failed to update profile');
+            showToast({
+                title: "Itinerary updated!",
+            })
+        } catch (e: any) {
+            showToast({
+                title: "Something went wrong.",
+                description: "Please try again." + e.message,
+                action: "error",
+            })
         } finally {
             setIsUpdating(false);
         }
@@ -101,15 +104,20 @@ const AccountSettingsScreen = () => {
             }
 
             console.log('Account deleted successfully');
-            notify('Account deleted');
+            showToast({
+                title: "Account deleted!"
+            })
 
-            // IMPORTANT: Log the user out locally since their auth record is gone
             await supabase.auth.signOut();
             router.replace("/signin");
 
         } catch (e: any) {
             console.error("Delete Error:", e);
-            notify(`Delete failed: ${e.message}`);
+            showToast({
+                title: "Something went wrong.",
+                description: "Please try again." + e.message,
+                action: "error",
+            })
         }
     }
 
