@@ -107,9 +107,9 @@ const CreateWithAgamScreen = () => {
         defaultValues: {
             maxDistance: '100',
             maxPoi: '10',
-            districts: DISTRICTS.map(d => d.id),
-            types: TYPES.map(c => c.id),
-            municipalities: MUNICIPALITIES,
+            districts: [],
+            types: [],
+            municipalities: [],
         },
         mode: 'onChange',
     });
@@ -254,7 +254,7 @@ const CreateWithAgamScreen = () => {
 
                                     <Box className="bg-primary-50 px-4 py-2 rounded-lg border border-primary-100 items-center">
                                         <Text size="xs" className="font-bold text-primary-700 uppercase tracking-tighter">Pool Size</Text>
-                                        <Heading size="md" className="text-primary-800">{availableCount}</Heading>
+                                        <Heading size="md" className="text-primary-800">{availableCount} / {landmarks.length}</Heading>
                                     </Box>
                                 </HStack>
                             </VStack>
