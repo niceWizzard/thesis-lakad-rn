@@ -22,8 +22,8 @@ import { VStack } from '@/components/ui/vstack';
 // Logic & Types
 import { Stop, StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
-import { fetchDirections, MapboxRoute } from '@/src/utils/fetchDirections';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
+import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
 import { supabase } from '@/src/utils/supabase';
 
 // Icons
