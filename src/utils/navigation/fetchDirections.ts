@@ -35,7 +35,7 @@ export interface MapboxRoute {
     weight: number
     duration: number
     distance: number
-    geometry: GeoJSON.Geometry
+    geometry: GeoJSON.LineString
     legs: MapboxLeg[]
 }
 

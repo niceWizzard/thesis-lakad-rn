@@ -50,6 +50,7 @@ import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMarker from '@/src/components/LandmarkMarker';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
+import { useQueryCommercialLandmarks } from '@/src/hooks/useQueryCommercialLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { Landmark } from '@/src/model/landmark.types';
@@ -74,6 +75,27 @@ const getStepIcon = (instruction: string) => {
     return ArrowUp; // Default to straight
 };
 
+
+// Returns distance in kilometers
+const getDistanceToSegment = (p: [number, number], a: [number, number], b: [number, number]) => {
+    const crossTrackDistance = (point: [number, number], start: [number, number], end: [number, number]) => {
+        // Standard formula for distance from point to line segment
+        // Using Haversine for the "points" but simple projection for the segment
+        const dy = end[1] - start[1];
+        const dx = end[0] - start[0];
+        if (dx === 0 && dy === 0) return getHaversineDistance(point, start);
+
+        const t = ((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / (dx * dx + dy * dy);
+
+        if (t < 0) return getHaversineDistance(point, start);
+        if (t > 1) return getHaversineDistance(point, end);
+
+        const closestPoint: [number, number] = [start[0] + t * dx, start[1] + t * dy];
+        return getHaversineDistance(point, closestPoint);
+    };
+    return crossTrackDistance(p, a, b);
+};
+
 export default function ItineraryView() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
@@ -85,6 +107,7 @@ export default function ItineraryView() {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
     const bottomSheetRef = useRef<BottomSheet>(null);
+    const { showToast } = useToastNotification();
 
 
     const { session } = useAuthStore();
@@ -96,13 +119,43 @@ export default function ItineraryView() {
         queryFn: async () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
     });
 
+    const {
+        landmarks: commercials,
+    } = useQueryCommercialLandmarks()
+
+    const closeCommercialsInPath = useMemo(() => {
+        if (mode !== Mode.Navigating || !navigationRoute.length || !commercials) {
+            return [];
+        }
+        const pathCoordinates = navigationRoute[0].geometry.coordinates;
+
+        return commercials.filter((poi) => {
+            const poiCoords: [number, number] = [poi.longitude, poi.latitude];
+
+            // 1. Quick check: Is the POI within 100m of the USER currently?
+            // (This is a performance optimization)
+            const distToUser = getHaversineDistance(userLocation!, poiCoords);
+            if (distToUser <= 100) return true;
+
+            // 2. Deep check: Is the POI within 100m of ANY segment of the path?
+            for (let i = 0; i < pathCoordinates.length - 1; i++) {
+                const start = pathCoordinates[i] as [number, number];
+                const end = pathCoordinates[i + 1] as [number, number];
+
+                const distanceToSegment = getDistanceToSegment(poiCoords, start, end);
+                if (distanceToSegment <= 100) { // 100 meters
+                    return true;
+                }
+            }
+            return false;
+        });
+    }, [mode, navigationRoute, commercials, userLocation]);
 
     const nextUnvisitedStop = useMemo(() => {
         if (!itinerary) return null;
         return itinerary.stops.find(stop => !stop.visited_at) || null;
     }, [itinerary]);
 
-    const { showToast } = useToastNotification();
 
     useEffect(() => {
         (async () => {
@@ -336,6 +389,14 @@ export default function ItineraryView() {
                         stops={itinerary.stops}
                         show={mode === Mode.Viewing}
                     />
+                    {mode === Mode.Navigating && closeCommercialsInPath.map(poi => (
+                        <LandmarkMarker
+                            key={`nearby-${poi.id}`}
+                            landmark={poi}
+                            isSelected={false}
+                        // You might want a different pin color for commercials
+                        />
+                    ))}
                 </MapView>
 
                 <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' >
@@ -397,7 +458,7 @@ function NavigatingModeMapViewContent({ show, targetLandmark }: { show: boolean,
         <>
             <LandmarkMarker
                 landmark={targetLandmark}
-                isSelected={false}
+                isSelected
             />
         </>
     )
