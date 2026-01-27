@@ -1,7 +1,7 @@
+import { MAPBOX_DIRECTIONS_URL } from "@/src/constants/url";
 import { MapboxResponse } from "../navigation/fetchDirections";
 
 const MAX_WAYPOINTS = 25
-const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox'
 
 const ACCESS_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
 
@@ -11,7 +11,7 @@ export async function calculateItineraryDistance(waypoints: [number, number][]) 
     for (let i = 0; i < waypoints.length; i += MAX_WAYPOINTS) {
         const chunk = waypoints.slice(i, i + MAX_WAYPOINTS)
         const chunkedWaypoint = chunk.map(v => v.join(',')).join(';')
-        const url = new URL(`${BASE_URl}/driving/` + chunkedWaypoint);
+        const url = new URL(`${MAPBOX_DIRECTIONS_URL}/driving/` + chunkedWaypoint);
         url.searchParams.set('steps', 'false')
         url.searchParams.set('alternatives', 'false')
         url.searchParams.set('access_token', ACCESS_TOKEN)

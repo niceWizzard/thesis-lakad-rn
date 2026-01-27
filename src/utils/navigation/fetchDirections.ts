@@ -1,5 +1,4 @@
-
-const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox'
+import { MAPBOX_DIRECTIONS_URL } from "@/src/constants/url";
 
 const ACCESS_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
 
@@ -70,7 +69,7 @@ export const fetchDirections = async ({
     profile?: 'driving' | 'walking' | 'cycling',
 }): Promise<MapboxResponse> => {
     const coordinates = waypoints.map(v => v.join(',')).join(';');
-    const url = new URL(`${BASE_URl}/${profile}/` + coordinates)
+    const url = new URL(`${MAPBOX_DIRECTIONS_URL}/${profile}/` + coordinates)
     url.searchParams.set('geometries', 'geojson')
     url.searchParams.set('steps', steps.toString())
     url.searchParams.set('alternatives', alternatives.toString())
