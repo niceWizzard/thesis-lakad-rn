@@ -1,4 +1,4 @@
-import { ACCESS_TOKEN } from "../constants/token";
+import { ACCESS_TOKEN } from "../../constants/token";
 
 /**
  * Fetches a complete distance matrix for any number of points by 

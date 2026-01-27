@@ -42,7 +42,7 @@ import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
-import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
+import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
 import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';

@@ -1,4 +1,4 @@
-import { MapboxResponse } from "./fetchDirections";
+import { MapboxResponse } from "../fetchDirections";
 
 const MAX_WAYPOINTS = 25
 const BASE_URl = 'https://api.mapbox.com/directions/v5/mapbox'

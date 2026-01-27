@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "../supabase";
 
 export const fetchDistanceMatrix = async (landmarkIds: number[]): Promise<Record<string, Record<string, number>>> => {
     // 1. Fetch distances where both source and destination are in your selected ID list

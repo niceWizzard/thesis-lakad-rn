@@ -1,7 +1,7 @@
 import { Button, ButtonText } from '@/components/ui/button'
 import { VStack } from '@/components/ui/vstack'
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks'
-import { calculateDistanceMatrix } from '@/src/utils/calculateDistanceMatrix'
+import { calculateDistanceMatrix } from '@/src/utils/distance/calculateDistanceMatrix'
 import { supabase } from '@/src/utils/supabase'
 import { useMutation } from '@tanstack/react-query'
 import React from 'react'

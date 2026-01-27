@@ -19,7 +19,7 @@ import { VStack } from '@/components/ui/vstack';
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import CustomMapView from '@/src/components/CustomMapView';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { createLandmark, insertLandmarkToItinerary } from '@/src/utils/insertLandmark';
+import { createLandmark, insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import Mapbox, { PointAnnotation } from '@rnmapbox/maps';
 

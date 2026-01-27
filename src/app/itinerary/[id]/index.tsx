@@ -53,8 +53,8 @@ import StopListItem from '@/src/components/StopListItem';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { Landmark } from '@/src/model/landmark.types';
+import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
 import { formatDistance } from '@/src/utils/format/distance';
-import { getHaversineDistance } from '@/src/utils/getHaversineDistance';
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
