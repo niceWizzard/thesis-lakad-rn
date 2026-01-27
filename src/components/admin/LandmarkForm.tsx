@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import Mapbox, { MapView, PointAnnotation } from '@rnmapbox/maps';
 import * as ImagePicker from 'expo-image-picker';
 import debounce from 'lodash.debounce';
-import { AlertCircle, Camera, CheckCircle2, ChevronDown, Globe, MapPin, Navigation2, Save, Star, Tag, Type } from 'lucide-react-native';
+import { AlertCircle, Camera, CheckCircle2, ChevronDown, Globe, Save, Star, Tag, Type } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonGroup, ButtonIcon, ButtonText } from '@/components/ui/button';
@@ -28,6 +27,7 @@ import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { useNavigation, useRouter } from 'expo-router';
 import * as z from 'zod';
+import { LocationDialogSelection } from '../LocationDialogSelection';
 
 type FormData = z.infer<typeof createAndEditLandmarkSchema>;
 
@@ -53,6 +53,7 @@ export function LandmarkForm({
     const [pendingImageData, setPendingImageData] = useState<{ base64?: string, remoteUrl?: string } | null>(null);
     const [isVerifyingUrl, setIsVerifyingUrl] = useState(false);
     const [showDiscardAlert, setShowDiscardAlert] = useState(false);
+    const [isMapSelectionOpen, setIsMapSelectionOpen] = useState(false)
     const router = useRouter();
     const navigation = useNavigation();
 
@@ -157,6 +158,16 @@ export function LandmarkForm({
                     </ModalBody>
                 </ModalContent>
             </Modal>
+            <LocationDialogSelection
+                show={isMapSelectionOpen}
+                onClose={() => setIsMapSelectionOpen(false)}
+                onConfirmLocation={(coords) => {
+                    setValue('longitude', coords[0].toString());
+                    setValue('latitude', coords[1].toString());
+                    setIsMapSelectionOpen(false);
+                }}
+                initialLocation={isValidCoordinates ? [Number(longitude), Number(latitude)] : undefined}
+            />
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 className="bg-background-0"
@@ -337,74 +348,40 @@ export function LandmarkForm({
                                 <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.description?.message}</FormControlErrorText></FormControlError>
                             </FormControl>
 
-                            <View
-                            >
-                                <Heading size='xs' className='uppercase mb-4'>
-                                    Coordinates</Heading>
-                                {
-                                    isValidCoordinates && (
-                                        <MapView
-                                            style={{
-                                                height: 480
-                                            }}
-                                            scrollEnabled={false}
-                                            zoomEnabled={false}
-                                            pitchEnabled={false}
-                                            rotateEnabled={false}
-                                        >
-                                            <Mapbox.Camera
-                                                defaultSettings={{
-                                                    centerCoordinate: [Number.parseFloat(longitude), Number.parseFloat(latitude)],
-                                                    zoomLevel: 20,
-                                                }}
-                                                animationDuration={1000}
-                                                centerCoordinate={[
-                                                    Number.parseFloat(longitude) || 0,
-                                                    Number.parseFloat(latitude) || 0
-                                                ]}
-                                                zoomLevel={15}
-                                            />
-                                            <PointAnnotation
-                                                id='point'
-                                                coordinate={[
-                                                    Number.parseFloat(longitude) || 0,
-                                                    Number.parseFloat(latitude) || 0
-                                                ]}
-                                            >
-                                                <Box className="h-8 w-8 bg-primary-500 rounded-full border-2 border-white items-center justify-center shadow-lg">
-                                                    <Icon as={MapPin} className="text-white" size="xs" />
-                                                </Box>
-                                            </PointAnnotation>
-                                        </MapView>
-                                    )
-                                }
-                            </View>
-
                             <HStack space="md">
                                 <Box className="flex-1">
-                                    <FormControl isInvalid={!!errors.latitude}>
+                                    <FormControl isInvalid={!!errors.latitude} isReadOnly>
                                         <FormControlLabel className="mb-1">
                                             <FormControlLabelText size="xs" className="uppercase font-bold">Latitude</FormControlLabelText>
                                         </FormControlLabel>
                                         <Controller control={control} name="latitude" render={({ field: { onChange, value } }) => (
-                                            <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Navigation2} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>
+                                            <Input size="md" className="rounded-xl">
+                                                <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                            </Input>
                                         )} />
                                         <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.latitude?.message}</FormControlErrorText></FormControlError>
                                     </FormControl>
                                 </Box>
                                 <Box className="flex-1">
-                                    <FormControl isInvalid={!!errors.longitude}>
+                                    <FormControl isInvalid={!!errors.longitude} isReadOnly>
                                         <FormControlLabel className="mb-1">
                                             <FormControlLabelText size="xs" className="uppercase font-bold">Longitude</FormControlLabelText>
                                         </FormControlLabel>
                                         <Controller control={control} name="longitude" render={({ field: { onChange, value } }) => (
-                                            <Input size="md" className="rounded-xl"><InputSlot className="pl-3"><Icon as={MapPin} size="sm" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>
+                                            <Input size="md" className="rounded-xl">
+                                                <InputField value={value} onChangeText={onChange} keyboardType="numeric" />
+                                            </Input>
                                         )} />
                                         <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.longitude?.message}</FormControlErrorText></FormControlError>
                                     </FormControl>
                                 </Box>
                             </HStack>
-
+                            <Button
+                                action='secondary'
+                                onPress={() => setIsMapSelectionOpen(true)}
+                            >
+                                <ButtonText>{longitude ? 'Change' : 'Select'} coordinate</ButtonText>
+                            </Button>
 
                         </VStack>
                     </VStack>
