@@ -186,22 +186,26 @@ const ReorderScreen = () => {
 
             setLoadingModalMode(LoadingMode.Saving)
 
-            const updates = optimizedIds.map((id, index) => {
-                return supabase
+            optimizedIds.forEach(async (id, index) => {
+                const stopId = onGoingStops.find(v => v.landmark_id === Number(id))!.id;
+                const { error } = await supabase
                     .from('stops')
                     .update({
                         visit_order: startIndex + index,
                     })
-                    .eq('id', Number.parseInt(id));
+                    .eq('id', stopId);
+                if (error)
+                    throw error;
             });
 
-            const itineraryUpdate = supabase
+            const { error } = await supabase
                 .from('itinerary')
                 .update({ distance: distance })
                 .eq('id', itinerary.id)
 
+            if (error)
+                throw error;
 
-            await Promise.allSettled([...updates, itineraryUpdate]);
             await refetch();
             showToast({
                 title: "Optimization Complete",

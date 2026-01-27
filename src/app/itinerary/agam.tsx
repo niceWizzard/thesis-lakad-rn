@@ -204,13 +204,6 @@ const CreateWithAgamScreen = () => {
 
             if (!result || result.length === 0) throw new Error("No valid route found.");
 
-            console.log("DISTANCE FROM AGAM: ", distance)
-            console.log("DISTANCE FROM MAP", result.reduce((acc, cur, index) => {
-                if (index === result.length - 1) return acc;
-                const next = result[index + 1]
-                return landmarkDistanceMap[cur][next] + acc
-            }, 0))
-
 
             setState(GeneratingState.Saving)
 
