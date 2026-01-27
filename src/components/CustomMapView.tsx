@@ -11,7 +11,8 @@ interface LandmarkMapViewProps {
     cameraRef: React.RefObject<Camera | null>;
     children?: React.ReactNode;
     overlays?: React.ReactNode;
-    mapViewProps?: ComponentProps<typeof MapView>
+    mapViewProps?: ComponentProps<typeof MapView>,
+    cameraProps?: ComponentProps<typeof Camera>,
 }
 
 const CustomMapView = ({
@@ -19,6 +20,7 @@ const CustomMapView = ({
     children,        // Content INSIDE the MapView (Markers, Shapes)
     overlays,        // Content OUTSIDE the MapView (FABs, Search)
     mapViewProps,
+    cameraProps,
 }: LandmarkMapViewProps) => {
     return (
         <Box className="flex-1 bg-background-0">
@@ -35,6 +37,7 @@ const CustomMapView = ({
                         ne: [122, 17],
                         sw: [119, 13],
                     }}
+                    {...cameraProps}
                 />
                 <LocationPuck pulsing={{ isEnabled: true }} />
                 {children}
