@@ -1,11 +1,13 @@
 import { ACCESS_TOKEN } from "../constants/token";
 
-export const snapLocations = async ({ data, profile }: {
+export const snapLocations = async ({ data, profile = 'driving-car', radius = 1500 }: {
     data: {
-        coords: [number, number];
+        coords: GeoJSON.Position;
         id: string;
-    }[]; profile: string;
-}) => {
+    }[];
+    profile?: 'driving-car';
+    radius?: number;
+}): Promise<GeoJSON.Position[]> => {
     const url = `https://api.openrouteservice.org/v2/snap/${profile}`;
     const response = await fetch(url, {
         method: 'POST',
@@ -15,12 +17,12 @@ export const snapLocations = async ({ data, profile }: {
         },
         body: JSON.stringify({
             locations: data.map(v => v.coords),
-            radius: 2000 // Look up to 5km for a road
+            radius
         })
     });
 
     const resp = await response.json();
-    if (resp.error) throw new Error("Snap failed");
+    if (resp.error) throw new Error("Snap failed. " + resp.error.message);
 
     // Map back to the snapped coordinates provided by 
     return resp.locations.map((loc: any, index: number) => {
