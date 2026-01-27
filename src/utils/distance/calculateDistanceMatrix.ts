@@ -55,6 +55,8 @@ export const calculateDistanceMatrix = async ({
             const sourceId = waypointsWithIds[sIdx].id;
             row.forEach((distance, dIdx) => {
                 const destId = waypointsWithIds[dIdx].id;
+                if (distance == null)
+                    throw new Error(`Invalid location at index ${sourceId} to ${destId}`)
                 fullMatrix[sourceId][destId] = distance;
             });
         });
@@ -99,10 +101,12 @@ export const calculateDistanceMatrix = async ({
             const data = await response.json();
             if (data.error) throw new Error(`ORS Chunk Error: ${JSON.stringify(data.error)}`);
 
-            data.distances.forEach((row: number[], sIdx: number) => {
+            data.distances.forEach((row: (number | null)[], sIdx: number) => {
                 const sourceId = sourcesSlice[sIdx].id;
                 row.forEach((distance, dIdx) => {
                     const destId = destsSlice[dIdx].id;
+                    if (distance == null)
+                        throw new Error(`Invalid location at index ${sourceId} to ${destId}`)
                     fullMatrix[sourceId][destId] = distance;
                 });
             });
