@@ -40,6 +40,12 @@ function MoreTab() {
             onPress: () => router.navigate('/(admin)/landmark/archived'),
         },
         {
+            id: '5',
+            title: 'Manage Distance Matrix',
+            icon: Key,
+            onPress: () => router.navigate('/(admin)/landmark/matrix'),
+        },
+        {
             id: '3',
             title: 'Change Password',
             icon: Key,

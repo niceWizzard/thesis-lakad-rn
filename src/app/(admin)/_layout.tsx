@@ -61,6 +61,12 @@ const AdminRootLayout = () => {
                     headerTitle: "Archived Landmarks"
                 }}
             />
+            <Stack.Screen
+                name='landmark/matrix'
+                options={{
+                    headerTitle: ''
+                }}
+            />
 
 
         </Stack>

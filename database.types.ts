@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      distances: {
+        Row: {
+          created_at: string
+          destination: number
+          distance: number
+          source: number
+        }
+        Insert: {
+          created_at?: string
+          destination: number
+          distance: number
+          source: number
+        }
+        Update: {
+          created_at?: string
+          destination?: number
+          distance?: number
+          source?: number
+        }
+        Relationships: []
+      }
       itinerary: {
         Row: {
           created_at: string

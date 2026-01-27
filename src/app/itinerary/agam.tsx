@@ -42,7 +42,7 @@ import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useLandmarks } from '@/src/hooks/useLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
-import { calculateDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
+import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
 import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
@@ -186,15 +186,10 @@ const CreateWithAgamScreen = () => {
                 return obj;
             }, {} as any);
 
-            const landmarkDistanceMap = await calculateDistanceMatrix({
-                waypointsWithIds: filteredLandmarks.map(v => ({
-                    id: v.id.toString(),
-                    coords: [v.longitude, v.latitude],
-                })),
-                onFetchProgress(current, total) {
-                    setQueryProgress(Math.round((current / total) * 100));
-                }
-            });
+            const landmarkDistanceMap = await fetchDistanceMatrix(
+                filteredLandmarks.map(v => v.id)
+            );
+
 
             setState(GeneratingState.Generating);
 
@@ -210,6 +205,13 @@ const CreateWithAgamScreen = () => {
             );
 
             if (!result || result.length === 0) throw new Error("No valid route found.");
+
+            console.log("DISTANCE FROM AGAM: ", distance)
+            console.log("DISTANCE FROM MAP", result.reduce((acc, cur, index) => {
+                if (index === result.length - 1) return acc;
+                const next = result[index + 1]
+                return landmarkDistanceMap[cur][next] + acc
+            }, 0))
 
 
             setState(GeneratingState.Saving)

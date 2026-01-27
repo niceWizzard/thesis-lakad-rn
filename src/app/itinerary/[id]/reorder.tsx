@@ -28,7 +28,7 @@ import { Landmark } from '@/src/model/landmark.types';
 import { StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
-import { calculateDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
+import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { formatDistance } from '@/src/utils/format/distance';
 import { supabase } from '@/src/utils/supabase';
@@ -151,15 +151,9 @@ const ReorderScreen = () => {
             if (onGoingStops.length === 0) return;
 
             // 2. Fetch distances only for remaining stops
-            const distanceMatrix = await calculateDistanceMatrix({
-                waypointsWithIds: onGoingStops.map(v => ({
-                    coords: [v.landmark.longitude, v.landmark.latitude],
-                    id: v.id.toString(),
-                })),
-                onFetchProgress(current, total) {
-                    setQueryProgress(Math.round((current / total) * 100));
-                },
-            });
+            const distanceMatrix = await fetchDistanceMatrix(
+                onGoingStops.map(v => v.landmark_id)
+            );
 
             // 3. Get the optimized order (returns array of IDs)
             setLoadingModalMode(LoadingMode.Optimizing)
@@ -177,7 +171,7 @@ const ReorderScreen = () => {
                     distance = calculatedDistance;
                     break;
                 }
-                if (i == 14) {
+                if (i === 14) {
                     throw new Error("Could not optimize any further.")
                 }
             }
