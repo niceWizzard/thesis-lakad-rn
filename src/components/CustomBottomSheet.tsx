@@ -50,8 +50,8 @@ const CustomBottomSheet = ({
         (props: any) => (
             <BottomSheetBackdrop
                 {...props}
-                appearsOnIndex={0}
-                disappearsOnIndex={-1}
+                appearsOnIndex={1}
+                disappearsOnIndex={0}
                 style={{
                     zIndex: 100,
                 }}
