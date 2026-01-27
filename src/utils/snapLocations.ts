@@ -1,4 +1,4 @@
-import { ACCESS_TOKEN } from "./fetchDistanceMatrix";
+import { ACCESS_TOKEN } from "../constants/token";
 
 export const snapLocations = async ({ data, profile }: {
     data: {

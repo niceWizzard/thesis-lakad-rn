@@ -1,6 +1,5 @@
+import { ACCESS_TOKEN } from "../constants/token";
 import { snapLocations } from "./snapLocations";
-
-export const ACCESS_TOKEN = process.env.EXPO_PUBLIC_ORS_KEY ?? "";
 
 /**
  * Fetches a complete distance matrix for any number of points by 
