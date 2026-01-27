@@ -68,6 +68,19 @@ const AdminRootLayout = () => {
                 }}
             />
 
+            <Stack.Screen
+                name='landmark/create-commercial'
+                options={{
+                    headerTitle: ''
+                }}
+            />
+
+            <Stack.Screen
+                name='landmark/[id]/edit-commercial'
+                options={{
+                    headerTitle: ''
+                }}
+            />
 
         </Stack>
     )
