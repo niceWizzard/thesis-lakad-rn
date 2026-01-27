@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router'
-import { Ellipsis, MapPinned, Navigation } from 'lucide-react-native'
+import { Ellipsis, MapPinHouse, MapPinned, Navigation } from 'lucide-react-native'
 import React from 'react'
 import { primaryColor, TabIcon } from '../../(tabs)/_layout'
 
@@ -27,6 +27,14 @@ const AdminTabsLayout = () => {
                 }}
             />
             <Tabs.Screen
+                name='commercials'
+                options={{
+                    tabBarIcon: TabIcon(MapPinHouse),
+                    headerShown: false,
+                    tabBarLabel: "Commercials"
+                }}
+            />
+            <Tabs.Screen
                 name='more'
                 options={{
                     tabBarIcon: TabIcon(Ellipsis),
@@ -34,6 +42,7 @@ const AdminTabsLayout = () => {
                     tabBarLabel: "More"
                 }}
             />
+
         </Tabs>
     )
 }

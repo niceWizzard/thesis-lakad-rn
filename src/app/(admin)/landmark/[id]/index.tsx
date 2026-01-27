@@ -191,18 +191,24 @@ export default function AdminLandmarkDetailScreen() {
                   </HStack>
                 </VStack>
               </HStack>
-              <Divider />
-              <VStack className="gap-2">
-                <HStack className="items-center gap-2">
-                  <Icon as={Tag} size="xs" className="text-primary-600" />
-                  <Text size="xs" className="font-bold text-typography-400 uppercase">Type</Text>
-                </HStack>
-                <HStack space="xs" className="flex-wrap">
-                  <Badge size="sm" variant="outline" action='info' className="rounded-lg">
-                    <BadgeText>{landmark.type}</BadgeText>
-                  </Badge>
-                </HStack>
-              </VStack>
+              {
+                landmark.creation_type === 'TOURIST_ATTRACTION' ? (
+                  <>
+                    <Divider />
+                    <VStack className="gap-2">
+                      <HStack className="items-center gap-2">
+                        <Icon as={Tag} size="xs" className="text-primary-600" />
+                        <Text size="xs" className="font-bold text-typography-400 uppercase">Type</Text>
+                      </HStack>
+                      <HStack space="xs" className="flex-wrap">
+                        <Badge size="sm" variant="outline" action='info' className="rounded-lg">
+                          <BadgeText>{landmark.type}</BadgeText>
+                        </Badge>
+                      </HStack>
+                    </VStack>
+                  </>
+                ) : null
+              }
             </VStack>
 
             {/* 3. COORDINATES CARD */}
@@ -299,7 +305,7 @@ export default function AdminLandmarkDetailScreen() {
           <HStack space="md">
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
-              onPress={() => !isArchived && router.navigate(`/(admin)/landmark/${landmark.id}/edit`)}
+              onPress={() => !isArchived && router.navigate(`/(admin)/landmark/${landmark.id}/edit-commercial`)}
               disabled={isArchived}
             >
               <ButtonIcon as={Edit2} className={isArchived ? "text-typography-300" : "mr-2"} />

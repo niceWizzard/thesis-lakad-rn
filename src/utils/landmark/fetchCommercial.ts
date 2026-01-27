@@ -9,11 +9,11 @@ import { supabase } from "../supabase";
  * sorted by most recently created.
  * @throws {PostgrestError} If the Supabase query fails.
  */
-export const fetchLandmarks = async (): Promise<Landmark[]> => {
+export const fetchCommercialLandmarks = async (): Promise<Landmark[]> => {
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
-        .eq('creation_type', "TOURIST_ATTRACTION")
+        .eq('creation_type', "COMMERCIAL")
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
@@ -32,11 +32,11 @@ export const fetchLandmarks = async (): Promise<Landmark[]> => {
  * * @returns {Promise<Landmark[]>} A promise resolving to an array of deleted landmarks.
  * @throws {PostgrestError} If the Supabase query fails.
  */
-export const fetchArchivedLandmarks = async (): Promise<Landmark[]> => {
+export const fetchArchivedCommercialLandmarks = async (): Promise<Landmark[]> => {
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
-        .eq('creation_type', "TOURIST_ATTRACTION")
+        .eq('creation_type', "COMMERCIAL")
         .not('deleted_at', 'is', null)
         .order('created_at', { ascending: false });
 
@@ -60,7 +60,7 @@ export const fetchArchivedLandmarks = async (): Promise<Landmark[]> => {
  * * @throws {Error} If the ID is non-numeric.
  * @throws {PostgrestError} If the record is not found or the query fails.
  */
-export const fetchLandmarkById = async (id: number | string) => {
+export const fetchCommercialLandmarkById = async (id: number | string) => {
     if (typeof id === 'string' && Number.isNaN(Number.parseInt(id))) {
         throw new Error("Invalid ID. Must be a number.")
     }
@@ -68,6 +68,7 @@ export const fetchLandmarkById = async (id: number | string) => {
     const { data, error } = await supabase
         .from('landmark')
         .select('*')
+        .eq('creation_type', "COMMERCIAL")
         .eq('id', parsedId)
         .order('created_at', { ascending: false })
         .single();
