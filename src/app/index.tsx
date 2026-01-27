@@ -119,7 +119,7 @@ const LoadingSplashScreen = () => {
         };
 
         // Artificial delay for branding visibility (adjust or remove as needed)
-        const timer = setTimeout(prepare, 1500);
+        const timer = setTimeout(prepare, 1);
         return () => clearTimeout(timer);
     }, [initialURL, loadingError, networkState, queryClient, router, setAuth]);
 
