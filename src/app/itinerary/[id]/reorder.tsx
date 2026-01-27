@@ -28,7 +28,7 @@ import { Landmark } from '@/src/model/landmark.types';
 import { StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateItineraryDistance } from '@/src/utils/calculateItineraryDistance';
-import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
+import { calculateDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { formatDistance } from '@/src/utils/format/distance';
 import { supabase } from '@/src/utils/supabase';
@@ -151,7 +151,7 @@ const ReorderScreen = () => {
             if (onGoingStops.length === 0) return;
 
             // 2. Fetch distances only for remaining stops
-            const distanceMatrix = await fetchFullDistanceMatrix({
+            const distanceMatrix = await calculateDistanceMatrix({
                 waypointsWithIds: onGoingStops.map(v => ({
                     coords: [v.landmark.longitude, v.landmark.latitude],
                     id: v.id.toString(),

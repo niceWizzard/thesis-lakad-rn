@@ -6,7 +6,7 @@ export const ACCESS_TOKEN = process.env.EXPO_PUBLIC_ORS_KEY ?? "";
  * Fetches a complete distance matrix for any number of points by 
  * breaking them into valid Mapbox API chunks.
  */
-export const fetchFullDistanceMatrix = async ({
+export const calculateDistanceMatrix = async ({
     waypointsWithIds,
     profile = 'driving-car',
     onFetchProgress,

@@ -42,7 +42,7 @@ import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useLandmarks } from '@/src/hooks/useLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
-import { fetchFullDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
+import { calculateDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
 import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
@@ -225,7 +225,7 @@ const CreateWithAgamScreen = () => {
                 return obj;
             }, {} as any);
 
-            const landmarkDistanceMap = await fetchFullDistanceMatrix({
+            const landmarkDistanceMap = await calculateDistanceMatrix({
                 waypointsWithIds: filteredLandmarks.map(v => ({
                     id: v.id.toString(),
                     coords: [v.longitude, v.latitude],
