@@ -66,6 +66,7 @@ const CustomBottomSheet = ({
             ref={bottomSheetRef}
             index={-1} // Start closed
             snapPoints={snapPoints}
+            enableDynamicSizing={false}
             backdropComponent={renderBackdrop}
             containerStyle={{
                 zIndex: 200,
