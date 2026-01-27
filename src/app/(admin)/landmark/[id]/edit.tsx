@@ -10,7 +10,9 @@ import { Box } from '@/components/ui/box';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { Landmark } from '@/src/model/landmark.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
+import { calculateIncrementalMatrix } from '@/src/utils/distance/calculateIncrementalMatrix';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -81,6 +83,57 @@ export default function AdminLandmarkEditScreen() {
                 updated_at: new Date().toISOString(),
             }).eq('id', id as any);
             if (error) throw error;
+
+            const hasLocationChanged = formData.latitude !== landmark?.latitude.toString() || formData.longitude !== landmark?.longitude.toString();
+            if (hasLocationChanged) {
+                const landmarks = await queryClient.fetchQuery<Landmark[]>({ queryKey: ['landmarks'] })
+                const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
+                    newWaypoint: {
+                        id: id.toString(),
+                        coords: [parseFloat(formData.longitude), parseFloat(formData.latitude)],
+                    },
+                    existingWaypoints: landmarks.filter(v => v.id !== Number(id)).map(v => ({
+                        coords: [v.longitude, v.latitude],
+                        id: v.id.toString(),
+                    }))
+                });
+
+                // 1. Combine both directions into a single data array
+                const dataToUpsert = [
+                    // Outbound: New -> Others
+                    ...Object.keys(outbound)
+                        .filter(destId => destId !== sourceId) // Avoid self-to-self
+                        .map(destId => ({
+                            source: Number(sourceId),
+                            destination: Number(destId),
+                            distance: outbound[destId],
+                        })),
+                    // Inbound: Others -> New
+                    ...Object.keys(inbound)
+                        .filter(srcId => srcId !== sourceId) // Avoid self-to-self
+                        .map(srcId => ({
+                            source: Number(srcId),
+                            destination: Number(sourceId),
+                            distance: inbound[srcId],
+                        }))
+                ];
+
+                // 2. Only proceed if there is data (prevents error on the first landmark)
+                if (dataToUpsert.length > 0) {
+                    const { error: upsertError } = await supabase
+                        .from("distances")
+                        .upsert(dataToUpsert, {
+                            onConflict: "source, destination"
+                        });
+
+                    if (upsertError) {
+                        console.error("Failed to update distance matrix:", upsertError);
+                        throw upsertError;
+                    }
+                }
+
+            }
+
             await queryClient.refetchQueries({ queryKey: ['landmarks'], });
         },
         onSuccess: async () => {
