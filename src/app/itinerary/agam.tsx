@@ -37,7 +37,7 @@ import { VStack } from '@/components/ui/vstack';
 // Stores & Utils
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
-import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
+import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useLandmarks } from '@/src/hooks/useLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -76,11 +76,7 @@ const schema = z.object({
     maxPoi: z.string().refine((val) => {
         const n = Number(val);
         return !isNaN(n) && Number.isInteger(n) && n > 0;
-    }, "Enter a positive whole number").refine(v => {
-        const n = Number(v);
-        return n <= 50;
-    }, "AGAM only supports up to 50 stopovers"),
-    districts: z.array(z.string()).min(1, "Select at least one district"),
+    }, "Enter a positive whole number").refine(v => Number(v) <= 50, "AGAM only supports up to 50 stopovers"),
     types: z.array(z.string()).min(1, "Select at least one category"),
     municipalities: z.array(z.string()).min(1, "Select at least one municipality"),
 });
@@ -117,94 +113,60 @@ const CreateWithAgamScreen = () => {
         defaultValues: {
             maxDistance: '100',
             maxPoi: '10',
-            districts: [],
             types: [],
-            municipalities: [] as string[],
+            municipalities: [],
         },
         mode: 'onChange',
     });
 
-    const selectedDistricts = watch('districts');
     const selectedTypes = watch('types');
     const selectedMunicipalities = watch('municipalities');
 
-    const validMunicipalities = useMemo(() => {
-        return selectedDistricts.flatMap(v => DISTRICT_TO_MUNICIPALITY_MAP[v as LandmarkDistrict] || []).sort((a, b) => a.localeCompare(b));
-    }, [selectedDistricts]);
-
-    // Dynamic counter logic
     const availableCount = useMemo(() => {
         return landmarks.filter(l =>
-            selectedDistricts.includes(l.district) &&
             selectedMunicipalities.includes(l.municipality) &&
             selectedTypes.includes(l.type)
         ).length;
-    }, [landmarks, selectedDistricts, selectedTypes, selectedMunicipalities]);
+    }, [landmarks, selectedMunicipalities, selectedTypes]);
 
 
-    const toggleItem = (current: string[], id: string, field: 'districts' | 'types' | 'municipalities') => {
+    const toggleItem = (current: string[], id: string, field: 'types' | 'municipalities') => {
         const next = current.includes(id) ? current.filter(i => i !== id) : [...current, id];
         setValue(field, next, { shouldValidate: true });
     };
 
-    const toggleAll = (field: 'districts' | 'types' | 'municipalities', action: 'select' | 'deselect') => {
+    const toggleAll = (field: 'types' | 'municipalities', action: 'select' | 'deselect') => {
         if (action === 'deselect') {
             setValue(field, [], { shouldValidate: true });
             return;
         }
 
         let itemsToSelect: string[] = [];
-        if (field === 'districts') {
-            itemsToSelect = DISTRICTS.map(d => d.id);
-        } else if (field === 'types') {
+        if (field === 'types') {
             itemsToSelect = LANDMARK_TYPES;
         } else if (field === 'municipalities') {
-            itemsToSelect = validMunicipalities;
+            itemsToSelect = MUNICIPALITIES;
         }
-
         setValue(field, itemsToSelect, { shouldValidate: true });
     };
 
-    const toggleAllLocations = () => {
-        // Check if all districts are already selected
-        const allDistrictIds = DISTRICTS.map(d => d.id);
-        const isEverythingSelected = selectedDistricts.length === allDistrictIds.length;
+    const toggleAllInDistrict = (districtId: LandmarkDistrict) => {
+        const districtMunis = [...(DISTRICT_TO_MUNICIPALITY_MAP[districtId] || [])];
+        // Cast to LandmarkMunicipality[] to ensure compatibility
+        const allSelected = districtMunis.every(m =>
+            (selectedMunicipalities as LandmarkMunicipality[]).includes(m)
+        );
 
-        if (isEverythingSelected) {
-            // Deselect Everything
-            setValue('districts', [], { shouldValidate: true });
-            setValue('municipalities', [], { shouldValidate: true });
-        } else {
-            // Select Everything
-            const allMunicipalities = Object.values(DISTRICT_TO_MUNICIPALITY_MAP).flat();
-            setValue('districts', allDistrictIds, { shouldValidate: true });
-            setValue('municipalities', allMunicipalities, { shouldValidate: true });
-        }
-    };
-
-    const toggleDistrictWithChildren = (districtId: string) => {
-        // 1. Create a mutable copy of the children array
-        const districtChildren = DISTRICT_TO_MUNICIPALITY_MAP[districtId as LandmarkDistrict] || [];
-        const children = [...districtChildren]; // This creates a mutable string[] copy
-
-        const isDistrictSelected = selectedDistricts.includes(districtId);
-
-        if (isDistrictSelected) {
-            // Deselect logic
-            setValue('districts', selectedDistricts.filter(id => id !== districtId));
-
-            // Filter out the children of this district
-            const nextMunicipalities = selectedMunicipalities.filter(
-                m => !children.includes(m as LandmarkMunicipality)
+        if (allSelected) {
+            // Remove only the munis in this district
+            const next = (selectedMunicipalities as LandmarkMunicipality[]).filter(
+                m => !districtMunis.includes(m)
             );
-            setValue('municipalities', nextMunicipalities, { shouldValidate: true });
+            setValue('municipalities', next, { shouldValidate: true });
         } else {
-            // Select logic
-            setValue('districts', [...selectedDistricts, districtId]);
-
-            // Combine existing selections with the new children
-            const merged = Array.from(new Set([...selectedMunicipalities, ...children]));
-            setValue('municipalities', merged as LandmarkMunicipality[], { shouldValidate: true });
+            // Add all munis in this district, ensuring no duplicates
+            const next = Array.from(new Set([...selectedMunicipalities, ...districtMunis]));
+            setValue('municipalities', next as LandmarkMunicipality[], { shouldValidate: true });
         }
     };
 
@@ -212,7 +174,6 @@ const CreateWithAgamScreen = () => {
         setState(GeneratingState.Fetching);
         try {
             const filteredLandmarks = landmarks.filter(l =>
-                formData.districts.includes(l.district) &&
                 selectedMunicipalities.includes(l.municipality) &&
                 formData.types.includes(l.type)
             );
@@ -359,30 +320,28 @@ const CreateWithAgamScreen = () => {
                                 </AccordionHeader>
                                 <AccordionContent>
                                     <HStack className="justify-start px-2">
-                                        <TouchableOpacity onPress={toggleAllLocations}>
+                                        <TouchableOpacity onPress={() => toggleAll('municipalities', selectedMunicipalities.length === MUNICIPALITIES.length ? 'deselect' : 'select')}>
                                             <Text size="xs" className="text-primary-600 font-bold uppercase tracking-wider">
-                                                {selectedDistricts.length === DISTRICTS.length ? "Deselect All Districts" : "Select All Districts"}
+                                                {selectedMunicipalities.length === MUNICIPALITIES.length ? "Deselect All Districts" : "Select All Districts"}
                                             </Text>
                                         </TouchableOpacity>
                                     </HStack>
                                     <VStack className="p-2 gap-4">
                                         {DISTRICTS.map((district) => {
-                                            const isDistrictActive = selectedDistricts.includes(district.id);
                                             const children = DISTRICT_TO_MUNICIPALITY_MAP[district.id] || [];
+                                            const areAllSelected = children.every(m => selectedMunicipalities.includes(m));
 
                                             return (
                                                 <VStack key={district.id} className="gap-2 pb-2 border-b border-outline-50">
-                                                    {/* District Header Toggle */}
                                                     <HStack className="justify-between items-center bg-background-100 p-2 rounded-lg">
                                                         <Text size="sm" className="font-bold text-typography-900">{district.label}</Text>
-                                                        <TouchableOpacity onPress={() => toggleDistrictWithChildren(district.id)}>
+                                                        <TouchableOpacity onPress={() => toggleAllInDistrict(district.id)}>
                                                             <Text size="xs" className="text-primary-600 font-bold">
-                                                                {isDistrictActive ? "Deselect All" : "Select All"}
+                                                                {areAllSelected ? "Deselect All" : "Select All"}
                                                             </Text>
                                                         </TouchableOpacity>
                                                     </HStack>
 
-                                                    {/* Municipalities in this District */}
                                                     <View className="flex-row flex-wrap gap-2 px-1">
                                                         {children.map((muni) => {
                                                             const isMuniActive = selectedMunicipalities.includes(muni);
@@ -390,9 +349,7 @@ const CreateWithAgamScreen = () => {
                                                                 <TouchableOpacity
                                                                     key={muni}
                                                                     onPress={() => toggleItem(selectedMunicipalities, muni, 'municipalities')}
-                                                                    className={`px-3 py-1.5 rounded-md border ${isMuniActive
-                                                                        ? 'bg-primary-100 border-primary-600'
-                                                                        : 'bg-background-0 border-outline-200'
+                                                                    className={`px-3 py-1.5 rounded-md border ${isMuniActive ? 'bg-primary-100 border-primary-600' : 'bg-background-0 border-outline-200'
                                                                         }`}
                                                                 >
                                                                     <Text size="xs" className={isMuniActive ? 'text-typography-900 font-bold' : 'text-typography-500'}>
