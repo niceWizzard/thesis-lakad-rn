@@ -107,6 +107,7 @@ export default function ItineraryView() {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
     const bottomSheetRef = useRef<BottomSheet>(null);
+    const isProcessingArrival = useRef(false);
     const { showToast } = useToastNotification();
 
 
@@ -217,6 +218,8 @@ export default function ItineraryView() {
 
 
     const finishedNavigating = useCallback(async (visitedStop: StopWithLandmark) => {
+        if (isProcessingArrival.current) return; // Exit if already running
+        isProcessingArrival.current = true; // Lock the gate
         try {
             await toggleStopStatus(visitedStop)
             await refetch();
@@ -230,6 +233,8 @@ export default function ItineraryView() {
                 description: e.message ?? "Some error happened while updating finishing navigation.",
                 action: "error"
             })
+        } finally {
+            isProcessingArrival.current = false; // Unlock the gate
         }
     }, [refetch, showToast, switchMode])
 
