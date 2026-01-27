@@ -40,7 +40,7 @@ import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
-import { fetchArchivedLandmarks } from '@/src/utils/fetchLandmarks';
+import { fetchArchivedLandmarks } from '@/src/utils/landmark/fetchLandmarks';
 import { useQuery } from '@tanstack/react-query';
 
 // --- Updated SortKey Type ---

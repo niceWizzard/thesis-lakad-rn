@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "../supabase";
 
 export const fetchLandmarks = async () => {
     const { data, error } = await supabase
@@ -34,7 +34,7 @@ export const fetchArchivedLandmarks = async () => {
 
 
 export const fetchLandmarkById = async (id: number | string) => {
-    if(typeof id === 'string' && Number.isNaN(Number.parseInt(id))) {
+    if (typeof id === 'string' && Number.isNaN(Number.parseInt(id))) {
         throw new Error("Invalid ID. Must be a number.")
     }
     const parsedId = Number(id)

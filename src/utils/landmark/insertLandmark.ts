@@ -1,5 +1,5 @@
 import { Database } from "@/database.types";
-import { supabase } from "./supabase";
+import { supabase } from "../supabase";
 
 export const insertLandmarkToItinerary = async ({
     currentCount,
@@ -44,7 +44,7 @@ export const createLandmark = async (data: Database['public']['Tables']['landmar
         .single();
 
     if (dbError) throw dbError;
-    if(!dbData)
+    if (!dbData)
         throw new Error("Landmark was not created.")
     return dbData.id
 }

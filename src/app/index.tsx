@@ -15,7 +15,7 @@ import { StorageKey } from '../constants/Key';
 import { useAuthStore } from '../stores/useAuth';
 import { fetchAdminStatus as fetchUserType } from '../utils/fetchAdminStatus';
 import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
-import { fetchLandmarks } from '../utils/fetchLandmarks';
+import { fetchLandmarks } from '../utils/landmark/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
 import { supabase } from '../utils/supabase';
 

@@ -7,8 +7,8 @@ import * as z from 'zod';
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
-import { fetchLandmarks } from '@/src/utils/fetchLandmarks';
-import { createLandmark } from '@/src/utils/insertLandmark';
+import { fetchLandmarks } from '@/src/utils/landmark/fetchLandmarks';
+import { createLandmark } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 

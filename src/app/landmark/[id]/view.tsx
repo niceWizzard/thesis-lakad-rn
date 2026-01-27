@@ -32,8 +32,8 @@ import { Center } from '@/components/ui/center';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
-import { fetchLandmarkById } from '@/src/utils/fetchLandmarks';
-import { insertLandmarkToItinerary } from '@/src/utils/insertLandmark';
+import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
+import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function LandmarkViewerScreen() {

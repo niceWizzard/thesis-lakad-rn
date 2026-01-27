@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchLandmarks } from "../utils/fetchLandmarks"
+import { fetchLandmarks } from "../utils/landmark/fetchLandmarks"
 
 export const useQueryLandmarks = () => {
     const {
