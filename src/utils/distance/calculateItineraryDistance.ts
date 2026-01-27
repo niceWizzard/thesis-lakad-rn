@@ -103,7 +103,9 @@ export async function calculateItineraryDistance(waypoints: [number, number][]) 
             },
             body: JSON.stringify({
                 coordinates: waypoints,
-                radiuses: 1500,
+                options: {
+                    avoid_features: ['tollways']
+                }
             })
         })
         const data: ORSResponse<ORSRouteResponse> = await response.json()
@@ -112,7 +114,6 @@ export async function calculateItineraryDistance(waypoints: [number, number][]) 
             throw new Error(`ORS Error:${JSON.stringify(data.error, null, 2)}`)
 
         const route = data.routes[0];
-
         return route.summary.distance;
 
     } catch (error) {

@@ -27,7 +27,7 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Landmark } from '@/src/model/landmark.types';
 import { StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
-import { calculateItineraryDistance } from '@/src/utils/distance/calculateItineraryDistance';
+import { calculateRouteDistanceFromMatrix } from '@/src/utils/distance/calculateRouteDistanceFromMatrix';
 import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { formatDistance } from '@/src/utils/format/distance';
@@ -76,7 +76,7 @@ const ReorderScreen = () => {
                 visit_order: index + 1,
                 visited_at: item.visited_at
             }));
-            const newDistance = await calculateItineraryDistance(fullNewList.map(v => [v.landmark.longitude, v.landmark.latitude]));
+            const newDistance = await calculateRouteDistanceFromMatrix(fullNewList.map(v => v.landmark_id));
             const itineraryUpdate = supabase.from('itinerary')
                 .update({ distance: newDistance })
                 .eq('id', itinerary.id);
