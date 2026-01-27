@@ -12,7 +12,6 @@ const ManageDistanceMatrix = () => {
         landmarks,
         isLoading,
         error,
-        refetch
     } = useQueryLandmarks()
 
 

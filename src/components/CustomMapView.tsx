@@ -7,16 +7,6 @@ import { Box } from '@/components/ui/box';
 
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 
-// Map Pin Logic
-const PINS = {
-    HistoryPin: require("@/assets/images/categories/history.png"),
-    LandscapePin: require("@/assets/images/categories/landscape.png"),
-    NaturePin: require("@/assets/images/categories/nature.png"),
-    ReligiousPin: require("@/assets/images/categories/religious.png"),
-    WaterPin: require("@/assets/images/categories/water.png"),
-    IconImage: require("@/assets/images/red_marker.png"),
-};
-
 interface LandmarkMapViewProps {
     cameraRef: React.RefObject<Camera | null>;
     children?: React.ReactNode;

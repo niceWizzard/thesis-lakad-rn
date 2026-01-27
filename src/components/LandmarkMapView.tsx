@@ -1,5 +1,4 @@
 import React, { ComponentProps, useEffect, useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
@@ -12,15 +11,6 @@ import * as Location from 'expo-location';
 import LandmarkMarker from './LandmarkMarker';
 
 
-
-const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
-
-const IconImage = require("@/assets/images/red_marker.png")
-const WaterPin = require("@/assets/images/categories/water.png")
-const LandscapePin = require("@/assets/images/categories/landscape.png")
-const NaturePin = require("@/assets/images/categories/nature.png")
-const HistoryPin = require("@/assets/images/categories/history.png")
-const ReligiousPin = require("@/assets/images/categories/religious.png")
 
 
 const LandmarkMapView = ({
@@ -37,7 +27,7 @@ const LandmarkMapView = ({
     setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>,
 } & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'cameraRef'>) => {
     const camera = cameraRef;
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const [, setUserLocation] = useState<[number, number] | null>(null);
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [mapStyleUrl, setMapStyleUrl] = useState(StyleURL.Street)
@@ -177,8 +167,5 @@ const LandmarkMapView = ({
     );
 };
 
-const styles = StyleSheet.create({
-    map: { flex: 1 },
-});
 
 export default LandmarkMapView;

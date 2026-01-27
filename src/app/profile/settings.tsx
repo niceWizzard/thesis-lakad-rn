@@ -5,7 +5,7 @@ import { AlertCircle, Trash, Type, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import z from 'zod';
+import { z } from 'zod';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
@@ -95,7 +95,7 @@ const AccountSettingsScreen = () => {
 
     const confirmDeleteAccount = async () => {
         try {
-            const { data, error } = await supabase.functions.invoke('delete-account');
+            const { error } = await supabase.functions.invoke('delete-account');
 
             if (error) {
                 // Supabase function errors are often wrapped in a context object

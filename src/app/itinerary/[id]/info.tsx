@@ -5,7 +5,7 @@ import { AlertCircle, Trash, Type } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import z from 'zod';
+import { z } from 'zod';
 
 // UI Components
 import { Box } from '@/components/ui/box';
@@ -213,7 +213,7 @@ const ItineraryInfoScreen = () => {
                     </ModalHeader>
                     <ModalBody>
                         <Text className="text-typography-500">
-                            Are you sure you want to delete <Text className="font-bold text-typography-900">"{itinerary?.name}"</Text>? This cannot be undone.
+                            Are you sure you want to delete <Text className="font-bold text-typography-900">&quot;{itinerary?.name}&quot;</Text>? This cannot be undone.
                         </Text>
                     </ModalBody>
                     <ModalFooter className="gap-3">

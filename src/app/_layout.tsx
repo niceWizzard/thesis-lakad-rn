@@ -54,7 +54,7 @@ export default function RootLayout() {
       authSubscription.unsubscribe();
       linkingSubscription.remove();
     };
-  }, []);
+  }, [router, setAuth]);
 
   return <DefaultProviders>
     <Stack screenOptions={{

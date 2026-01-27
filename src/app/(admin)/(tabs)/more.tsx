@@ -19,8 +19,6 @@ import {
     Settings
 } from 'lucide-react-native';
 
-const coverImage = require('@/assets/images/lakad-cover.png');
-
 function MoreTab() {
     const router = useRouter();
     const { session } = useAuthStore();

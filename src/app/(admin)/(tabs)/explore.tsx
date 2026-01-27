@@ -21,7 +21,7 @@ import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 
 const AdminExploreTab = () => {
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const [, setUserLocation] = useState<[number, number] | null>(null);
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const router = useRouter();
     const camera = useRef<Camera | null>(null)

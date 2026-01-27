@@ -1,13 +1,11 @@
 import { Text } from '@/components/ui/text';
 import * as Linking from 'expo-linking';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import { View } from 'react-native';
 
 
 const LinkErrorScreen = () => {
 
-    const router = useRouter()
 
     const deepLinkUrl = Linking.useLinkingURL()
 

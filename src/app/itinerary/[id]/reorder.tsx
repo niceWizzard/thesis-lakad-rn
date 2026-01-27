@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Check, Clock, GripVertical } from 'lucide-react-native';
@@ -47,10 +47,9 @@ const ReorderScreen = () => {
     const { id } = useLocalSearchParams();
     const { session } = useAuthStore();
     const userId = session?.user.id;
-    const queryClient = useQueryClient();
     const { showToast } = useToastNotification();
 
-    const [queryProgress, setQueryProgress] = useState(0)
+    const [queryProgress] = useState(0)
 
     const [loadingModalMode, setLoadingModalMode] = useState(LoadingMode.Hidden);
 
@@ -62,7 +61,7 @@ const ReorderScreen = () => {
 
 
     const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<StopWithLandmark>) => {
-        if (!itinerary || from == to) return;
+        if (!itinerary || from === to) return;
 
         setLoadingModalMode(LoadingMode.Updating);
         try {

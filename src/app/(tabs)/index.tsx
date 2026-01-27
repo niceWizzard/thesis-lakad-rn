@@ -22,7 +22,7 @@ import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { Landmark } from '@/src/model/landmark.types';
 
 const ExploreTab = () => {
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const [, setUserLocation] = useState<[number, number] | null>(null);
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const router = useRouter();
     const camera = useRef<any>(null);

@@ -43,7 +43,7 @@ const CustomBottomSheet = ({
 
         // Cleanup the listener when the component unmounts
         return () => backHandler.remove();
-    }, [isFocused, isBottomSheetOpened]);
+    }, [isFocused, isBottomSheetOpened, bottomSheetRef]);
 
     // Backdrop component to allow closing by clicking the map
     const renderBackdrop = React.useCallback(
@@ -58,7 +58,7 @@ const CustomBottomSheet = ({
                 onPress={onBackdropPress}
             />
         ),
-        []
+        [onBackdropPress]
     );
 
     return (

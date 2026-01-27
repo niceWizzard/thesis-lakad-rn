@@ -86,7 +86,7 @@ export default function SetupProfileScreen() {
                         <VStack className="items-center gap-2">
                             <Heading size="2xl" className="text-center">Welcome to Lakad</Heading>
                             <Text size="md" className="text-typography-500 text-center">
-                                Let's start by getting your name so we can personalize your experience.
+                                Let&apos;s start by getting your name so we can personalize your experience.
                             </Text>
                         </VStack>
                     </VStack>

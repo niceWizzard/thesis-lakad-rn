@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import {
     Mail,
     ShieldCheck,
@@ -26,7 +26,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 export default function AdminUserEditScreen() {
     // id is the user_id passed from the search screen
     const { id } = useLocalSearchParams();
-    const router = useRouter();
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
 
@@ -172,7 +171,7 @@ export default function AdminUserEditScreen() {
                                         onPress={handleRoleToggle}
                                         isDisabled={toggleAdminMutation.isPending}
                                     >
-                                        <ButtonIcon as={profile.user_type == 'Admin' ? ShieldOff : ShieldCheck} className="mr-2" />
+                                        <ButtonIcon as={profile.user_type === 'Admin' ? ShieldOff : ShieldCheck} className="mr-2" />
                                         <ButtonText className="font-bold">
                                             {profile.user_type === 'Admin' ? 'Revoke Admin Status' : 'Grant Admin Status'}
                                         </ButtonText>

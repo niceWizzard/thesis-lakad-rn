@@ -84,7 +84,7 @@ const ResetPasswordHandler = () => {
             }
         }
         handleDeepLink()
-    }, [linkUrl])
+    }, [linkUrl, session, showToast])
 
     const onReset = async (data: ResetPasswordSchema) => {
         setSubmitting(true)

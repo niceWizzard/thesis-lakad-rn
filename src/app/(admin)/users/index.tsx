@@ -45,7 +45,7 @@ export default function AdminUserSearchScreen() {
 
     const router = useRouter();
 
-    const { data: users = [], isLoading, refetch } = useQuery({
+    const { data: users = [], isLoading } = useQuery({
         queryKey: ['admin_user_search', searchQuery, typeFilter],
         queryFn: async () => {
             let query = supabase
@@ -177,7 +177,7 @@ export default function AdminUserSearchScreen() {
                                 <VStack space="xs" className="items-center">
                                     <Heading size="md" className="text-center">No results found</Heading>
                                     <Text size="sm" className="text-center text-typography-500 leading-5">
-                                        We couldn't find any users matching your criteria. Try adjusting your filters or search terms.
+                                        We couldn&apos;t find any users matching your criteria. Try adjusting your filters or search terms.
                                     </Text>
                                 </VStack>
 

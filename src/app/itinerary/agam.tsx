@@ -50,8 +50,6 @@ import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
 const CopilotBox = walkthroughable(Box);
 const CopilotAccordionItem = walkthroughable(AccordionItem);
-const CopilotButton = walkthroughable(Button);
-const CopilotVStack = walkthroughable(VStack);
 
 const DISTRICTS: {
     id: LandmarkDistrict,
@@ -104,7 +102,7 @@ const CreateWithAgamScreen = () => {
 
     const isGenerating = state !== GeneratingState.Idle;
 
-    const [queryProgress, setQueryProgress] = useState(0)
+    const [queryProgress] = useState(0)
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
 

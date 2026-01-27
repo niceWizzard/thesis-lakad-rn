@@ -42,7 +42,6 @@ import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { LandmarkDistrict } from '@/src/model/landmark.types';
-import { useAuthStore } from '@/src/stores/useAuth';
 
 // --- Updated SortKey Type ---
 type SortKey = 'id' | 'name' | 'rating';
@@ -50,8 +49,6 @@ type SortOrder = 'asc' | 'desc';
 
 export default function AdminLandmarksScreen() {
     const router = useRouter();
-    const auth = useAuthStore();
-    const userId = auth.session?.user?.id;
 
     const [searchString, setSearchString] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);

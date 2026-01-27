@@ -12,6 +12,7 @@ import {
 
 
 
+
     Dimensions,
     Pressable,
     StyleSheet
@@ -68,7 +69,7 @@ export const CustomLocalSheet = ({ isOpen, onClose, children }: CustomLocalSheet
                 setShouldRender(false);
             });
         }
-    }, [isOpen]);
+    }, [isOpen, translateY]);
 
     if (!shouldRender) return null;
 

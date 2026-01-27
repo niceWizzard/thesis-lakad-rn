@@ -8,12 +8,16 @@ import React from 'react';
 export const primaryColor = "#7fcc20";
 
 
-export function TabIcon(icon: React.ElementType<any, keyof React.JSX.IntrinsicElements>): ((props: {
-    focused: boolean;
-    color: string;
-    size: number;
-}) => React.ReactNode) | undefined {
-    return ({ color, focused }) => < Icon as={icon} color={focused ? primaryColor : color} />
+export function TabIcon(icon: React.ElementType) {
+    // Give the inner function a name
+    const IconComponent = ({ color, focused }: { color: string; focused: boolean }) => (
+        <Icon as={icon} color={focused ? primaryColor : color} />
+    );
+
+    // Set the display name explicitly
+    IconComponent.displayName = 'TabIcon';
+
+    return IconComponent;
 }
 
 export default function TabLayout() {

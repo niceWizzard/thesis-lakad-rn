@@ -55,7 +55,7 @@ const LoadingSplashScreen = () => {
                 }
                 if (networkState == null)
                     return;
-                if (networkState.isInternetReachable == false) {
+                if (networkState.isInternetReachable === false) {
                     throw new Error("No internet connection. Please try again later.")
                 }
 
@@ -121,7 +121,7 @@ const LoadingSplashScreen = () => {
         // Artificial delay for branding visibility (adjust or remove as needed)
         const timer = setTimeout(prepare, 1500);
         return () => clearTimeout(timer);
-    }, [initialURL, networkState]);
+    }, [initialURL, loadingError, networkState, queryClient, router, setAuth]);
 
     function handleRetryPress() {
         router.replace('/')

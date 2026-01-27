@@ -19,7 +19,7 @@ const MapFabs = ({
     setMapStyle: React.Dispatch<React.SetStateAction<StyleURL>>
 }) => {
 
-    const [mapStyleIndex, setMapStyleIndex] = useState(0)
+    const [, setMapStyleIndex] = useState(0)
 
     return (
         <>

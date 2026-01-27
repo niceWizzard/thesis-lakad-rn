@@ -168,7 +168,7 @@ const SigninPage = () => {
                             </View>
 
                             <View className="flex-row justify-center items-center gap-1 mt-8 border-t border-outline-100 pt-6">
-                                <Text size="sm" className="text-typography-500">Don't have an account?</Text>
+                                <Text size="sm" className="text-typography-500">Don&apos;t have an account?</Text>
                                 <Button
                                     variant="link"
                                     className="p-0 h-auto"

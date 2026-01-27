@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { DISTRICT_TO_MUNICIPALITY_MAP, DISTRICTS, MUNICIPALITIES } from "../constants/jurisdictions";
 import { LANDMARK_TYPES } from "../constants/type";
 import { LandmarkDistrict } from "../model/landmark.types";
