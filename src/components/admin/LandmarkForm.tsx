@@ -162,8 +162,8 @@ export function LandmarkForm({
                 show={isMapSelectionOpen}
                 onClose={() => setIsMapSelectionOpen(false)}
                 onConfirmLocation={(coords) => {
-                    setValue('longitude', coords[0].toString());
-                    setValue('latitude', coords[1].toString());
+                    setValue('longitude', coords[0].toString(), { shouldValidate: true, shouldDirty: true, });
+                    setValue('latitude', coords[1].toString(), { shouldValidate: true, shouldDirty: true, });
                     setIsMapSelectionOpen(false);
                 }}
                 initialLocation={isValidCoordinates ? [Number(longitude), Number(latitude)] : undefined}

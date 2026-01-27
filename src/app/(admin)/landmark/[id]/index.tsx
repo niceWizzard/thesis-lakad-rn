@@ -33,7 +33,6 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { fetchLandmarks } from '@/src/utils/landmark/fetchLandmarks';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -71,7 +70,10 @@ export default function AdminLandmarkDetailScreen() {
         })
         .eq('id', id as any);
       if (error) throw error;
-      await queryClient.fetchQuery({ queryKey: ['landmarks'], queryFn: fetchLandmarks });
+      if (landmark?.creation_type === "TOURIST_ATTRACTION")
+        await queryClient.fetchQuery({ queryKey: ['landmarks'] });
+      else if (landmark?.creation_type === "COMMERCIAL")
+        await queryClient.fetchQuery({ queryKey: ['commercial-landmarks'] })
     },
     onSuccess: (_, isRestoring) => {
       showToast({
