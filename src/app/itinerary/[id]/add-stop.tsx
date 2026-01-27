@@ -17,6 +17,8 @@ import { VStack } from '@/components/ui/vstack';
 
 // Logic & Utils
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { calculateRouteDistanceFromMatrix } from '@/src/utils/distance/calculateRouteDistanceFromMatrix';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 
@@ -50,11 +52,25 @@ export default function AddPOIScreen() {
     });
 
     const addStopMutation = useMutation({
-        mutationFn: async (landmarkId: number) => insertLandmarkToItinerary({
-            currentCount: currentCount.toString(),
-            itineraryId: itineraryId.toString(),
-            landmarkId: landmarkId.toString(),
-        }),
+        mutationFn: async (landmarkId: number) => {
+            const itinerary = await queryClient.fetchQuery<ItineraryWithStops>({ queryKey: ['itinerary', itineraryId] });
+
+            if (itinerary.stops.find(stop => stop.landmark_id === landmarkId)) {
+                throw new Error("Landmark already in itinerary");
+            }
+
+            await insertLandmarkToItinerary({
+                currentCount: currentCount.toString(),
+                itineraryId: itineraryId.toString(),
+                landmarkId: landmarkId.toString(),
+            });
+
+            if (Number(currentCount) + 1 > 1) {
+                const itinerary = await queryClient.fetchQuery<ItineraryWithStops>({ queryKey: ['itinerary', itineraryId] });
+                const newDistance = await calculateRouteDistanceFromMatrix(itinerary.stops.map(stop => stop.landmark_id))
+                await supabase.from('itinerary').update({ distance: newDistance }).eq('id', itinerary.id)
+            }
+        },
         onSuccess: async () => {
             // Invalidate queries so the itinerary refreshes when we go back
             await queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
