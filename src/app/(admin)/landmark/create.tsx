@@ -6,7 +6,9 @@ import * as z from 'zod';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { Landmark } from '@/src/model/landmark.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
+import { calculateIncrementalMatrix } from '@/src/utils/distance/calculateIncrementalMatrix';
 import { fetchLandmarks } from '@/src/utils/landmark/fetchLandmarks';
 import { createLandmark } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
@@ -53,7 +55,7 @@ export default function AdminLandmarkCreateScreen() {
 
             const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
 
-            await createLandmark({
+            const id = await createLandmark({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),
@@ -65,6 +67,56 @@ export default function AdminLandmarkCreateScreen() {
                 image_url: publicUrl,
                 created_at: new Date().toISOString(),
             })
+
+            // Create distance matrix for new landmark
+
+            const landmarks = await queryClient.fetchQuery<Landmark[]>({ queryKey: ['landmarks'] })
+
+            const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
+                newWaypoint: {
+                    id: id.toString(),
+                    coords: [parseFloat(formData.longitude), parseFloat(formData.latitude)],
+                },
+                existingWaypoints: landmarks.map(v => ({
+                    coords: [v.longitude, v.latitude],
+                    id: v.id.toString(),
+                }))
+            });
+
+            // 1. Combine both directions into a single data array
+            const dataToUpsert = [
+                // Outbound: New -> Others
+                ...Object.keys(outbound)
+                    .filter(destId => destId !== sourceId) // Avoid self-to-self
+                    .map(destId => ({
+                        source: Number(sourceId),
+                        destination: Number(destId),
+                        distance: outbound[destId],
+                    })),
+                // Inbound: Others -> New
+                ...Object.keys(inbound)
+                    .filter(srcId => srcId !== sourceId) // Avoid self-to-self
+                    .map(srcId => ({
+                        source: Number(srcId),
+                        destination: Number(sourceId),
+                        distance: inbound[srcId],
+                    }))
+            ];
+
+            // 2. Only proceed if there is data (prevents error on the first landmark)
+            if (dataToUpsert.length > 0) {
+                const { error: upsertError } = await supabase
+                    .from("distances")
+                    .upsert(dataToUpsert, {
+                        onConflict: "source, destination"
+                    });
+
+                if (upsertError) {
+                    console.error("Failed to update distance matrix:", upsertError);
+                    throw upsertError;
+                }
+            }
+
 
             await queryClient.fetchQuery({ queryKey: ['landmarks'], queryFn: fetchLandmarks });
         },
