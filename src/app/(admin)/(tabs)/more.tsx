@@ -11,11 +11,13 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { supabase } from '@/src/utils/supabase';
 import {
+    Archive,
     ArrowLeftRight,
     ChevronRight,
     Key,
     LogOut,
     Mail,
+    RulerDimensionLine,
     Settings
 } from 'lucide-react-native';
 
@@ -34,13 +36,13 @@ function MoreTab() {
         {
             id: '4',
             title: 'Archived Landmarks',
-            icon: Key,
+            icon: Archive,
             onPress: () => router.navigate('/(admin)/landmark/archived'),
         },
         {
             id: '5',
             title: 'Manage Distance Matrix',
-            icon: Key,
+            icon: RulerDimensionLine,
             onPress: () => router.navigate('/(admin)/landmark/matrix'),
         },
         {
