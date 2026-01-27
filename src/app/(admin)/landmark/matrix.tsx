@@ -33,7 +33,15 @@ const ManageDistanceMatrix = () => {
         queryFn: async () => {
             const { count, error } = await supabase
                 .from('distances')
-                .select('*', { count: 'exact', head: true });
+                .select(`
+                source,
+                destination,
+                source_ref:landmark!source!inner(deleted_at),
+                dest_ref:landmark!destination!inner(deleted_at)
+            `, { count: 'exact', head: true })
+                .is('source_ref.deleted_at', null)
+                .is('dest_ref.deleted_at', null);
+
             if (error) throw error;
             return { totalRows: count || 0 };
         },

@@ -33,7 +33,22 @@ export type Database = {
           distance?: number
           source?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "distances_destination_fkey"
+            columns: ["destination"]
+            isOneToOne: false
+            referencedRelation: "landmark"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distances_source_fkey"
+            columns: ["source"]
+            isOneToOne: false
+            referencedRelation: "landmark"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       itinerary: {
         Row: {
