@@ -1,7 +1,6 @@
-const ACCESS_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? "";
+import { snapLocations } from "./snapLocations";
 
-const BASE_URl = 'https://api.mapbox.com/directions-matrix/v1/mapbox'
-const MAX_WAYPOINTS = 25;
+export const ACCESS_TOKEN = process.env.EXPO_PUBLIC_ORS_KEY ?? "";
 
 /**
  * Fetches a complete distance matrix for any number of points by 
@@ -9,11 +8,11 @@ const MAX_WAYPOINTS = 25;
  */
 export const fetchFullDistanceMatrix = async ({
     waypointsWithIds,
-    profile = 'driving',
+    profile = 'driving-car',
     onFetchProgress,
 }: {
     waypointsWithIds: { id: string, coords: [number, number] }[],
-    profile?: 'driving' | 'walking' | 'cycling',
+    profile?: 'driving-car' | 'foot-walking' | 'cycling-road',
     onFetchProgress?: (current: number, total: number) => void,
 }): Promise<Record<string, Record<string, number>>> => {
 
@@ -21,56 +20,100 @@ export const fetchFullDistanceMatrix = async ({
     const fullMatrix: Record<string, Record<string, number>> = {};
     waypointsWithIds.forEach(wp => fullMatrix[wp.id] = {});
 
-    // Use a smaller chunk size to stay under the 25 total limit
-    // 12 sources + 13 destinations = 25 total waypoints
-    const SOURCE_CHUNK_SIZE = 12;
-    const DEST_CHUNK_SIZE = 13;
+    const snappedCoords = await snapLocations({
+        data: waypointsWithIds,
+        profile
+    });
 
-    const totalRequests = Math.ceil(n / SOURCE_CHUNK_SIZE) * Math.ceil(n / DEST_CHUNK_SIZE);
+    // STEP 2: Update your waypoints object with the new "clean" coordinates
+    const snappedWaypoints = waypointsWithIds.map((wp, index) => ({
+        ...wp,
+        coords: snappedCoords[index]
+    }));
+
+    const ORS_LIMIT = 50;
+    const url = `https://api.openrouteservice.org/v2/matrix/${profile}`;
+
+    // --- CASE 1: Simple Request (N <= 50) ---
+    if (n <= ORS_LIMIT) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': ACCESS_TOKEN,
+            },
+            body: JSON.stringify({
+                locations: snappedWaypoints.map(v => v.coords),
+                metrics: ["distance"]
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(`ORS Error: ${JSON.stringify(data.error)}`);
+
+        data.distances.forEach((row: number[], sIdx: number) => {
+            const sourceId = waypointsWithIds[sIdx].id;
+            row.forEach((distance, dIdx) => {
+                const destId = waypointsWithIds[dIdx].id;
+                fullMatrix[sourceId][destId] = distance;
+            });
+        });
+
+        onFetchProgress?.(1, 1);
+        return fullMatrix;
+    }
+
+    // --- CASE 2: Chunked Request (N > 50) ---
+    // We split into chunks of 50. Note: ORS allows 50x50 in one go, 
+    // but the sum of (sources + destinations) must be carefully managed.
+    // To be safe and efficient, we use 50 sources and 50 destinations per call.
+    const CHUNK_SIZE = 50;
+    const totalChunks = Math.ceil(n / CHUNK_SIZE);
+    const totalRequests = totalChunks * totalChunks;
     let completedRequests = 0;
 
-    for (let i = 0; i < n; i += SOURCE_CHUNK_SIZE) {
-        const sources = waypointsWithIds.slice(i, i + SOURCE_CHUNK_SIZE);
+    for (let i = 0; i < n; i += CHUNK_SIZE) {
+        for (let j = 0; j < n; j += CHUNK_SIZE) {
+            const sourcesSlice = snappedWaypoints.slice(i, i + CHUNK_SIZE);
+            const destsSlice = snappedWaypoints.slice(j, j + CHUNK_SIZE);
 
-        for (let j = 0; j < n; j += DEST_CHUNK_SIZE) {
-            const destinations = waypointsWithIds.slice(j, j + DEST_CHUNK_SIZE);
+            // For simplicity in chunking, we can just send the relevant points for this sub-matrix
+            const currentLocations = [...sourcesSlice.map(s => s.coords), ...destsSlice.map(d => d.coords)];
+            const sourceIndices = sourcesSlice.map((_, idx) => idx);
+            const destIndices = destsSlice.map((_, idx) => idx + sourcesSlice.length);
 
-            // Combine only these subsets to ensure total <= 25
-            const combinedCoords = [...sources, ...destinations]
-                .map(v => v.coords.join(','))
-                .join(';');
-
-            const sourceIndices = sources.map((_, idx) => idx).join(';');
-            const destIndices = destinations.map((_, idx) => idx + sources.length).join(';');
-
-            const url = `https://api.mapbox.com/directions-matrix/v1/mapbox/${profile}/${combinedCoords}?` +
-                new URLSearchParams({
-                    annotations: 'distance',
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': ACCESS_TOKEN,
+                },
+                body: JSON.stringify({
+                    locations: currentLocations,
                     sources: sourceIndices,
                     destinations: destIndices,
-                    access_token: ACCESS_TOKEN
+                    metrics: ["distance"]
+                })
+            });
+
+            const data = await response.json();
+            if (data.error) throw new Error(`ORS Chunk Error: ${JSON.stringify(data.error)}`);
+
+            data.distances.forEach((row: number[], sIdx: number) => {
+                const sourceId = sourcesSlice[sIdx].id;
+                row.forEach((distance, dIdx) => {
+                    const destId = destsSlice[dIdx].id;
+                    fullMatrix[sourceId][destId] = distance;
                 });
+            });
 
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.code !== "Ok") throw new Error(`Mapbox Error: ${JSON.stringify(data)}`);
-
-                data.distances.forEach((row: number[], sIdx: number) => {
-                    const sourceId = sources[sIdx].id;
-                    row.forEach((distance, dIdx) => {
-                        const destId = destinations[dIdx].id;
-                        fullMatrix[sourceId][destId] = distance;
-                    });
-                });
-                completedRequests++;
-                onFetchProgress?.(completedRequests, totalRequests);
-            } catch (error) {
-                console.error("Matrix Sub-request Error:", error);
-                throw error;
-            }
+            completedRequests++;
+            onFetchProgress?.(completedRequests, totalRequests);
         }
     }
+
     return fullMatrix;
 };
+
+
+
