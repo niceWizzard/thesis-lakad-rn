@@ -7,7 +7,7 @@ import { ActivityIndicator, FlatList, Image, Pressable } from 'react-native';
 
 // UI Components
 import { Box } from '@/components/ui/box';
-import { Button, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Button, ButtonIcon, ButtonSpinner } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
@@ -16,9 +16,8 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 // Logic & Utils
-import { LocationDialogSelection } from '@/src/components/LocationDialogSelection';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { createLandmark, insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 
 export default function AddPOIScreen() {
@@ -26,8 +25,6 @@ export default function AddPOIScreen() {
     const router = useRouter();
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
-
-    const [showManualDialog, setShowManualDialog] = useState(false)
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -70,30 +67,9 @@ export default function AddPOIScreen() {
         }
     });
 
-    const handleAddManualLocation = async (location: GeoJSON.Position) => {
-        try {
-            const landmarkId = await createLandmark({
-                name: `${location[1]}, ${location[0]}`,
-                longitude: location[0],
-                latitude: location[1],
-                district: "1",
-                municipality: 'Angat',
-                creation_type: "PERSONAL",
-            });
-            await addStopMutation.mutateAsync(landmarkId)
-
-        } catch (e: any) {
-            showToast({ title: "Error", description: e.message, action: "error" });
-        }
-    }
 
     return (
         <>
-            <LocationDialogSelection
-                show={showManualDialog}
-                onClose={() => setShowManualDialog(false)}
-                onConfirmLocation={handleAddManualLocation}
-            />
             <Box className="flex-1 bg-background-0">
                 <VStack className="p-6 pt-12 flex-1" space="xl">
                     <VStack space="xs">
@@ -189,9 +165,6 @@ export default function AddPOIScreen() {
                             )}
                         />
                     )}
-                    <Button onPress={() => setShowManualDialog(true)}>
-                        <ButtonText>Add Manually </ButtonText>
-                    </Button>
                 </VStack>
             </Box>
         </>
