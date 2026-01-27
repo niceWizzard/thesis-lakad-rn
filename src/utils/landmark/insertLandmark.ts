@@ -1,6 +1,25 @@
 import { Database } from "@/database.types";
 import { supabase } from "../supabase";
 
+
+
+/**
+ * Inserts a landmark as a new stop within an existing itinerary.
+ * * **Logic:** * Calculates the `visit_order` by incrementing the provided `currentCount`.
+ * * @param {Object} params - The insertion parameters.
+ * @param {string | number} params.landmarkId - The unique ID of the landmark to add.
+ * @param {string | number} params.itineraryId - The unique ID of the target itinerary.
+ * @param {string | number} params.currentCount - The current number of stops in the itinerary.
+ * * @returns {Promise<void>} Resolves when the stop is successfully inserted.
+ * * @throws {Error} If any ID or count provided is not a valid numeric representation.
+ * @throws {PostgrestError} If the Supabase insertion fails (e.g., RLS violations).
+ * * @example
+ * await insertLandmarkToItinerary({
+ * landmarkId: 101,
+ * itineraryId: 5,
+ * currentCount: 2
+ * }); // Adds landmark 101 as the 3rd stop in itinerary 5.
+ */
 export const insertLandmarkToItinerary = async ({
     currentCount,
     landmarkId,
@@ -32,7 +51,21 @@ export const insertLandmarkToItinerary = async ({
     return
 }
 
-
+/**
+ * Creates a new landmark entry in the global database.
+ * * @param {Database['public']['Tables']['landmark']['Insert']} data - The landmark data 
+ * conforming to the Supabase schema (excludes ID which is auto-generated).
+ * * @returns {Promise<number>} The ID of the newly created landmark.
+ * * @throws {PostgrestError} If the database prevents the creation (e.g., duplicate unique fields).
+ * @throws {Error} If the insertion completes but no ID is returned.
+ * * @example
+ * const newId = await createLandmark({
+ * name: "Barasoain Church",
+ * latitude: 14.847,
+ * longitude: 120.812,
+ * creation_type: "TOURIST_ATTRACTION"
+ * });
+ */
 export const createLandmark = async (data: Database['public']['Tables']['landmark']['Insert']) => {
     const { error: dbError, data: dbData } = await supabase
         .from('landmark')

@@ -92,7 +92,26 @@ export interface ORSEngineInfo {
 type ORSResponse<T> = T | OrsError
 
 
-
+/**
+ * Calculates the total driving distance for a multi-stop itinerary using the OpenRouteService Directions API.
+ * * * **Features:**
+ * - Calculates the optimal route following a specific order of waypoints.
+ * - Automatically avoids **tollways** as per the defined routing options.
+ * - Extracts the total summary distance in meters.
+ * * * **Constraints:**
+ * - The OpenRouteService Free Tier typically limits directions requests to **50 waypoints** per call.
+ * - Expects coordinates in `[longitude, latitude]` format.
+ * * 
+ * * @param waypoints - An array of coordinate pairs `[longitude, latitude]` representing the journey in order.
+ * @returns {Promise<number>} A promise that resolves to the total distance of the itinerary in **meters**.
+ * * @example
+ * const distance = await calculateItineraryDistance([
+ * [120.8092, 14.8605], // Malolos
+ * [120.8872, 14.8219]  // Guiguinto
+ * ]);
+ * console.log(`Trip distance: ${distance / 1000} km`);
+ * * @throws {Error} If the ORS API returns an error code or the network request fails.
+ */
 export async function calculateItineraryDistance(waypoints: [number, number][]) {
     try {
         const response = await fetch(`${ORS_DIRECTIONS_URL}/driving-car`, {

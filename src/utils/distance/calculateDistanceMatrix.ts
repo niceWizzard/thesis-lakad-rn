@@ -1,8 +1,21 @@
 import { ACCESS_TOKEN } from "../../constants/token";
 
 /**
- * Fetches a complete distance matrix for any number of points by 
- * breaking them into valid Mapbox API chunks.
+ * Calculates a complete $N \times N$ distance matrix for an array of waypoints.
+ * * **Features:**
+ * - **Auto-Chunking:** Automatically handles OpenRouteService (ORS) API limits (50 locations per request) 
+ * by splitting large datasets into a tiled grid of sub-matrix requests.
+ * - **Progress Tracking:** Provides an optional callback to monitor the status of chunked fetches.
+ * - **Memory Efficient:** Returns a nested Record object mapped by your custom waypoint IDs.
+ * * **ORS Constraints Handled:**
+ * - Maximum 50 locations per individual request.
+ * - Maximum 3,500 routes per individual request (50x50 = 2,500, which is safe).
+ * * @param params - The calculation parameters.
+ * @param params.waypointsWithIds - Array of objects containing unique `id` and `coords` [longitude, latitude].
+ * @param params.profile - The routing profile to use (e.g., 'driving-car', 'foot-walking', 'cycling-road').
+ * @param params.onFetchProgress - Callback function receiving `(completedChunks, totalChunks)`.
+ * * @returns A promise resolving to a nested object: `{ [sourceId]: { [destinationId]: distanceInMeters } }`.
+ * @throws {Error} If the API returns an error or the network request fails.
  */
 export const calculateDistanceMatrix = async ({
     waypointsWithIds,
@@ -17,7 +30,6 @@ export const calculateDistanceMatrix = async ({
     const n = waypointsWithIds.length;
     const fullMatrix: Record<string, Record<string, number>> = {};
     waypointsWithIds.forEach(wp => fullMatrix[wp.id] = {});
-
 
     const ORS_LIMIT = 50;
     const url = `https://api.openrouteservice.org/v2/matrix/${profile}`;
@@ -52,9 +64,9 @@ export const calculateDistanceMatrix = async ({
     }
 
     // --- CASE 2: Chunked Request (N > 50) ---
-    // We split into chunks of 50. Note: ORS allows 50x50 in one go, 
-    // but the sum of (sources + destinations) must be carefully managed.
-    // To be safe and efficient, we use 50 sources and 50 destinations per call.
+    // We split into tiled chunks. To fill an N x N matrix, we iterate through 
+    // source chunks (rows) and destination chunks (columns).
+
     const CHUNK_SIZE = 50;
     const totalChunks = Math.ceil(n / CHUNK_SIZE);
     const totalRequests = totalChunks * totalChunks;
@@ -65,7 +77,7 @@ export const calculateDistanceMatrix = async ({
             const sourcesSlice = waypointsWithIds.slice(i, i + CHUNK_SIZE);
             const destsSlice = waypointsWithIds.slice(j, j + CHUNK_SIZE);
 
-            // For simplicity in chunking, we can just send the relevant points for this sub-matrix
+            // currentLocations contains all sources followed by all destinations
             const currentLocations = [...sourcesSlice.map(s => s.coords), ...destsSlice.map(d => d.coords)];
             const sourceIndices = sourcesSlice.map((_, idx) => idx);
             const destIndices = destsSlice.map((_, idx) => idx + sourcesSlice.length);
@@ -102,6 +114,3 @@ export const calculateDistanceMatrix = async ({
 
     return fullMatrix;
 };
-
-
-

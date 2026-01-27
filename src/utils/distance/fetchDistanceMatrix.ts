@@ -1,5 +1,16 @@
 import { supabase } from "../supabase";
 
+/**
+ * Fetches travel distances from the database for a specific set of landmarks 
+ * and formats them into a local lookup matrix.
+ * * @param landmarkIds - An array of landmark IDs to include in the matrix.
+ * @returns {Promise<Record<string, Record<string, number>>>} A promise resolving to 
+ * a nested map: `{ [sourceId]: { [destinationId]: distanceInMeters } }`.
+ * * @example
+ * const matrix = await fetchDistanceMatrix([10, 20, 30]);
+ * const dist = matrix["10"]["20"]; // Returns distance from 10 to 20
+ * * @throws {Error} If the Supabase query fails.
+ */
 export const fetchDistanceMatrix = async (landmarkIds: number[]): Promise<Record<string, Record<string, number>>> => {
     let allData: any[] = [];
     let page = 0;
