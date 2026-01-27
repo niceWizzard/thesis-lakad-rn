@@ -1,6 +1,6 @@
 import { Button, ButtonText } from '@/components/ui/button'
 import { VStack } from '@/components/ui/vstack'
-import { useLandmarks } from '@/src/hooks/useLandmarks'
+import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks'
 import { calculateDistanceMatrix } from '@/src/utils/calculateDistanceMatrix'
 import { supabase } from '@/src/utils/supabase'
 import { useMutation } from '@tanstack/react-query'
@@ -13,7 +13,7 @@ const ManageDistanceMatrix = () => {
         isLoading,
         error,
         refetch
-    } = useLandmarks()
+    } = useQueryLandmarks()
 
 
     const { mutate, isPending } = useMutation({

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { fetchLandmarks } from "../utils/fetchLandmarks"
 
-export const useLandmarks = () => {
+export const useQueryLandmarks = () => {
     const {
         data,
         isLoading,

@@ -6,7 +6,7 @@ import { VStack } from '@/components/ui/vstack'
 import { ChevronRight, MapPin } from 'lucide-react-native'
 import React from 'react'
 import { FlatList, Keyboard, TouchableOpacity, View } from 'react-native'
-import { useLandmarks } from '../hooks/useLandmarks'
+import { useQueryLandmarks } from '../hooks/useQueryLandmarks'
 
 const SearchResultsBox = ({
     searchString,
@@ -19,7 +19,7 @@ const SearchResultsBox = ({
 }) => {
 
 
-    const { landmarks } = useLandmarks();
+    const { landmarks } = useQueryLandmarks();
     const query = searchString.trim().toLowerCase();
     const results = landmarks.filter(v => v.name?.toLowerCase().includes(query));
     // Hide if not visible, string too short, or only whitespace

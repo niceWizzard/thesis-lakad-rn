@@ -13,7 +13,7 @@ import { Landmark } from '@/src/model/landmark.types';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useLandmarks } from '@/src/hooks/useLandmarks';
+import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
@@ -29,7 +29,7 @@ const AdminExploreTab = () => {
     const snapPoints = useMemo(() => ["30%", "60%",], []);
 
 
-    const { landmarks } = useLandmarks();
+    const { landmarks } = useQueryLandmarks();
 
     useEffect(() => {
         (async () => {

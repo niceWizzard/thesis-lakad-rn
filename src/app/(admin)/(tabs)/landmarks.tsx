@@ -40,7 +40,7 @@ import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { useLandmarks } from '@/src/hooks/useLandmarks';
+import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { LandmarkDistrict } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 
@@ -67,7 +67,7 @@ export default function AdminLandmarksScreen() {
         isLoading,
         isRefetching,
         refetch
-    } = useLandmarks()
+    } = useQueryLandmarks()
 
     // --- ENHANCED FILTERING & SORTING LOGIC ---
     const processedLandmarks = useMemo(() => {

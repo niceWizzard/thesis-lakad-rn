@@ -39,7 +39,7 @@ import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { useLandmarks } from '@/src/hooks/useLandmarks';
+import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
 import { fetchDistanceMatrix } from '@/src/utils/fetchDistanceMatrix';
@@ -93,7 +93,7 @@ enum GeneratingState {
 
 const CreateWithAgamScreen = () => {
     const router = useRouter();
-    const { landmarks } = useLandmarks()
+    const { landmarks } = useQueryLandmarks()
     const queryClient = useQueryClient();
     const preferredTypes = useTypePreferences();
     const [state, setState] = useState(GeneratingState.Idle)
