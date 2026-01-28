@@ -4,11 +4,15 @@ import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Landmark } from '@/src/model/landmark.types';
 
+import { Box } from '@/components/ui/box';
 import CustomMapView from '@/src/components/CustomMapView';
 import MapFabs from '@/src/components/MapFabs';
 import { StyleURL } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import LandmarkMarker from './LandmarkMarker';
+
+const CopilotBox = walkthroughable(Box);
 
 
 
@@ -21,10 +25,16 @@ const LandmarkMapView = ({
     selectedLandmark,
     setSelectedLandmark,
     cameraRef,
+    tutorialStep, // Add tutorialStep to destructuring
 }: {
     landmarks: Landmark[]
     selectedLandmark: Landmark | null
-    setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>,
+    setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>
+    tutorialStep?: {
+        name: string;
+        text: string;
+        order: number;
+    }
 } & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'cameraRef'>) => {
     const camera = cameraRef;
     const [, setUserLocation] = useState<[number, number] | null>(null);
@@ -121,12 +131,31 @@ const LandmarkMapView = ({
             cameraRef={camera}
             overlays={(
                 <>
-                    <ExploreSearchBox
-                        onSearch={setSearchString}
-                        onFocus={() => setIsSearchFocused(true)}
-                        onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                        value={searchString}
-                    />
+                    {
+                        tutorialStep ? (
+                            <CopilotStep
+                                text={tutorialStep.text}
+                                order={tutorialStep.order}
+                                name={tutorialStep.name}
+                            >
+                                <CopilotBox>
+                                    <ExploreSearchBox
+                                        onSearch={setSearchString}
+                                        onFocus={() => setIsSearchFocused(true)}
+                                        onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                        value={searchString}
+                                    />
+                                </CopilotBox>
+                            </CopilotStep>
+                        ) : (
+                            <ExploreSearchBox
+                                onSearch={setSearchString}
+                                onFocus={() => setIsSearchFocused(true)}
+                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                value={searchString}
+                            />
+                        )
+                    }
 
                     <SearchResultsBox
                         searchString={searchString}

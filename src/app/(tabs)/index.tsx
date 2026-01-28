@@ -18,8 +18,15 @@ import { VStack } from '@/components/ui/vstack';
 // Custom Components & Stores
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
+import { StorageKey } from '@/src/constants/Key';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { Landmark } from '@/src/model/landmark.types';
+import { mmkvStorage } from '@/src/utils/mmkv';
+import { useIsFocused } from '@react-navigation/native';
+import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+
+
+const CopilotVStack = walkthroughable(VStack);
 
 const ExploreTab = () => {
     const [, setUserLocation] = useState<[number, number] | null>(null);
@@ -34,6 +41,31 @@ const ExploreTab = () => {
     const snapPoints = useMemo(() => ["20%", "80%",], []);
 
     const { landmarks } = useQueryLandmarks()
+    const { start } = useCopilot();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout>;
+
+        if (isFocused && landmarks.length > 0) {
+            const hasShown = mmkvStorage.getBoolean(StorageKey.ExploreTutorialShown);
+            if (!hasShown) {
+                // Pre-select a landmark so the second step (Landmark Details) is visible
+                if (!selectedLandmark) {
+                    setSelectedLandmark(landmarks[0]);
+                }
+
+                timeout = setTimeout(() => {
+                    start();
+                    mmkvStorage.set(StorageKey.ExploreTutorialShown, true);
+                }, 500);
+            }
+        }
+
+        return () => {
+            if (timeout) clearTimeout(timeout);
+        };
+    }, [isFocused, start, landmarks, selectedLandmark]);
 
     // Sync BottomSheet with selectedLandmark state
     useEffect(() => {
@@ -92,6 +124,11 @@ const ExploreTab = () => {
                 selectedLandmark={selectedLandmark}
                 setSelectedLandmark={setSelectedLandmark}
                 landmarks={landmarks}
+                tutorialStep={{
+                    name: 'searchBox',
+                    text: 'Search for landmarks or browse the map to explore tourist spots in the province.',
+                    order: 1,
+                }}
             />
 
             <CustomBottomSheet
@@ -108,35 +145,41 @@ const ExploreTab = () => {
                     {selectedLandmark ? (
                         <VStack className="gap-6">
                             {/* Header Info */}
-                            <VStack className="gap-2">
-                                <HStack className="justify-between items-start">
-                                    <VStack className="flex-1 pr-4">
-                                        <Heading size="xl" className="text-typography-900 leading-tight">
-                                            {selectedLandmark.name}
-                                        </Heading>
-                                        <HStack space="xs" className="mt-1 items-center">
-                                            <Icon as={MapPin} size="xs" className="text-primary-600" />
-                                            <Text size="sm" className="text-typography-500 font-medium">
-                                                {selectedLandmark.municipality}, District {selectedLandmark.district}
+                            <CopilotStep
+                                text="When a landmark is selected, you'll see a preview here. Tap 'Full Details' to learn more."
+                                order={2}
+                                name="landmarkDetails"
+                            >
+                                <CopilotVStack className="gap-2">
+                                    <HStack className="justify-between items-start">
+                                        <VStack className="flex-1 pr-4">
+                                            <Heading size="xl" className="text-typography-900 leading-tight">
+                                                {selectedLandmark.name}
+                                            </Heading>
+                                            <HStack space="xs" className="mt-1 items-center">
+                                                <Icon as={MapPin} size="xs" className="text-primary-600" />
+                                                <Text size="sm" className="text-typography-500 font-medium">
+                                                    {selectedLandmark.municipality}, District {selectedLandmark.district}
+                                                </Text>
+                                            </HStack>
+                                        </VStack>
+
+                                        <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
+                                            <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
+                                            <Text size="sm" className="font-bold text-warning-700">
+                                                {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
                                             </Text>
                                         </HStack>
-                                    </VStack>
-
-                                    <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
-                                        <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
-                                        <Text size="sm" className="font-bold text-warning-700">
-                                            {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
-                                        </Text>
                                     </HStack>
-                                </HStack>
 
-                                <HStack space="xs" className="flex-wrap mt-1">
-                                    <Badge
-                                        action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
-                                        <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
-                                    </Badge>
-                                </HStack>
-                            </VStack>
+                                    <HStack space="xs" className="flex-wrap mt-1">
+                                        <Badge
+                                            action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
+                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                        </Badge>
+                                    </HStack>
+                                </CopilotVStack>
+                            </CopilotStep>
 
                             {
                                 sheetIndex > 0 && (
