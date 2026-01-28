@@ -8,7 +8,7 @@ import {
 } from '@rnmapbox/maps';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Edit } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 // UI Components
@@ -29,8 +29,10 @@ import { useUserLocation } from '@/src/hooks/useUserLocation';
 import { MapControls } from '@/src/components/itinerary/MapControls';
 import { NavigatingModeBottomSheet } from '@/src/components/itinerary/NavigatingModeBottomSheet';
 import { NavigatingModeMapView } from '@/src/components/itinerary/NavigatingModeMapView';
+import { ReroutingIndicator } from '@/src/components/itinerary/ReroutingIndicator';
 import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
+import LoadingModal from '@/src/components/LoadingModal';
 
 
 export default function ItineraryView() {
@@ -66,7 +68,7 @@ export default function ItineraryView() {
     } = useNavigationState(userLocation);
 
     // 4. Navigation Logic
-    const { startNavigation, closeCommercialsInPath } = useNavigationLogic({
+    const { startNavigation, closeCommercialsInPath, isCalculatingRoute, isStartingNavigation } = useNavigationLogic({
         mode,
         userLocation,
         navigationRoute,
@@ -77,6 +79,18 @@ export default function ItineraryView() {
         commercials,
         cameraRef
     });
+
+    // Auto-center camera on user location during navigation
+    useEffect(() => {
+        if (mode === Mode.Navigating && userLocation && cameraRef.current) {
+            cameraRef.current.setCamera({
+                centerCoordinate: userLocation,
+                zoomLevel: 18,
+                pitch: 55,
+                animationDuration: 300,
+            });
+        }
+    }, [userLocation, mode, cameraRef]);
 
 
     // Loading State
@@ -138,7 +152,6 @@ export default function ItineraryView() {
                             zoomLevel: 14
                         }}
                     />
-                    <LocationPuck pulsing={{ isEnabled: true, color: '#007AFF' }} />
 
                     {/* Route Line */}
                     {navigationRoute.length > 0 && (
@@ -154,6 +167,7 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
+                    <LocationPuck pulsing={{ isEnabled: true, color: '#007AFF' }} />
 
                     <NavigatingModeMapView
                         show={mode === Mode.Navigating}
@@ -184,11 +198,11 @@ export default function ItineraryView() {
                 <CustomBottomSheet
                     index={0}
                     bottomSheetRef={bottomSheetRef}
-                    snapPoints={["50%", "70%"]}
+                    snapPoints={mode === Mode.Navigating ? ["45%", "70%"] : ["50%", "70%"]}
                     isBottomSheetOpened={isSheetOpen}
                     onClose={() => setIsSheetOpen(false)}
                     enableDynamicSizing={false}
-                    enablePanDownToClose
+                    enablePanDownToClose={mode !== Mode.Navigating}
                 >
                     <BottomSheetScrollView>
                         <ViewingModeBottomSheet
@@ -211,6 +225,13 @@ export default function ItineraryView() {
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>
+
+                {/* Loading States */}
+                <LoadingModal
+                    isShown={isStartingNavigation}
+                    loadingText="Starting navigation..."
+                />
+                <ReroutingIndicator visible={isCalculatingRoute && mode === Mode.Navigating} />
             </VStack>
         </>
     );

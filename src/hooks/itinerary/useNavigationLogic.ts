@@ -8,7 +8,7 @@ import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import { Camera } from '@rnmapbox/maps';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Mode } from './useNavigationState';
 
 interface UseNavigationLogicProps { // Renamed from Props to avoid naming conflicts if necessary, but internal interface is fine
@@ -44,6 +44,10 @@ export const useNavigationLogic = ({
     const isProcessingArrival = useRef(false);
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
+
+    // Loading states
+    const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+    const [isStartingNavigation, setIsStartingNavigation] = useState(false);
 
     // -------------------------------------------------------------------------
     // 1. Logic for Completing Navigation (Arrival)
@@ -106,6 +110,7 @@ export const useNavigationLogic = ({
                 if (distanceToNextStep > 50) {
                     (async () => {
                         try {
+                            setIsCalculatingRoute(true);
                             const data = await fetchDirections({
                                 waypoints: [
                                     userLocation,
@@ -115,6 +120,8 @@ export const useNavigationLogic = ({
                             setNavigationRoute(data.routes);
                         } catch (error) {
                             console.log("Error rerouting:", error);
+                        } finally {
+                            setIsCalculatingRoute(false);
                         }
                     })();
                 }
@@ -139,6 +146,9 @@ export const useNavigationLogic = ({
         const startLocation = userLocation || [120.8092, 14.8605];
 
         try {
+            setIsStartingNavigation(true);
+            setIsCalculatingRoute(true);
+
             const data = await fetchDirections({
                 waypoints: [
                     startLocation,
@@ -147,6 +157,8 @@ export const useNavigationLogic = ({
             });
 
             setNavigationRoute(data.routes);
+            setIsCalculatingRoute(false);
+
             switchMode(Mode.Navigating);
 
             // Animate Camera
@@ -158,7 +170,14 @@ export const useNavigationLogic = ({
                 animationDuration: 1500,
             });
 
+            // Keep loading overlay for smooth transition
+            setTimeout(() => {
+                setIsStartingNavigation(false);
+            }, 1500);
+
         } catch (error: any) {
+            setIsCalculatingRoute(false);
+            setIsStartingNavigation(false);
             showToast({
                 title: "Error starting navigation",
                 description: error.message,
@@ -200,6 +219,8 @@ export const useNavigationLogic = ({
 
     return {
         startNavigation: handleNavigationButtonClick,
-        closeCommercialsInPath
+        closeCommercialsInPath,
+        isCalculatingRoute,
+        isStartingNavigation
     };
 };

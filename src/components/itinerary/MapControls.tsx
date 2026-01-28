@@ -12,7 +12,7 @@ interface MapControlsProps {
 
 export function MapControls({ isSheetOpen, onOpenSheet, onLocateMe }: MapControlsProps) {
     return (
-        <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' >
+        <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end'>
             {!isSheetOpen && (
                 <Button className='rounded-full w-14 h-14 shadow-lg' onPress={onOpenSheet}>
                     <ButtonIcon as={ArrowUp} size='lg' />

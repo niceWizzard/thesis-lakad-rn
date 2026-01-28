@@ -17,6 +17,7 @@ import { formatDistance } from '@/src/utils/format/distance';
 import { supabase } from '@/src/utils/supabase';
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 
+import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
@@ -132,6 +133,11 @@ export function ViewingModeBottomSheet({
                 loadingText={"Updating itinerary"}
             />
             <VStack space='lg' className='pb-6 h-full flex-1'>
+                {/* Drag Indicator */}
+                <Box className='w-full items-center pt-2 pb-1'>
+                    <Box className='w-12 h-1 bg-outline-300 rounded-full' />
+                </Box>
+
                 <HStack className='justify-between items-center px-4'>
                     <VStack className='flex-1'>
                         <Heading size='xl'>{itinerary.name}</Heading>
