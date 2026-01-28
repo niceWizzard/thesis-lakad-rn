@@ -268,7 +268,10 @@ const CreateWithAgamScreen = () => {
                                     <Heading size="lg">Agam Planner</Heading>
                                 </HStack>
                                 <Text size="sm" className="text-typography-500">Smart-Generated Itineraries</Text>
-                                <TouchableOpacity onPress={() => start()}>
+                                <TouchableOpacity onPress={() => {
+                                    setExpandedItems([]);
+                                    setTimeout(start, 100)
+                                }}>
                                     <Text size="sm" className="text-primary-600 font-bold">How to use Agam?</Text>
                                 </TouchableOpacity>
                             </VStack>
