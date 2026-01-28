@@ -1,3 +1,4 @@
+import { ORS_BASE_URL } from "@/src/constants/url";
 import { ACCESS_TOKEN } from "../../constants/token";
 
 /**
@@ -32,7 +33,7 @@ export const calculateDistanceMatrix = async ({
     waypointsWithIds.forEach(wp => fullMatrix[wp.id] = {});
 
     const ORS_LIMIT = 50;
-    const url = `https://api.openrouteservice.org/v2/matrix/${profile}`;
+    const url = `${ORS_BASE_URL}/v2/matrix/${profile}`;
 
     // --- CASE 1: Simple Request (N <= 50) ---
     if (n <= ORS_LIMIT) {
