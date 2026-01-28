@@ -11,7 +11,7 @@ import {
     Navigation2,
     Sparkles
 } from 'lucide-react-native';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
     KeyboardAvoidingView,
@@ -38,13 +38,16 @@ import { VStack } from '@/components/ui/vstack';
 import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
+import { StorageKey } from '@/src/constants/Key';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
 import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
+import { mmkvStorage } from '@/src/utils/mmkv';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
+import { useIsFocused } from '@react-navigation/native';
 import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
 
@@ -101,9 +104,30 @@ const CreateWithAgamScreen = () => {
     const { showToast } = useToastNotification()
 
     const isGenerating = state !== GeneratingState.Idle;
+    const isFocused = useIsFocused();
 
     const [queryProgress] = useState(0)
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout>;
+
+        if (isFocused) {
+            const hasShown = mmkvStorage.getBoolean(StorageKey.AgamTutorialShown);
+            if (!hasShown) {
+                setExpandedItems([]);
+                timeout = setTimeout(() => {
+                    console.log("STARTING")
+                    start();
+                    mmkvStorage.set(StorageKey.AgamTutorialShown, true);
+                }, 100);
+            }
+        }
+
+        return () => {
+            if (timeout) clearTimeout(timeout);
+        };
+    }, [isFocused, start]);
 
 
     const { control, handleSubmit, watch, setValue, formState: { errors, isValid } } = useForm<FormData>({
