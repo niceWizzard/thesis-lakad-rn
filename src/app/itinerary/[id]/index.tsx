@@ -1,3 +1,4 @@
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import {
     Camera,
     LineLayer,
@@ -5,328 +6,80 @@ import {
     MapView,
     ShapeSource
 } from '@rnmapbox/maps';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Location from 'expo-location';
-import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, View } from 'react-native';
-
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Edit } from 'lucide-react-native';
+import React from 'react';
+import { ActivityIndicator } from 'react-native';
 
 // UI Components
 import { Box } from '@/components/ui/box';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
+import { Button, ButtonIcon } from '@/components/ui/button';
 import { VStack } from '@/components/ui/vstack';
-
-// Logic & Types
-import { Stop, StopWithLandmark } from '@/src/model/stops.types';
-import { useAuthStore } from '@/src/stores/useAuth';
-import { fetchItineraryById } from '@/src/utils/fetchItineraries';
-import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
-import { supabase } from '@/src/utils/supabase';
-
-// Icons
-import {
-    ArrowDownUp,
-    ArrowUp,
-    ArrowUpLeft,
-    ArrowUpRight,
-    CheckCircle,
-    Clock,
-    Edit,
-    LocateFixed,
-    MapPin,
-    Navigation,
-    Navigation2,
-    PlusCircle,
-    RotateCcw
-} from 'lucide-react-native';
-
-import { Divider } from '@/components/ui/divider';
-import { Heading } from '@/components/ui/heading';
-import { Icon } from '@/components/ui/icon';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMarker from '@/src/components/LandmarkMarker';
-import LoadingModal from '@/src/components/LoadingModal';
-import StopListItem from '@/src/components/StopListItem';
-import { useQueryCommercialLandmarks } from '@/src/hooks/useQueryCommercialLandmarks';
+
+// Hooks
+import { useItineraryData } from '@/src/hooks/itinerary/useItineraryData';
+import { useNavigationLogic } from '@/src/hooks/itinerary/useNavigationLogic';
+import { Mode, useNavigationState } from '@/src/hooks/itinerary/useNavigationState';
+import { useUserLocation } from '@/src/hooks/itinerary/useUserLocation';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { ItineraryWithStops } from '@/src/model/itinerary.types';
-import { Landmark } from '@/src/model/landmark.types';
-import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
-import { formatDistance } from '@/src/utils/format/distance';
-import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
-import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+// Refactored Sub-components
+import { MapControls } from '@/src/components/itinerary/MapControls';
+import { NavigatingModeBottomSheet } from '@/src/components/itinerary/NavigatingModeBottomSheet';
+import { NavigatingModeMapView } from '@/src/components/itinerary/NavigatingModeMapView';
+import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
+import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 
-enum Mode {
-    Viewing,
-    Navigating,
-}
-
-const getStepIcon = (instruction: string) => {
-    const text = instruction.toLowerCase();
-    if (text.includes('left')) return ArrowUpLeft;
-    if (text.includes('right')) return ArrowUpRight;
-    if (text.includes('u-turn')) return RotateCcw;
-    if (text.includes('destination') || text.includes('arrive')) return MapPin;
-    return ArrowUp; // Default to straight
-};
-
-
-// Returns distance in kilometers
-const getDistanceToSegment = (p: [number, number], a: [number, number], b: [number, number]) => {
-    const crossTrackDistance = (point: [number, number], start: [number, number], end: [number, number]) => {
-        // Standard formula for distance from point to line segment
-        // Using Haversine for the "points" but simple projection for the segment
-        const dy = end[1] - start[1];
-        const dx = end[0] - start[0];
-        if (dx === 0 && dy === 0) return getHaversineDistance(point, start);
-
-        const t = ((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / (dx * dx + dy * dy);
-
-        if (t < 0) return getHaversineDistance(point, start);
-        if (t > 1) return getHaversineDistance(point, end);
-
-        const closestPoint: [number, number] = [start[0] + t * dx, start[1] + t * dy];
-        return getHaversineDistance(point, closestPoint);
-    };
-    return crossTrackDistance(p, a, b);
-};
 
 export default function ItineraryView() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const camera = useRef<Camera>(null);
-    // Inside your component
-
-    const [mode, setMode] = useState<Mode>(Mode.Viewing);
-    const [isSheetOpen, setIsSheetOpen] = useState(true);
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-    const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
-    const bottomSheetRef = useRef<BottomSheet>(null);
-    const isProcessingArrival = useRef(false);
     const { showToast } = useToastNotification();
 
+    // 1. Data Hooks
+    const {
+        itinerary,
+        isLoading,
+        refetch,
+        commercials,
+        nextUnvisitedStop,
+        completedStops,
+        pendingStops
+    } = useItineraryData(id as string);
 
-    const { session } = useAuthStore();
-    const userId = session?.user.id;
+    // 2. Location
+    const userLocation = useUserLocation();
 
-    const { data: itinerary, isLoading, refetch } = useQuery({
-        queryKey: ['itinerary', id],
-        enabled: !!userId && !!id,
-        queryFn: async () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
+    // 3. Navigation State (Mode, Camera, Sheet)
+    const {
+        mode,
+        isSheetOpen,
+        setIsSheetOpen,
+        navigationRoute,
+        setNavigationRoute,
+        cameraRef,
+        bottomSheetRef,
+        switchMode,
+        locatePOI
+    } = useNavigationState(userLocation);
+
+    // 4. Navigation Logic
+    const { startNavigation, closeCommercialsInPath } = useNavigationLogic({
+        mode,
+        userLocation,
+        navigationRoute,
+        setNavigationRoute,
+        switchMode,
+        nextUnvisitedStop,
+        refetchItinerary: refetch,
+        commercials,
+        cameraRef
     });
 
-    const {
-        landmarks: commercials,
-    } = useQueryCommercialLandmarks()
 
-    const closeCommercialsInPath = useMemo(() => {
-        if (mode !== Mode.Navigating || !navigationRoute.length || !commercials) {
-            return [];
-        }
-        const pathCoordinates = navigationRoute[0].geometry.coordinates;
-
-        return commercials.filter((poi) => {
-            const poiCoords: [number, number] = [poi.longitude, poi.latitude];
-
-            // 1. Quick check: Is the POI within 100m of the USER currently?
-            // (This is a performance optimization)
-            const distToUser = getHaversineDistance(userLocation!, poiCoords);
-            if (distToUser <= 100) return true;
-
-            // 2. Deep check: Is the POI within 100m of ANY segment of the path?
-            for (let i = 0; i < pathCoordinates.length - 1; i++) {
-                const start = pathCoordinates[i] as [number, number];
-                const end = pathCoordinates[i + 1] as [number, number];
-
-                const distanceToSegment = getDistanceToSegment(poiCoords, start, end);
-                if (distanceToSegment <= 100) { // 100 meters
-                    return true;
-                }
-            }
-            return false;
-        });
-    }, [mode, navigationRoute, commercials, userLocation]);
-
-    const nextUnvisitedStop = useMemo(() => {
-        if (!itinerary) return null;
-        return itinerary.stops.find(stop => !stop.visited_at) || null;
-    }, [itinerary]);
-
-
-    useEffect(() => {
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-
-            const sub = await Location.watchPositionAsync(
-                {
-                    accuracy: Location.Accuracy.Highest,
-                    timeInterval: 3000,
-                    distanceInterval: 5, // update every 5 m
-                },
-                (pos) => {
-                    const { latitude, longitude } = pos.coords;
-                    setUserLocation([longitude, latitude])
-                }
-            );
-
-            return () => sub.remove();
-        })();
-    }, []);
-
-
-    useEffect(() => {
-        if (isSheetOpen) {
-            requestAnimationFrame(() => {
-                bottomSheetRef.current?.snapToIndex(0);
-            });
-        } else {
-            bottomSheetRef.current?.close();
-        }
-    }, [isSheetOpen])
-
-
-    const switchMode = useCallback((mode: Mode) => {
-        switch (mode) {
-            case Mode.Viewing:
-                setIsSheetOpen(true);
-                setNavigationRoute([])
-                setMode(Mode.Viewing);
-                camera.current?.setCamera({
-                    centerCoordinate: userLocation ?? [120.8092, 14.8605],
-                    zoomLevel: 14,
-                    animationDuration: 400,
-                    pitch: 0,
-                    heading: 0
-                })
-                return
-            case Mode.Navigating:
-                setMode(Mode.Navigating);
-                setIsSheetOpen(true);
-                return
-            default:
-                return
-        }
-    }, [userLocation])
-
-
-    const queryClient = useQueryClient();
-
-    const finishedNavigating = useCallback(async (visitedStop: StopWithLandmark) => {
-        if (isProcessingArrival.current) return; // Exit if already running
-        isProcessingArrival.current = true; // Lock the gate
-        try {
-            await toggleStopStatus(visitedStop)
-            await refetch();
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
-            switchMode(Mode.Viewing)
-            showToast({
-                title: "You have arrived!",
-            })
-        } catch (e: any) {
-            showToast({
-                title: "Error",
-                description: e.message ?? "Some error happened while updating finishing navigation.",
-                action: "error"
-            })
-        } finally {
-            isProcessingArrival.current = false; // Unlock the gate
-        }
-    }, [refetch, showToast, switchMode, queryClient])
-
-    useFocusEffect(
-        useCallback(() => {
-            if (mode !== Mode.Navigating || !nextUnvisitedStop || !userLocation) {
-                return;
-            }
-
-            // 1. Calculate distance to the actual DESTINATION (the landmark)
-            const distanceToDestination = getHaversineDistance(
-                userLocation,
-                [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
-            );
-
-            // 2. Arrival Logic: Check if within 10 meters of the final stop
-            if (distanceToDestination <= 10) {
-                console.log("Arrived at destination!");
-                finishedNavigating(nextUnvisitedStop);
-                return;
-            }
-
-            // 3. Rerouting Logic: Check if we are far from the current route path
-            if (navigationRoute.length && navigationRoute[0].legs.length) {
-                const currentLeg = navigationRoute[0].legs[0];
-                const nextStep = currentLeg.steps[0];
-
-                // Distance to the next maneuver point (turn)
-                const distanceToNextStep = getHaversineDistance(
-                    userLocation,
-                    nextStep.maneuver.location
-                );
-
-                // If we are more than 50m away from the expected maneuver point, recalculate
-                if (distanceToNextStep > 50) {
-                    (async () => {
-                        const data = await fetchDirections({
-                            waypoints: [
-                                userLocation,
-                                [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
-                            ],
-                        });
-                        setNavigationRoute(data.routes);
-                    })();
-                }
-            }
-        }, [mode, nextUnvisitedStop, navigationRoute, userLocation, finishedNavigating])
-    );
-
-
-
-
-    const locatePOI = (stop: StopWithLandmark) => {
-        camera.current?.setCamera({
-            centerCoordinate: [stop.landmark.longitude, stop.landmark.latitude],
-            zoomLevel: 18,
-            animationDuration: 800,
-            padding: { paddingBottom: SCREEN_HEIGHT * 0.4, paddingTop: 40, paddingLeft: 20, paddingRight: 20 }
-        });
-    };
-
-
-    const handleNavigationButtonClick = async () => {
-        if (!nextUnvisitedStop) {
-            showToast({
-                title: "No stops left",
-                description: "You have completed all points in this itinerary.",
-                action: "info"
-            })
-            return;
-        }
-        const data = await fetchDirections({
-            waypoints: [
-                userLocation || [120.8092, 14.8605],
-                [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
-            ],
-        });
-        setNavigationRoute(data.routes);
-        switchMode(Mode.Navigating)
-        camera.current?.setCamera({
-            centerCoordinate: userLocation || [120.8092, 14.8605],
-            zoomLevel: 18,
-            pitch: 55, // 3D perspective
-            heading: data.routes[0].legs[0].steps[0].maneuver.bearing_after,
-            animationDuration: 1500,
-        });
-    };
-
-
+    // Loading State
     if (isLoading || !itinerary) {
         return (
             <Box className='flex-1 justify-center items-center bg-background-0'>
@@ -335,11 +88,21 @@ export default function ItineraryView() {
         );
     }
 
-
-
-    const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
-
-    const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
+    const handleLocateMe = () => {
+        if (userLocation && cameraRef.current) {
+            cameraRef.current.setCamera({
+                centerCoordinate: userLocation,
+                zoomLevel: 18,
+                animationDuration: 400
+            });
+        } else {
+            showToast({
+                title: "Location not found",
+                description: "Waiting for user location...",
+                action: "info"
+            });
+        }
+    };
 
     return (
         <>
@@ -367,7 +130,7 @@ export default function ItineraryView() {
                     onPress={() => setIsSheetOpen(false)}
                 >
                     <Camera
-                        ref={camera}
+                        ref={cameraRef as any}
                         defaultSettings={{
                             centerCoordinate: itinerary.stops.length > 0 ?
                                 [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude] :
@@ -376,6 +139,8 @@ export default function ItineraryView() {
                         }}
                     />
                     <LocationPuck pulsing={{ isEnabled: true, color: '#007AFF' }} />
+
+                    {/* Route Line */}
                     {navigationRoute.length > 0 && (
                         <ShapeSource id="routeSource" shape={navigationRoute[0].geometry}>
                             <LineLayer
@@ -389,38 +154,33 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
-                    <NavigatingModeMapViewContent
+
+                    <NavigatingModeMapView
                         show={mode === Mode.Navigating}
-                        targetLandmark={nextUnvisitedStop?.landmark!}
+                        targetLandmark={nextUnvisitedStop?.landmark || null}
                     />
-                    <ViewingModeMapViewContent
+
+                    <ViewingModeMapView
                         stops={itinerary.stops}
                         show={mode === Mode.Viewing}
                     />
+
+                    {/* Commercials along the route */}
                     {mode === Mode.Navigating && closeCommercialsInPath.map(poi => (
                         <LandmarkMarker
                             key={`nearby-${poi.id}`}
                             landmark={poi}
                             isSelected={false}
-                        // You might want a different pin color for commercials
                         />
                     ))}
                 </MapView>
 
-                <VStack space='md' className='absolute bottom-6 right-4 z-[5] items-end left-4' >
-                    {!isSheetOpen && (
-                        <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => setIsSheetOpen(true)}>
-                            <ButtonIcon as={ArrowUp} size='lg' />
-                        </Button>
-                    )}
-                    <Button className='rounded-full w-14 h-14 shadow-lg' onPress={() => {
-                        console.log("CLICKED", userLocation, camera.current)
-                        return userLocation && camera.current?.setCamera({ centerCoordinate: userLocation, zoomLevel: 18, animationDuration: 400 });
-                    }}>
-                        <ButtonIcon as={LocateFixed} className='text-primary-600' size='lg' />
-                    </Button>
+                <MapControls
+                    isSheetOpen={isSheetOpen}
+                    onOpenSheet={() => setIsSheetOpen(true)}
+                    onLocateMe={handleLocateMe}
+                />
 
-                </VStack>
                 <CustomBottomSheet
                     index={0}
                     bottomSheetRef={bottomSheetRef}
@@ -430,11 +190,8 @@ export default function ItineraryView() {
                     enableDynamicSizing={false}
                     enablePanDownToClose
                 >
-
                     <BottomSheetScrollView>
-                        <ViewingModeBottomSheetContent
-                            completedStops={completedStops}
-                            pendingStops={pendingStops}
+                        <ViewingModeBottomSheet
                             itinerary={itinerary}
                             mode={mode}
                             isSheetOpen={isSheetOpen}
@@ -442,9 +199,11 @@ export default function ItineraryView() {
                             showToast={showToast}
                             locatePOI={locatePOI}
                             canOptimize={pendingStops.length > 1}
-                            goNavigationMode={handleNavigationButtonClick}
+                            goNavigationMode={startNavigation}
+                            pendingStops={pendingStops}
+                            completedStops={completedStops}
                         />
-                        <NavigatingModeBottomSheetContent
+                        <NavigatingModeBottomSheet
                             navigationRoute={navigationRoute}
                             mode={mode}
                             nextUnvisitedStop={nextUnvisitedStop}
@@ -455,285 +214,4 @@ export default function ItineraryView() {
             </VStack>
         </>
     );
-}
-
-
-function NavigatingModeMapViewContent({ show, targetLandmark }: { show: boolean, targetLandmark: Landmark }) {
-    if (!show)
-        return null
-
-    return (
-        <>
-            <LandmarkMarker
-                landmark={targetLandmark}
-                isSelected
-            />
-        </>
-    )
-}
-
-
-function ViewingModeMapViewContent({ stops, show }: { stops: StopWithLandmark[], show: boolean }) {
-    if (!show)
-        return null
-    return (
-        <>
-            {
-                stops.map(stop => (
-                    <LandmarkMarker
-                        landmark={stop.landmark}
-                        key={stop.id}
-                    />
-                ))
-            }
-        </>
-    )
-}
-
-
-function NavigatingModeBottomSheetContent({
-    mode,
-    navigationRoute,
-    nextUnvisitedStop,
-    exitNavigationMode,
-
-}: {
-    navigationRoute: MapboxRoute[],
-    mode: Mode,
-    nextUnvisitedStop: StopWithLandmark | null,
-    exitNavigationMode: () => void,
-}) {
-    if (mode !== Mode.Navigating)
-        return null;
-
-    return (<>
-        <VStack className='h-full bg-background-0'>
-            {/* Primary Instruction Card */}
-            <Box className="mx-4 mt-2 p-5 bg-background-100 rounded-3xl shadow-xl">
-                <HStack space="lg" className="items-center">
-                    <Box className="bg-primary-500 p-4 rounded-2xl">
-                        <Icon
-                            as={Navigation2}
-                            size="xl"
-                            style={{ transform: [{ rotate: '45deg' }] }}
-                        />
-                    </Box>
-                    <VStack className="flex-1">
-                        <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
-                            {navigationRoute[0]?.distance > 1000
-                                ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
-                                : `${navigationRoute[0]?.distance.toFixed(0)} m`}
-                        </Text>
-                        <Heading size='lg' className=" leading-tight">
-                            {navigationRoute[0]?.legs[0]?.steps[0]?.maneuver.instruction}
-                        </Heading>
-                    </VStack>
-                </HStack>
-            </Box>
-
-            {/* Destination Target */}
-            <HStack className="px-6 py-4 items-center" space="sm">
-                <Icon as={CheckCircle} size="sm" className="text-success-500" />
-                <Text size="sm" className="text-typography-500 font-medium">
-                    Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
-                </Text>
-            </HStack>
-
-            <Divider className="mx-4" />
-
-            {/* Upcoming Steps List */}
-            <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
-                <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
-                <VStack space='sm' className="pb-20">
-                    {navigationRoute[0]?.legs[0]?.steps.slice(1).map((step, i) => (
-                        <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
-                            <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
-                                {/* You can replace this with a dynamic icon library like Lucide arrow icons */}
-                                <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />
-                            </Box>
-                            <VStack className="flex-1">
-                                <Text size='md' className="text-typography-800 font-medium">{step.maneuver.instruction}</Text>
-                                <Text size='xs' className="text-typography-400">{step.distance.toFixed(0)} m</Text>
-                            </VStack>
-                        </HStack>
-                    ))}
-                </VStack>
-            </ScrollView>
-
-            {/* Controls Overlay */}
-            <Box className="absolute bottom-6 left-4 right-4">
-                <Button
-                    action='negative'
-                    variant='solid'
-                    className='rounded-2xl h-14 shadow-lg bg-error-600'
-                    onPress={exitNavigationMode}
-                >
-                    <ButtonText className="font-bold">Exit Navigation</ButtonText>
-                </Button>
-            </Box>
-        </VStack>
-    </>)
-}
-
-
-function ViewingModeBottomSheetContent({
-    itinerary, mode, isSheetOpen,
-    goNavigationMode,
-    canOptimize,
-    pendingStops,
-    completedStops,
-    refetch,
-    showToast,
-    locatePOI,
-}: {
-    itinerary: ItineraryWithStops,
-    mode: Mode,
-    isSheetOpen: boolean,
-    pendingStops: StopWithLandmark[],
-    completedStops: StopWithLandmark[],
-    refetch: () => Promise<any>,
-    showToast: ReturnType<typeof useToastNotification>['showToast'],
-    locatePOI: (stop: StopWithLandmark) => void,
-    goNavigationMode: () => void,
-    canOptimize: boolean,
-}
-) {
-    const scrollViewRef = useRef<ScrollView>(null);
-    const router = useRouter();
-    const [isUpdating, setIsUpdating] = useState(false)
-
-
-    const queryClient = useQueryClient();
-
-    useEffect(() => {
-        if (mode === Mode.Viewing && isSheetOpen) {
-            const timer = setTimeout(() => {
-                if (!itinerary || !scrollViewRef.current)
-                    return
-                const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
-                if (pendingStops.length > 0) {
-                    scrollViewRef.current.scrollTo({
-                        y: 0,
-                        animated: true,
-                    })
-                }
-            }, 300);
-
-            return () => clearTimeout(timer);
-        }
-    }, [mode, isSheetOpen, itinerary]);
-
-    const handleAddPoi = async () => {
-        router.navigate({
-            pathname: '/itinerary/[id]/add-stop',
-            params: { id: itinerary.id, currentCount: itinerary.stops.length },
-        })
-    }
-
-    const handleVisitedPress = async (stop: Stop) => {
-        setIsUpdating(true)
-        try {
-            await toggleStopStatus(stop)
-
-            await refetch();
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
-        } catch (e: any) {
-            console.error("Error updating status:", e.message);
-            showToast({
-                title: "Something went wrong.",
-                description: e.message ?? "Some error happened.",
-                action: 'error'
-            })
-        } finally {
-            setIsUpdating(false);
-        }
-    };
-
-    const handleReorderPress = () => {
-        router.navigate({
-            pathname: '/itinerary/[id]/reorder',
-            params: { id: itinerary.id },
-        })
-    }
-
-    const handleRemoveStop = async (id: number) => {
-        setIsUpdating(true)
-        try {
-            const { error } = await supabase.from('stops').delete().eq('id', id);
-            if (error) throw error;
-            await refetch();
-        } catch (err: any) {
-            showToast({
-                title: "Something went wrong.",
-                description: err.message ?? "Some error happened.",
-                action: 'error'
-            })
-        } finally {
-            setIsUpdating(false);
-        }
-    }
-
-    if (mode !== Mode.Viewing)
-        return null;
-    return (
-        <>
-            <LoadingModal
-                isShown={isUpdating}
-                loadingText={"Updating itinerary"}
-            />
-            <VStack space='lg' className='pb-6 h-full flex-1'>
-                <HStack className='justify-between items-center px-4'>
-                    <VStack className='flex-1'>
-                        <Heading size='xl'>{itinerary.name}</Heading>
-                        <HStack space='sm' className='items-center'>
-                            <Icon as={Clock} size='xs' className='text-typography-400' />
-                            <Text size='sm' className='text-typography-500'>
-                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining  • {formatDistance(itinerary.distance)}
-                            </Text>
-                        </HStack>
-                    </VStack>
-                    <Button
-                        variant='link'
-                        onPress={handleAddPoi}
-                    >
-                        <ButtonIcon as={PlusCircle} size='xl' className='text-primary-600' />
-                        <ButtonText>Add</ButtonText>
-                    </Button>
-                </HStack>
-                <HStack space='md' className='w-full justify-center flex-wrap'>
-                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
-                        isDisabled={pendingStops.length < 2}
-                    >
-                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                        <ButtonText>Reorder</ButtonText>
-                    </Button>
-                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={!canOptimize}>
-                        <ButtonIcon as={Navigation} className='mr-2' />
-                        <ButtonText>Navigate</ButtonText>
-                    </Button>
-                </HStack>
-                <Divider />
-                {itinerary.stops
-                    .map((item, currentIndex) => {
-                        const isVisited = !!item.visited_at;
-                        const displayNumber = currentIndex + 1;
-                        return (
-                            <View
-                                className='px-4 py-4 border-b border-outline-50'
-                                key={item.id}
-                            >
-                                <StopListItem
-                                    displayNumber={displayNumber}
-                                    isVisited={isVisited}
-                                    landmark={item.landmark}
-                                    onVisitToggle={() => handleVisitedPress(item)}
-                                    onDelete={() => handleRemoveStop(item.id)}
-                                    onLocate={() => locatePOI(item)} />
-                            </View>
-                        );
-                    })}
-
-            </VStack>
-        </>
-    )
 }
