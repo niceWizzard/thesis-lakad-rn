@@ -5,7 +5,7 @@ import {
     MapView,
     ShapeSource
 } from '@rnmapbox/maps';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Location from 'expo-location';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -217,12 +217,15 @@ export default function ItineraryView() {
     }, [userLocation])
 
 
+    const queryClient = useQueryClient();
+
     const finishedNavigating = useCallback(async (visitedStop: StopWithLandmark) => {
         if (isProcessingArrival.current) return; // Exit if already running
         isProcessingArrival.current = true; // Lock the gate
         try {
             await toggleStopStatus(visitedStop)
             await refetch();
+            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             switchMode(Mode.Viewing)
             showToast({
                 title: "You have arrived!",
@@ -236,7 +239,7 @@ export default function ItineraryView() {
         } finally {
             isProcessingArrival.current = false; // Unlock the gate
         }
-    }, [refetch, showToast, switchMode])
+    }, [refetch, showToast, switchMode, queryClient])
 
     useFocusEffect(
         useCallback(() => {
@@ -600,6 +603,8 @@ function ViewingModeBottomSheetContent({
     const [isUpdating, setIsUpdating] = useState(false)
 
 
+    const queryClient = useQueryClient();
+
     useEffect(() => {
         if (mode === Mode.Viewing && isSheetOpen) {
             const timer = setTimeout(() => {
@@ -631,6 +636,7 @@ function ViewingModeBottomSheetContent({
             await toggleStopStatus(stop)
 
             await refetch();
+            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
         } catch (e: any) {
             console.error("Error updating status:", e.message);
             showToast({
