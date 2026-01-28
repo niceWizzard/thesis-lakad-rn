@@ -277,7 +277,7 @@ const CreateWithAgamScreen = () => {
                             </VStack>
 
                             <CopilotStep
-                                text="The 'Pool' shows how many landmarks match your current filters. More is usually better!"
+                                text="The Pool Size gauge shows how many potential landmarks match your current criteria. A larger pool gives the algorithm more options."
                                 order={1}
                                 name="poolCounter"
                             >
@@ -296,7 +296,7 @@ const CreateWithAgamScreen = () => {
                         onValueChange={(item) => setExpandedItems(item)}
                     >
                         <CopilotStep
-                            text="You can filter by the location of landmarks."
+                            text="Tap here to filter landmarks by specific Districts or Municipalities."
                             order={2}
                             name="locationFilter"
                         >
@@ -363,7 +363,7 @@ const CreateWithAgamScreen = () => {
                             </CopilotAccordionItem>
                         </CopilotStep>
                         <CopilotStep
-                            text="You can also filter by the types of landmarks you want to explor sdasdae."
+                            text="Select specific categories of landmarks you want to include in your trip."
                             order={3}
                             name="typeFilter"
                         >
@@ -411,7 +411,7 @@ const CreateWithAgamScreen = () => {
                     {/* Configuration Inputs */}
                     <VStack className="gap-4">
                         <CopilotStep
-                            text="You can set a maximum distance for the itinerary"
+                            text="Set the maximum total distance you are willing to travel for this itinerary."
                             order={4}
                             name="maxDistanceInput"
                         >
@@ -445,7 +445,7 @@ const CreateWithAgamScreen = () => {
                             </CopilotBox>
                         </CopilotStep>
                         <CopilotStep
-                            text="You can set a maximum stopovers for the itinerary"
+                            text="Limit the number of stopovers (landmarks) to include in your route."
                             order={5}
                             name="maxStopoverInput"
                         >
@@ -488,7 +488,7 @@ const CreateWithAgamScreen = () => {
                         </HStack>
                     )}
                     <CopilotStep
-                        text="After selecting your filters, you can then proceed to generate your itinerary."
+                        text="Ready? Generate your smart itinerary based on the selected preferences."
                         order={6}
                         name="submitButton"
                     >
