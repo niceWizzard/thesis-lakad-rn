@@ -30,6 +30,8 @@ export async function fetchItinerariesOfUser(userId: string) {
       )
     `)
     .eq('user_id', userId)
+    // Order itineraries by newest first
+    .order('created_at', { ascending: false })
     // Order directly on the 'stops' (stops) table
     .order('visit_order', { referencedTable: 'stops', ascending: true })
 
