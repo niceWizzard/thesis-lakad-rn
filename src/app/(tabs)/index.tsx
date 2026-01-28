@@ -1,5 +1,4 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -29,7 +28,7 @@ import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 const CopilotVStack = walkthroughable(VStack);
 
 const ExploreTab = () => {
-    const [, setUserLocation] = useState<[number, number] | null>(null);
+
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const router = useRouter();
     const camera = useRef<any>(null);
@@ -79,25 +78,8 @@ const ExploreTab = () => {
         }
     }, [selectedLandmark]);
 
-    useEffect(() => {
-        let subscription: Location.LocationSubscription | null = null;
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
+    // 2. Removed local location Effect
 
-            subscription = await Location.watchPositionAsync(
-                {
-                    accuracy: Location.Accuracy.Balanced,
-                    timeInterval: 5000,
-                    distanceInterval: 10,
-                },
-                (loc) => {
-                    setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-                }
-            );
-        })();
-        return () => subscription?.remove();
-    }, []);
 
     const handleLandmarkLocate = () => {
         if (!selectedLandmark) return;

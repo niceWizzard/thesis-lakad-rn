@@ -16,12 +16,10 @@ import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
-import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 
 const AdminExploreTab = () => {
-    const [, setUserLocation] = useState<[number, number] | null>(null);
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const router = useRouter();
     const camera = useRef<Camera | null>(null)
@@ -31,15 +29,6 @@ const AdminExploreTab = () => {
 
 
     const { landmarks } = useQueryLandmarks();
-
-    useEffect(() => {
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-        })();
-    }, []);
 
     useEffect(() => {
         if (selectedLandmark) {
@@ -52,31 +41,8 @@ const AdminExploreTab = () => {
         }
     }, [selectedLandmark]);
 
-    useEffect(() => {
-        let subscription: Location.LocationSubscription | null = null;
+    // Removed local location effect
 
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-
-            // WatchPositionAsync will update userLocation whenever they move
-            // and importantly, it will start working as soon as permissions are granted
-            subscription = await Location.watchPositionAsync(
-                {
-                    accuracy: Location.Accuracy.Balanced,
-                    timeInterval: 5000,
-                    distanceInterval: 10,
-                },
-                (loc) => {
-                    setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-                }
-            );
-        })();
-
-        return () => {
-            if (subscription) subscription.remove();
-        };
-    }, []);
 
     const handleLandmarkLocate = () => {
         if (!selectedLandmark) return;

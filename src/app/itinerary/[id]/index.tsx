@@ -22,8 +22,8 @@ import LandmarkMarker from '@/src/components/LandmarkMarker';
 import { useItineraryData } from '@/src/hooks/itinerary/useItineraryData';
 import { useNavigationLogic } from '@/src/hooks/itinerary/useNavigationLogic';
 import { Mode, useNavigationState } from '@/src/hooks/itinerary/useNavigationState';
-import { useUserLocation } from '@/src/hooks/itinerary/useUserLocation';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { useUserLocation } from '@/src/hooks/useUserLocation';
 
 // Refactored Sub-components
 import { MapControls } from '@/src/components/itinerary/MapControls';

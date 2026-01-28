@@ -1,4 +1,4 @@
-import React, { ComponentProps, useEffect, useMemo, useState } from 'react';
+import React, { ComponentProps, useMemo, useState } from 'react';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
@@ -10,6 +10,7 @@ import MapFabs from '@/src/components/MapFabs';
 import { StyleURL } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
+import { useUserLocation } from '../hooks/useUserLocation';
 import LandmarkMarker from './LandmarkMarker';
 
 const CopilotBox = walkthroughable(Box);
@@ -26,6 +27,7 @@ const LandmarkMapView = ({
     setSelectedLandmark,
     cameraRef,
     tutorialStep, // Add tutorialStep to destructuring
+    // Tutorial props here
 }: {
     landmarks: Landmark[]
     selectedLandmark: Landmark | null
@@ -37,7 +39,7 @@ const LandmarkMapView = ({
     }
 } & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'cameraRef'>) => {
     const camera = cameraRef;
-    const [, setUserLocation] = useState<[number, number] | null>(null);
+    const userLocation = useUserLocation();
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [mapStyleUrl, setMapStyleUrl] = useState(StyleURL.Street)
@@ -47,41 +49,6 @@ const LandmarkMapView = ({
     const showResults = useMemo(() =>
         isSearchFocused && searchString.trim().length > 0,
         [isSearchFocused, searchString]);
-
-    useEffect(() => {
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-            const loc = await Location.getCurrentPositionAsync({});
-            setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-        })();
-    }, []);
-
-    useEffect(() => {
-        let subscription: Location.LocationSubscription | null = null;
-
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') return;
-
-            // WatchPositionAsync will update userLocation whenever they move
-            // and importantly, it will start working as soon as permissions are granted
-            subscription = await Location.watchPositionAsync(
-                {
-                    accuracy: Location.Accuracy.Balanced,
-                    timeInterval: 5000,
-                    distanceInterval: 10,
-                },
-                (loc) => {
-                    setUserLocation([loc.coords.longitude, loc.coords.latitude]);
-                }
-            );
-        })();
-
-        return () => {
-            if (subscription) subscription.remove();
-        };
-    }, []);
 
     const centerMap = (coords: [number, number], zoom = 20) => {
         camera.current?.setCamera({
@@ -97,7 +64,13 @@ const LandmarkMapView = ({
     };
 
     const handleLocatePress = async () => {
-        // Check permission status again in case they changed it in settings
+        // If we have the location from the hook, use it
+        if (userLocation) {
+            centerMap(userLocation);
+            return;
+        }
+
+        // Fallback: Check permission status again in case they changed it in settings
         let { status } = await Location.getForegroundPermissionsAsync();
 
         // If not granted, try requesting it now
@@ -109,7 +82,6 @@ const LandmarkMapView = ({
         if (status === 'granted') {
             const loc = await Location.getCurrentPositionAsync({});
             const coords: [number, number] = [loc.coords.longitude, loc.coords.latitude];
-            setUserLocation(coords); // Sync state
             centerMap(coords);       // Fly there
         } else {
             // Optional: Alert the user that permission is required
