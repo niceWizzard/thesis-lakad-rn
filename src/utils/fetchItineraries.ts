@@ -30,6 +30,7 @@ export async function fetchItinerariesOfUser(userId: string) {
       )
     `)
     .eq('user_id', userId)
+    .is('deleted_at', null) // Filter out deleted items
     // Order itineraries by newest first
     .order('created_at', { ascending: false })
     // Order directly on the 'stops' (stops) table
@@ -38,6 +39,62 @@ export async function fetchItinerariesOfUser(userId: string) {
   if (error) throw error
 
   return data as unknown as ItineraryWithStops[]
+}
+
+export async function fetchArchivedItineraries(userId: string) {
+  const { data, error } = await supabase
+    .from('itinerary')
+    .select(`
+        id,
+        name,
+        created_at,
+        deleted_at,
+        user_id,
+        distance,
+        stops (
+          id,
+          visited_at,
+          visit_order,
+          itinerary_id,
+          landmark_id,
+          landmark (
+            id,
+            name,
+            longitude,
+            latitude,
+            type,
+            image_url,
+            municipality,
+            district,
+            creation_type
+          )
+        )
+      `)
+    .eq('user_id', userId)
+    .not('deleted_at', 'is', null) // Fetch ONLY deleted items
+    .order('deleted_at', { ascending: false })
+
+  if (error) throw error
+
+  return data as unknown as ItineraryWithStops[]
+}
+
+export async function restoreItinerary(itineraryId: number) {
+  const { error } = await supabase
+    .from('itinerary')
+    .update({ deleted_at: null })
+    .eq('id', itineraryId)
+
+  if (error) throw error
+}
+
+export async function permanentlyDeleteItinerary(itineraryId: number) {
+  const { error } = await supabase
+    .from('itinerary')
+    .delete()
+    .eq('id', itineraryId)
+
+  if (error) throw error
 }
 
 export async function fetchItineraryById(userId: string, itineraryId: number) {

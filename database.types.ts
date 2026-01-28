@@ -53,6 +53,7 @@ export type Database = {
       itinerary: {
         Row: {
           created_at: string
+          deleted_at: string | null
           distance: number
           id: number
           name: string
@@ -60,6 +61,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           distance?: number
           id?: number
           name?: string
@@ -67,6 +69,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           distance?: number
           id?: number
           name?: string

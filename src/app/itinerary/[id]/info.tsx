@@ -110,11 +110,16 @@ const ItineraryInfoScreen = () => {
         setIsDeleteModalOpen(false);
         setIsUpdating(true);
         try {
-            const { error } = await supabase.from('itinerary').delete().eq('id', itinerary.id);
+            const { error } = await supabase
+                .from('itinerary')
+                .update({ deleted_at: new Date().toISOString() })
+                .eq('id', itinerary.id);
+
             if (error) throw error;
 
             showToast({
-                title: "Itinerary deleted!",
+                title: "Itinerary moved to trash",
+                description: "You can restore it from Archived Itineraries.",
             })
             await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             router.dismissTo('/(tabs)/itineraries')
@@ -188,7 +193,7 @@ const ItineraryInfoScreen = () => {
                             <Box className="bg-error-50 p-4 rounded-2xl border border-error-100">
                                 <Heading size="xs" className="text-error-700 mb-1">Danger Zone</Heading>
                                 <Text size="xs" className="text-error-600 mb-4">
-                                    Deleting this itinerary will permanently remove all associated stops and progress.
+                                    Moving this itinerary to trash will hide it from your list. It can be restored from the &quot;Archived Itineraries&quot; section.
                                 </Text>
                                 <Button
                                     action='negative'
@@ -213,7 +218,7 @@ const ItineraryInfoScreen = () => {
                     </ModalHeader>
                     <ModalBody>
                         <Text className="text-typography-500">
-                            Are you sure you want to delete <Text className="font-bold text-typography-900">&quot;{itinerary?.name}&quot;</Text>? This cannot be undone.
+                            Are you sure you want to move <Text className="font-bold text-typography-900">&quot;{itinerary?.name}&quot;</Text> to trash? You can restore it later.
                         </Text>
                     </ModalBody>
                     <ModalFooter className="gap-3">

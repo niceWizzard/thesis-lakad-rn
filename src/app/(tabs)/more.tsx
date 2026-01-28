@@ -14,6 +14,7 @@ import { useAuthStore } from '@/src/stores/useAuth';
 import { mmkvStorage } from '@/src/utils/mmkv';
 import { supabase } from '@/src/utils/supabase';
 import {
+    ArchiveRestore,
     ChevronRight,
     Info,
     Key,
@@ -149,8 +150,34 @@ function MoreTabContent() {
                     </View>
 
                     <CopilotStep
-                        text="Set your travel preferences to get personalized recommendations."
+                        text="View and restore your deleted trips."
                         order={3}
+                        name="archivedItineraries"
+                    >
+                        <CopilotBox collapsable={false}>
+                            <TouchableOpacity
+                                onPress={() => router.navigate('/archived-itineraries')}
+                                className="flex-row items-center justify-between p-5 active:bg-background-100"
+                            >
+                                <View className="flex-row items-center gap-4">
+                                    <View className="bg-background-100 p-2 rounded-xl">
+                                        <Icon as={ArchiveRestore} size='lg' className="text-typography-700" />
+                                    </View>
+                                    <Text size="md" className="font-medium text-typography-800">
+                                        Archived Itineraries
+                                    </Text>
+                                </View>
+                                <Icon as={ChevronRight} className='' />
+                            </TouchableOpacity>
+                        </CopilotBox>
+                    </CopilotStep>
+                    <View className="px-5">
+                        <Divider className="bg-outline-50" />
+                    </View>
+
+                    <CopilotStep
+                        text="Set your travel preferences to get personalized recommendations."
+                        order={4}
                         name="travelPreferences"
                     >
                         <CopilotBox collapsable={false}>
@@ -176,7 +203,7 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="Update your password securely."
-                        order={4}
+                        order={5}
                         name="changePassword"
                     >
                         <CopilotBox collapsable={false}>
@@ -204,7 +231,7 @@ function MoreTabContent() {
                         <>
                             <CopilotStep
                                 text="Access administrative tools."
-                                order={5}
+                                order={6}
                                 name="adminMode"
                             >
                                 <CopilotBox collapsable={false}>
@@ -232,7 +259,7 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="View application information."
-                        order={6}
+                        order={7}
                         name="aboutLakad"
                     >
                         <CopilotBox collapsable={false}>
@@ -260,7 +287,7 @@ function MoreTabContent() {
             <View className="px-4 mt-8">
                 <CopilotStep
                     text="Tap here to sign out of your account."
-                    order={7}
+                    order={8}
                     name="signOutButton"
                 >
                     <CopilotBox collapsable={false}>
