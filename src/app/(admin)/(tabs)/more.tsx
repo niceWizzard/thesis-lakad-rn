@@ -40,6 +40,12 @@ function MoreTab() {
             onPress: () => router.navigate('/(admin)/landmark/archived'),
         },
         {
+            id: '6',
+            title: 'Archived Commercials',
+            icon: Archive,
+            onPress: () => router.navigate('/(admin)/landmark/archived-commercial'),
+        },
+        {
             id: '5',
             title: 'Manage Distance Matrix',
             icon: RulerDimensionLine,
