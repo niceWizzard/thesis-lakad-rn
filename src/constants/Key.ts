@@ -3,4 +3,5 @@ export const StorageKey = {
     Preferences: "preferences",
     AgamTutorialShown: "agam-tutorial-shown",
     ExploreTutorialShown: "explore-tutorial-shown",
+    MoreTutorialShown: "more-tutorial-shown",
 } 
