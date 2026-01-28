@@ -4,7 +4,7 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
 import React from 'react';
-import { Alert, Image, Platform, ScrollView, StatusBar, TouchableOpacity, View } from "react-native";
+import { Image, Platform, ScrollView, StatusBar, TouchableOpacity, View } from "react-native";
 
 import { Box } from '@/components/ui/box';
 import { Icon } from '@/components/ui/icon';
@@ -237,7 +237,7 @@ function MoreTabContent() {
                     >
                         <CopilotBox collapsable={false}>
                             <TouchableOpacity
-                                onPress={() => Alert.alert('About', 'Lakad App v1.0.0')}
+                                onPress={() => router.push('/about')}
                                 className="flex-row items-center justify-between p-5 active:bg-background-100"
                             >
                                 <View className="flex-row items-center gap-4">
