@@ -9,12 +9,12 @@ import MapFabs from '@/src/components/MapFabs';
 import { StyleURL } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
 import { View } from 'react-native';
-import { CopilotStep } from 'react-native-copilot';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { useUserLocation } from '../hooks/useUserLocation';
 import LandmarkMarker from './LandmarkMarker';
 
 
-
+const CopilotView = walkthroughable(View);
 
 const LandmarkMapView = ({
     children,
@@ -108,14 +108,14 @@ const LandmarkMapView = ({
                                 order={tutorialStep.order}
                                 name={tutorialStep.name}
                             >
-                                <View>
+                                <CopilotView>
                                     <ExploreSearchBox
                                         onSearch={setSearchString}
                                         onFocus={() => setIsSearchFocused(true)}
                                         onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                                         value={searchString}
                                     />
-                                </View>
+                                </CopilotView>
                             </CopilotStep>
                         ) : (
                             <ExploreSearchBox
