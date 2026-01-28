@@ -17,6 +17,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    StatusBar,
     TouchableOpacity,
     View
 } from 'react-native';
@@ -48,7 +49,7 @@ import { createItinerary } from '@/src/utils/fetchItineraries';
 import { mmkvStorage } from '@/src/utils/mmkv';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
 import { useIsFocused } from '@react-navigation/native';
-import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
 
 const CopilotBox = walkthroughable(Box);
@@ -92,7 +93,7 @@ enum GeneratingState {
     Saving,
 }
 
-const CreateWithAgamScreen = () => {
+const CreateWithAgamScreenContent = () => {
     const router = useRouter();
     const { landmarks } = useQueryLandmarks()
     const queryClient = useQueryClient();
@@ -540,7 +541,16 @@ const CreateWithAgamScreen = () => {
     );
 };
 
-export default CreateWithAgamScreen;
+
+export default function CreateWithAgamScreen() {
+    return (
+        <CopilotProvider
+            verticalOffset={Platform.OS === 'android' ? StatusBar.currentHeight : 0}
+        >
+            <CreateWithAgamScreenContent />
+        </CopilotProvider>
+    );
+}
 
 
 

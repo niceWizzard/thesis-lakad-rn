@@ -2,7 +2,7 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, Platform, StatusBar, StyleSheet } from 'react-native';
 
 // UI Components
 import { Badge, BadgeText } from '@/components/ui/badge';
@@ -22,12 +22,12 @@ import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { Landmark } from '@/src/model/landmark.types';
 import { mmkvStorage } from '@/src/utils/mmkv';
 import { useIsFocused } from '@react-navigation/native';
-import { CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
+import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
 
 const CopilotVStack = walkthroughable(VStack);
 
-const ExploreTab = () => {
+const ExploreTabContent = () => {
 
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
     const router = useRouter();
@@ -234,4 +234,12 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ExploreTab;
+export default function ExploreTab() {
+    return (
+        <CopilotProvider
+            verticalOffset={Platform.OS === 'android' ? StatusBar.currentHeight : 0}
+        >
+            <ExploreTabContent />
+        </CopilotProvider>
+    );
+}

@@ -4,16 +4,14 @@ import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
 import { Landmark } from '@/src/model/landmark.types';
 
-import { Box } from '@/components/ui/box';
 import CustomMapView from '@/src/components/CustomMapView';
 import MapFabs from '@/src/components/MapFabs';
 import { StyleURL } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
-import { CopilotStep, walkthroughable } from 'react-native-copilot';
+import { View } from 'react-native';
+import { CopilotStep } from 'react-native-copilot';
 import { useUserLocation } from '../hooks/useUserLocation';
 import LandmarkMarker from './LandmarkMarker';
-
-const CopilotBox = walkthroughable(Box);
 
 
 
@@ -110,14 +108,14 @@ const LandmarkMapView = ({
                                 order={tutorialStep.order}
                                 name={tutorialStep.name}
                             >
-                                <CopilotBox>
+                                <View>
                                     <ExploreSearchBox
                                         onSearch={setSearchString}
                                         onFocus={() => setIsSearchFocused(true)}
                                         onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                                         value={searchString}
                                     />
-                                </CopilotBox>
+                                </View>
                             </CopilotStep>
                         ) : (
                             <ExploreSearchBox
