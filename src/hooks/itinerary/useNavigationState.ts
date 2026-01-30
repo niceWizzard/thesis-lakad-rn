@@ -20,6 +20,10 @@ export const useNavigationState = (userLocation: [number, number] | null) => {
     const [isSheetOpen, setIsSheetOpen] = useState(true);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
 
+    // Navigation Settings
+    const [navigationProfile, setNavigationProfile] = useState<'driving' | 'walking' | 'cycling'>('driving');
+    const [avoidTolls, setAvoidTolls] = useState(false);
+
     const cameraRef = useRef<Camera>(null);
     const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -77,6 +81,10 @@ export const useNavigationState = (userLocation: [number, number] | null) => {
         cameraRef,
         bottomSheetRef,
         switchMode,
-        locatePOI
+        locatePOI,
+        navigationProfile,
+        setNavigationProfile,
+        avoidTolls,
+        setAvoidTolls,
     };
 };

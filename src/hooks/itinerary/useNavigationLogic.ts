@@ -21,6 +21,8 @@ interface UseNavigationLogicProps { // Renamed from Props to avoid naming confli
     refetchItinerary: () => Promise<any>;
     commercials: Landmark[] | undefined;
     cameraRef: React.RefObject<Camera | null>;
+    navigationProfile: 'driving' | 'walking' | 'cycling';
+    avoidTolls: boolean;
 }
 
 /**
@@ -39,6 +41,8 @@ export const useNavigationLogic = ({
     refetchItinerary,
     commercials,
     cameraRef,
+    navigationProfile,
+    avoidTolls,
 }: UseNavigationLogicProps) => {
 
     const isProcessingArrival = useRef(false);
@@ -116,6 +120,8 @@ export const useNavigationLogic = ({
                                     userLocation,
                                     [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
                                 ],
+                                profile: navigationProfile,
+                                exclude: (avoidTolls && navigationProfile === 'driving') ? ['toll'] : [],
                             });
                             setNavigationRoute(data.routes);
                         } catch (error) {
@@ -126,12 +132,42 @@ export const useNavigationLogic = ({
                     })();
                 }
             }
-        }, [mode, nextUnvisitedStop, navigationRoute, userLocation, finishedNavigating])
+        }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, setNavigationRoute, navigationProfile, avoidTolls])
     );
 
 
     // -------------------------------------------------------------------------
-    // 3. Start Navigation Action
+    // 3. Reroute on Settings Change
+    // -------------------------------------------------------------------------
+    useFocusEffect(
+        useCallback(() => {
+            if (mode !== Mode.Navigating || !nextUnvisitedStop || !userLocation) return;
+
+            // Trigger immediately when these change
+            (async () => {
+                try {
+                    setIsCalculatingRoute(true);
+                    const data = await fetchDirections({
+                        waypoints: [
+                            userLocation,
+                            [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                        ],
+                        profile: navigationProfile,
+                        exclude: (avoidTolls && navigationProfile === 'driving') ? ['toll'] : [],
+                    });
+                    setNavigationRoute(data.routes);
+                } catch (error) {
+                    console.log("Error updating route settings:", error);
+                } finally {
+                    setIsCalculatingRoute(false);
+                }
+            })();
+        }, [navigationProfile, avoidTolls, mode, nextUnvisitedStop, userLocation, setNavigationRoute, setIsCalculatingRoute])
+    );
+
+
+    // -------------------------------------------------------------------------
+    // 4. Start Navigation Action
     // -------------------------------------------------------------------------
     const handleNavigationButtonClick = async () => {
         if (!nextUnvisitedStop) {
@@ -154,6 +190,8 @@ export const useNavigationLogic = ({
                     startLocation,
                     [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
                 ],
+                profile: navigationProfile,
+                exclude: avoidTolls ? ['toll'] : [],
             });
 
             setNavigationRoute(data.routes);

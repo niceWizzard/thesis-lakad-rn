@@ -64,7 +64,11 @@ export default function ItineraryView() {
         cameraRef,
         bottomSheetRef,
         switchMode,
-        locatePOI
+        locatePOI,
+        navigationProfile,
+        setNavigationProfile,
+        avoidTolls,
+        setAvoidTolls,
     } = useNavigationState(userLocation);
 
     // 4. Navigation Logic
@@ -77,7 +81,9 @@ export default function ItineraryView() {
         nextUnvisitedStop,
         refetchItinerary: refetch,
         commercials,
-        cameraRef
+        cameraRef,
+        navigationProfile,
+        avoidTolls,
     });
 
     // Auto-center camera on user location during navigation
@@ -222,6 +228,10 @@ export default function ItineraryView() {
                             mode={mode}
                             nextUnvisitedStop={nextUnvisitedStop}
                             exitNavigationMode={() => switchMode(Mode.Viewing)}
+                            navigationProfile={navigationProfile}
+                            setNavigationProfile={setNavigationProfile}
+                            avoidTolls={avoidTolls}
+                            setAvoidTolls={setAvoidTolls}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>

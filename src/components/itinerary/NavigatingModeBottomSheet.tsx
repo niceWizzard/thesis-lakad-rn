@@ -1,6 +1,9 @@
 import {
+    Bike,
+    Car,
     CheckCircle,
     Clock,
+    Footprints,
     Navigation2,
     StopCircle
 } from 'lucide-react-native';
@@ -28,6 +31,10 @@ interface NavigatingModeBottomSheetProps {
     mode: Mode;
     nextUnvisitedStop: StopWithLandmark | null;
     exitNavigationMode: () => void;
+    navigationProfile: 'driving' | 'walking' | 'cycling';
+    setNavigationProfile: (profile: 'driving' | 'walking' | 'cycling') => void;
+    avoidTolls: boolean;
+    setAvoidTolls: (avoid: boolean) => void;
 }
 
 export function NavigatingModeBottomSheet({
@@ -35,6 +42,10 @@ export function NavigatingModeBottomSheet({
     navigationRoute,
     nextUnvisitedStop,
     exitNavigationMode,
+    navigationProfile,
+    setNavigationProfile,
+    avoidTolls,
+    setAvoidTolls,
 }: NavigatingModeBottomSheetProps) {
     if (mode !== Mode.Navigating) return null;
 
@@ -62,6 +73,43 @@ export function NavigatingModeBottomSheet({
                     <ButtonIcon as={StopCircle} size="xl" />
                     <ButtonText>Stop</ButtonText>
                 </Button>
+
+                {/* Navigation Options - Profile & Settings */}
+                <HStack className="justify-between items-center bg-background-50 p-3 rounded-2xl border border-outline-100">
+                    {/* Profile Selector */}
+                    <HStack space="sm" className="bg-background-200 p-1 rounded-xl">
+                        {(['driving', 'walking', 'cycling'] as const).map((p) => (
+                            <Button
+                                key={p}
+                                size="xs"
+                                variant={navigationProfile === p ? 'solid' : 'outline'}
+                                onPress={() => setNavigationProfile(p)}
+                                className={`rounded-lg ${navigationProfile === p ? 'bg-primary-500' : 'border-0'}`}
+                            >
+                                <ButtonIcon
+                                    as={p === 'driving' ? Car : p === 'walking' ? Footprints : Bike}
+                                    className={navigationProfile === p ? 'text-typography-0' : 'text-typography-500'}
+                                />
+                            </Button>
+                        ))}
+                    </HStack>
+
+                    {/* Options: Avoid Tolls */}
+                    {navigationProfile === 'driving' && (
+                        <Button
+                            size="xs"
+                            variant={avoidTolls ? 'solid' : 'outline'}
+                            action={avoidTolls ? 'primary' : 'secondary'}
+                            onPress={() => setAvoidTolls(!avoidTolls)}
+                            className="rounded-xl px-3"
+                        >
+                            <ButtonText className={avoidTolls ? 'text-typography-0' : 'text-typography-500'}>
+                                {avoidTolls ? "No Tolls" : "Tolls"}
+                            </ButtonText>
+                        </Button>
+                    )}
+                </HStack>
+
                 {/* ETA and Duration Header */}
                 <HStack className="p-4 bg-primary-50 rounded-2xl border border-primary-200" space="md">
                     <VStack className="flex-1">

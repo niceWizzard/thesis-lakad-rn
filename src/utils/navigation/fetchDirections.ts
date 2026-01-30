@@ -60,6 +60,7 @@ export const fetchDirections = async ({
     alternatives = true,
     overview = 'full',
     profile = 'driving',
+    exclude = [],
 }: {
     waypoints: [number, number][],
     steps?: boolean,
@@ -67,6 +68,7 @@ export const fetchDirections = async ({
     accessToken?: string,
     overview?: 'full' | 'simplified' | 'false',
     profile?: 'driving' | 'walking' | 'cycling',
+    exclude?: string[],
 }): Promise<MapboxResponse> => {
     const coordinates = waypoints.map(v => v.join(',')).join(';');
     const url = new URL(`${MAPBOX_DIRECTIONS_URL}/${profile}/` + coordinates)
@@ -75,6 +77,7 @@ export const fetchDirections = async ({
     url.searchParams.set('alternatives', alternatives.toString())
     url.searchParams.set('access_token', accessToken)
     url.searchParams.set('overview', overview)
+    if (exclude.length > 0) url.searchParams.set('exclude', exclude.join(','))
     try {
         const response = await fetch(url.toString())
         const data: MapboxResponse = await response.json()
