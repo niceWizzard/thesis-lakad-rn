@@ -8,10 +8,10 @@ import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import { Camera } from '@rnmapbox/maps';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mode } from './useNavigationState';
 
-interface UseNavigationLogicProps { // Renamed from Props to avoid naming conflicts if necessary, but internal interface is fine
+interface UseNavigationLogicProps {
     mode: Mode;
     userLocation: [number, number] | null;
     navigationRoute: MapboxRoute[];
@@ -48,6 +48,12 @@ export const useNavigationLogic = ({
     const isProcessingArrival = useRef(false);
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
+
+    // Use ref to access latest location without triggering re-renders
+    const userLocationRef = useRef(userLocation);
+    useEffect(() => {
+        userLocationRef.current = userLocation;
+    }, [userLocation]);
 
     // Loading states
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
@@ -141,7 +147,10 @@ export const useNavigationLogic = ({
     // -------------------------------------------------------------------------
     useFocusEffect(
         useCallback(() => {
-            if (mode !== Mode.Navigating || !nextUnvisitedStop || !userLocation) return;
+            if (mode !== Mode.Navigating || !nextUnvisitedStop) return;
+
+            const currentLocation = userLocationRef.current;
+            if (!currentLocation) return;
 
             // Trigger immediately when these change
             (async () => {
@@ -149,7 +158,7 @@ export const useNavigationLogic = ({
                     setIsCalculatingRoute(true);
                     const data = await fetchDirections({
                         waypoints: [
-                            userLocation,
+                            currentLocation,
                             [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
                         ],
                         profile: navigationProfile,
@@ -162,7 +171,7 @@ export const useNavigationLogic = ({
                     setIsCalculatingRoute(false);
                 }
             })();
-        }, [navigationProfile, avoidTolls, mode, nextUnvisitedStop, userLocation, setNavigationRoute, setIsCalculatingRoute])
+        }, [navigationProfile, avoidTolls, mode, nextUnvisitedStop, setNavigationRoute, setIsCalculatingRoute])
     );
 
 
