@@ -1,6 +1,8 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
+import { StorageKey } from '@/src/constants/Key'
+import { mmkvStorage } from '@/src/utils/mmkv'
 import { useRouter } from 'expo-router'
 import { ArrowRight, Calendar, MapPin, Rocket } from 'lucide-react-native'
 import React, { useRef, useState } from 'react'
@@ -47,6 +49,11 @@ const OnboardingScreen = () => {
         } else {
             router.replace("/(onboarding)/preferences")
         }
+    }
+
+    const handleSkip = () => {
+        mmkvStorage.set(StorageKey.HaveOnboarded, true)
+        router.navigate("/(onboarding)/preferences")
     }
 
     return (
@@ -108,7 +115,7 @@ const OnboardingScreen = () => {
                 <View className="flex-row items-center justify-between">
                     <Button
                         variant="link"
-                        onPress={() => router.navigate("/(onboarding)/preferences")}
+                        onPress={handleSkip}
                     >
                         <ButtonText className="text-typography-400">Skip</ButtonText>
                     </Button>

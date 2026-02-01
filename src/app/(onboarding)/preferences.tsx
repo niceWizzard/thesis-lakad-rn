@@ -76,10 +76,10 @@ const OnboardingPreferences = () => {
     }
 
     const handleDonePress = () => {
-        // You could also save the 'selected' array to MMKV or Supabase here
+        const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded)
         mmkvStorage.set(StorageKey.HaveOnboarded, true)
         setCategoryPreferences(selected)
-        if (router.canGoBack())
+        if (haveOnboarded)
             router.back()
         else
             router.replace("/(auth)/signin")
