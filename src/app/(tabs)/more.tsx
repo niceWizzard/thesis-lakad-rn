@@ -13,6 +13,7 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { mmkvStorage } from '@/src/utils/mmkv';
 import { supabase } from '@/src/utils/supabase';
+import { useIsFocused } from '@react-navigation/native';
 import {
     ArchiveRestore,
     ChevronRight,
@@ -36,18 +37,25 @@ function MoreTabContent() {
     const router = useRouter();
     const { session, isAdmin } = useAuthStore();
     const { showToast } = useToastNotification();
-    const { start } = useCopilot();
+    const { start, currentStep, stop } = useCopilot();
+    const isFocused = useIsFocused();
 
     React.useEffect(() => {
         const hasShown = mmkvStorage.getBoolean(StorageKey.MoreTutorialShown);
         if (!hasShown) {
             // Small delay to ensure layout is ready
             setTimeout(() => {
+                if (!isFocused) return;
                 start();
                 mmkvStorage.set(StorageKey.MoreTutorialShown, true);
-            }, 500);
+            }, 50);
         }
-    }, [start]);
+        return () => {
+            if (currentStep && !isFocused) {
+                stop();
+            }
+        }
+    }, [start, isFocused, currentStep, stop]);
 
 
     const handleSignoutPress = async () => {
