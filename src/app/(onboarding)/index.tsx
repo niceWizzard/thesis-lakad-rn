@@ -19,14 +19,14 @@ const SLIDES = [
     {
         id: '2',
         title: 'Stay Organized',
-        description: 'Sync your schedules and never miss a landmark or a flight again.',
+        description: "Plan your trips with ease and we'll keep track of your itinerary.",
         icon: Calendar,
         color: 'bg-success-500'
     },
     {
         id: '3',
         title: 'Start Exploring',
-        description: 'Join thousands of travelers making their journeys smarter every day.',
+        description: 'Visit hundreds of destinations with ease.',
         icon: Rocket,
         color: 'bg-secondary-500'
     }
