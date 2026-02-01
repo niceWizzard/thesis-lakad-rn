@@ -338,7 +338,7 @@ export default function LandmarkViewerScreen() {
                             <Heading size="md">History & Significance</Heading>
                         </HStack>
                         <Text size="md" className="text-typography-600 leading-7">
-                            {"This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
+                            {landmark.description ?? "No description available."}
                         </Text>
                     </VStack>
 
