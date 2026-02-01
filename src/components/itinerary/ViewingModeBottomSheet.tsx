@@ -163,7 +163,7 @@ export function ViewingModeBottomSheet({
                         <ButtonIcon as={ArrowDownUp} className='mr-2' />
                         <ButtonText>Reorder</ButtonText>
                     </Button>
-                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={!canOptimize}>
+                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={pendingStops.length < 1}>
                         <ButtonIcon as={Navigation} className='mr-2' />
                         <ButtonText>Navigate</ButtonText>
                     </Button>
