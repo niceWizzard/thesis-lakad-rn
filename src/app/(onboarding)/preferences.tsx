@@ -76,10 +76,9 @@ const OnboardingPreferences = () => {
     }
 
     const handleDonePress = () => {
-        const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded)
         mmkvStorage.set(StorageKey.HaveOnboarded, true)
         setCategoryPreferences(selected)
-        if (haveOnboarded)
+        if (router.canGoBack())
             router.back()
         else
             router.replace("/(auth)/signin")
