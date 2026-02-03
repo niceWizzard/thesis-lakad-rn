@@ -1,9 +1,10 @@
 import * as Haptics from 'expo-haptics';
 import { Stack, useRouter } from 'expo-router';
-import { ClipboardList, EllipsisVertical, Eye, MapPin, Play, Ruler, Search, X } from 'lucide-react-native';
+import { ArrowUpDown, ClipboardList, EllipsisVertical, Eye, MapPin, Play, Ruler, Search, X } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 
+import { Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper, ActionsheetItem, ActionsheetItemText } from '@/components/ui/actionsheet';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
@@ -29,6 +30,9 @@ export default function ItinerariesScreen() {
     const auth = useAuthStore();
     const userId = auth.session?.user?.id;
     const router = useRouter();
+    const [showActionsheet, setShowActionsheet] = useState(false);
+    const [sortOption, setSortOption] = useState<'date' | 'name' | 'stops'>('date');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
     const {
         data: itineraries = [],
@@ -43,10 +47,33 @@ export default function ItinerariesScreen() {
 
     // Memoize filtered data for performance
     const filteredItineraries = useMemo(() => {
-        return itineraries.filter(v =>
+        let result = itineraries.filter(v =>
             v.name.toLowerCase().includes(searchString.toLowerCase())
         );
-    }, [itineraries, searchString]);
+
+        return result.sort((a, b) => {
+            let comparison = 0;
+            switch (sortOption) {
+                case 'name':
+                    comparison = a.name.localeCompare(b.name);
+                    break;
+                case 'stops':
+                    comparison = (a.stops?.length || 0) - (b.stops?.length || 0);
+                    break;
+                case 'date':
+                default:
+                    comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                    break;
+            }
+            return sortDirection === 'asc' ? comparison : -comparison;
+        });
+    }, [itineraries, searchString, sortOption, sortDirection]);
+
+    const handleSort = (option: 'date' | 'name' | 'stops', direction: 'asc' | 'desc') => {
+        setSortOption(option);
+        setSortDirection(direction);
+        setShowActionsheet(false);
+    };
 
     const calculateProgress = (itinerary: ItineraryWithStops) => {
         if (!itinerary.stops?.length) return 0;
@@ -104,22 +131,33 @@ export default function ItinerariesScreen() {
                 }
                 ListHeaderComponent={
                     <VStack className="mb-2">
-                        <Input variant="rounded" size="lg" className="border-none bg-background-100 h-14 rounded-2xl px-4">
-                            <InputSlot>
-                                <InputIcon as={Search} className="text-typography-400" />
-                            </InputSlot>
-                            <InputField
-                                placeholder="Search your trips..."
-                                value={searchString}
-                                onChangeText={setSearchString}
-                                className="text-typography-900"
-                            />
-                            {searchString.length > 0 && (
-                                <InputSlot onPress={() => setSearchString('')}>
-                                    <Icon as={X} size="sm" className="text-typography-400" />
+                        <HStack className="gap-3">
+                            <Input variant="rounded" size="lg" className="flex-1 border-none bg-background-100 h-14 rounded-2xl px-4">
+                                <InputSlot>
+                                    <InputIcon as={Search} className="text-typography-400" />
                                 </InputSlot>
-                            )}
-                        </Input>
+                                <InputField
+                                    placeholder="Search your trips..."
+                                    value={searchString}
+                                    onChangeText={setSearchString}
+                                    className="text-typography-900"
+                                />
+                                {searchString.length > 0 && (
+                                    <InputSlot onPress={() => setSearchString('')}>
+                                        <Icon as={X} size="sm" className="text-typography-400" />
+                                    </InputSlot>
+                                )}
+                            </Input>
+                            <Button
+                                size="lg"
+                                className="h-14 w-14 rounded-2xl p-0"
+                                onPress={() => setShowActionsheet(true)}
+                                variant='outline'
+                                action='secondary'
+                            >
+                                <ButtonIcon as={ArrowUpDown} className="text-typography-500" />
+                            </Button>
+                        </HStack>
                     </VStack>
                 }
                 ListEmptyComponent={
@@ -218,6 +256,49 @@ export default function ItinerariesScreen() {
             />
 
             <ExpandableFab />
+
+            <Actionsheet isOpen={showActionsheet} onClose={() => setShowActionsheet(false)} snapPoints={[50]}>
+                <ActionsheetBackdrop />
+                <ActionsheetContent>
+                    <ActionsheetDragIndicatorWrapper>
+                        <ActionsheetDragIndicator />
+                    </ActionsheetDragIndicatorWrapper>
+                    <Heading size="md" className="mb-4 text-typography-500 uppercase tracking-widest text-center">Sort By</Heading>
+
+                    <ActionsheetItem onPress={() => handleSort('date', 'desc')}>
+                        <ActionsheetItemText className={sortOption === 'date' && sortDirection === 'desc' ? 'font-bold text-primary-600' : ''}>
+                            Date (Newest First)
+                        </ActionsheetItemText>
+                    </ActionsheetItem>
+                    <ActionsheetItem onPress={() => handleSort('date', 'asc')}>
+                        <ActionsheetItemText className={sortOption === 'date' && sortDirection === 'asc' ? 'font-bold text-primary-600' : ''}>
+                            Date (Oldest First)
+                        </ActionsheetItemText>
+                    </ActionsheetItem>
+
+                    <ActionsheetItem onPress={() => handleSort('name', 'asc')}>
+                        <ActionsheetItemText className={sortOption === 'name' && sortDirection === 'asc' ? 'font-bold text-primary-600' : ''}>
+                            Name (A-Z)
+                        </ActionsheetItemText>
+                    </ActionsheetItem>
+                    <ActionsheetItem onPress={() => handleSort('name', 'desc')}>
+                        <ActionsheetItemText className={sortOption === 'name' && sortDirection === 'desc' ? 'font-bold text-primary-600' : ''}>
+                            Name (Z-A)
+                        </ActionsheetItemText>
+                    </ActionsheetItem>
+
+                    <ActionsheetItem onPress={() => handleSort('stops', 'desc')}>
+                        <ActionsheetItemText className={sortOption === 'stops' && sortDirection === 'desc' ? 'font-bold text-primary-600' : ''}>
+                            Stops (Most First)
+                        </ActionsheetItemText>
+                    </ActionsheetItem>
+                    <ActionsheetItem onPress={() => handleSort('stops', 'asc')}>
+                        <ActionsheetItemText className={sortOption === 'stops' && sortDirection === 'asc' ? 'font-bold text-primary-600' : ''}>
+                            Stops (Least First)
+                        </ActionsheetItemText>
+                    </ActionsheetItem>
+                </ActionsheetContent>
+            </Actionsheet>
         </Box>
     );
 }
