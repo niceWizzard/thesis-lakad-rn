@@ -16,6 +16,7 @@ export function ViewingModeMapView({ show, stops }: ViewingModeMapViewProps) {
                 <LandmarkMarker
                     landmark={stop.landmark}
                     key={stop.id}
+                    allowOverlap
                 />
             ))}
         </>

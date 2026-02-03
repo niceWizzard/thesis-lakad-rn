@@ -6,10 +6,11 @@ import { Image } from 'react-native'
 import { Pressable } from 'react-native-gesture-handler'
 import { Landmark } from '../model/landmark.types'
 
-const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false }: {
+const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allowOverlap }: {
     landmark: Landmark,
     handleMarkerPress?: (landmark: Landmark) => void,
-    isSelected?: boolean
+    isSelected?: boolean,
+    allowOverlap?: boolean,
 }) => {
     return (
         <MarkerView
@@ -17,6 +18,7 @@ const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false }: {
             coordinate={[landmark.longitude, landmark.latitude]}
             anchor={{ x: 0.5, y: 1 }}
             allowOverlapWithPuck
+            allowOverlap={allowOverlap}
             isSelected={isSelected}
         >
             <Pressable onPress={() => handleMarkerPress?.(landmark)}
