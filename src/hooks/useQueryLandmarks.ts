@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchLandmarks } from "../utils/landmark/fetchLandmarks"
+import { fetchCombinedLandmarks } from "../utils/landmark/fetchCombinedLandmarks"
 
 export const useQueryLandmarks = () => {
     const {
@@ -10,7 +10,7 @@ export const useQueryLandmarks = () => {
         ...rest
     } = useQuery({
         queryKey: ['landmarks'],
-        queryFn: fetchLandmarks,
+        queryFn: fetchCombinedLandmarks,
         initialData: [],
     })
 

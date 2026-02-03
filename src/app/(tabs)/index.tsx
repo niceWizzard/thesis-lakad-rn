@@ -282,10 +282,17 @@ const ExploreTab = () => {
                                 </HStack>
 
                                 <HStack space="xs" className="flex-wrap mt-1">
-                                    <Badge
-                                        action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
-                                        <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
-                                    </Badge>
+                                    {selectedLandmark.creation_type === 'COMMERCIAL' ? (
+                                        <Badge
+                                            action="muted" variant="solid" className="rounded-lg bg-background-100 border border-outline-100">
+                                            <BadgeText className="text-[10px] text-typography-600 uppercase font-bold">Commercial</BadgeText>
+                                        </Badge>
+                                    ) : (
+                                        <Badge
+                                            action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
+                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                        </Badge>
+                                    )}
                                 </HStack>
                             </VStack>
 
@@ -318,31 +325,33 @@ const ExploreTab = () => {
                                         </VStack>
 
                                         {/* Actions */}
-                                        <HStack space="md" className="pb-10">
-                                            <Button
-                                                variant="outline"
-                                                className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
-                                                onPress={() => {
-                                                    router.navigate({
-                                                        pathname: '/landmark/[id]/view',
-                                                        params: {
-                                                            id: selectedLandmark.id.toString(),
-                                                        },
-                                                    });
-                                                }}
-                                            >
-                                                <ButtonIcon as={Info} className="mr-2 text-typography-900" />
-                                                <ButtonText className="font-bold text-typography-900">Details</ButtonText>
-                                            </Button>
+                                        {selectedLandmark.creation_type !== 'COMMERCIAL' && (
+                                            <HStack space="md" className="pb-10">
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                                    onPress={() => {
+                                                        router.navigate({
+                                                            pathname: '/landmark/[id]/view',
+                                                            params: {
+                                                                id: selectedLandmark.id.toString(),
+                                                            },
+                                                        });
+                                                    }}
+                                                >
+                                                    <ButtonIcon as={Info} className="mr-2 text-typography-900" />
+                                                    <ButtonText className="font-bold text-typography-900">Details</ButtonText>
+                                                </Button>
 
-                                            <Button
-                                                className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                                onPress={handleAddToItinerary}
-                                            >
-                                                <ButtonIcon as={MapPin} className="mr-2" />
-                                                <ButtonText className="font-bold">Add to Itinerary</ButtonText>
-                                            </Button>
-                                        </HStack>
+                                                <Button
+                                                    className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                                    onPress={handleAddToItinerary}
+                                                >
+                                                    <ButtonIcon as={MapPin} className="mr-2" />
+                                                    <ButtonText className="font-bold">Add to Itinerary</ButtonText>
+                                                </Button>
+                                            </HStack>
+                                        )}
                                     </>
                                 )
                             }
