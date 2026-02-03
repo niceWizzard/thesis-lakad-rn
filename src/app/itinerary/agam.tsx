@@ -7,6 +7,7 @@ import {
     ChevronDown,
     ChevronUp,
     Layers,
+    ListCheck,
     Map as MapIcon,
     Navigation2,
     Sparkles
@@ -353,8 +354,12 @@ const CreateWithAgamScreenContent = () => {
                                     </AccordionTrigger>
                                 </AccordionHeader>
                                 <AccordionContent>
-                                    <HStack className="justify-start px-2">
-                                        <TouchableOpacity onPress={() => toggleAll('municipalities', selectedMunicipalities.length === MUNICIPALITIES.length ? 'deselect' : 'select')}>
+                                    <HStack className="justify-end my-2">
+                                        <TouchableOpacity
+                                            onPress={() => toggleAll('municipalities', selectedMunicipalities.length === MUNICIPALITIES.length ? 'deselect' : 'select')}
+                                            className="flex-row items-center gap-2 border border-primary-200 rounded-lg px-2 py-1"
+                                        >
+                                            <Icon as={ListCheck} className="text-primary-600" />
                                             <Text size="xs" className="text-primary-600 font-bold uppercase tracking-wider">
                                                 {selectedMunicipalities.length === MUNICIPALITIES.length ? "Deselect All Districts" : "Select All Districts"}
                                             </Text>
