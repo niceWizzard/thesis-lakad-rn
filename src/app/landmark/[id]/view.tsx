@@ -387,7 +387,7 @@ export default function LandmarkViewerScreen() {
                     <VStack className="gap-3">
                         <HStack className="items-center gap-2">
                             <Icon as={Info} size="sm" className="text-primary-600" />
-                            <Heading size="md">History & Significance</Heading>
+                            <Heading size="md">About</Heading>
                         </HStack>
                         <Text size="md" className="text-typography-600 leading-7">
                             {landmark.description ?? "No description available."}
