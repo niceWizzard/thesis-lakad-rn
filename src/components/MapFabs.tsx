@@ -1,7 +1,7 @@
 import { Fab, FabIcon } from '@/components/ui/fab';
 import { StyleURL } from '@rnmapbox/maps';
 import { Layers, LocateFixed } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React from 'react';
 
 
 const MAP_STYLES = [
@@ -14,21 +14,20 @@ const MAP_STYLES = [
 const MapFabs = ({
     handleLocatePress,
     setMapStyle,
+    mapStyle,
 }: {
     handleLocatePress: () => void,
     setMapStyle: React.Dispatch<React.SetStateAction<StyleURL>>
+    mapStyle: StyleURL
 }) => {
-
-    const [, setMapStyleIndex] = useState(0)
 
     return (
         <>
             <Fab
                 onPress={() => {
-                    setMapStyleIndex(v => {
-                        setMapStyle(MAP_STYLES[(v + 1) % MAP_STYLES.length])
-                        return v + 1
-                    })
+                    const currentIndex = MAP_STYLES.indexOf(mapStyle);
+                    const nextIndex = (currentIndex + 1) % MAP_STYLES.length;
+                    setMapStyle(MAP_STYLES[nextIndex]);
                 }}
                 size="md"
                 placement='top right'

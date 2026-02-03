@@ -142,6 +142,7 @@ const LandmarkMapView = ({
                     <MapFabs
                         handleLocatePress={handleLocatePress}
                         setMapStyle={setMapStyleUrl}
+                        mapStyle={mapStyleUrl}
                     />
                     {
                         overlays
