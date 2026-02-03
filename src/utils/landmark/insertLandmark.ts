@@ -41,6 +41,31 @@ export const insertLandmarkToItinerary = async ({
         throw new Error("Invalid Current Count. Must be a number.")
     }
 
+    // Validation: Check for duplicates
+    const { data: existingStop, error: duplicateError } = await supabase
+        .from('stops')
+        .select('id')
+        .eq('itinerary_id', Number(itineraryId))
+        .eq('landmark_id', Number(landmarkId))
+        .limit(1)
+        .maybeSingle();
+
+    if (duplicateError) throw duplicateError;
+    if (existingStop) {
+        throw new Error("Landmark already in itinerary.");
+    }
+
+    // Validation: Check for itinerary limit (50 stops max)
+    const { count, error: countError } = await supabase
+        .from('stops')
+        .select('*', { count: 'exact', head: true })
+        .eq('itinerary_id', Number(itineraryId));
+
+    if (countError) throw countError;
+    if (count !== null && count >= 50) {
+        throw new Error("Itinerary limit reached (50 stops max).");
+    }
+
     const nextOrder = Number(currentCount) + 1;
     const { error } = await supabase.from('stops').insert({
         itinerary_id: Number(itineraryId),
