@@ -129,7 +129,6 @@ export const useNavigationLogic = ({
                     if (distanceSinceLastReroute > 5) {
                         (async () => {
                             try {
-                                console.log("Rerouting due to off-route detection...");
                                 lastRerouteLocation.current = userLocation; // Update last reroute location
                                 setIsCalculatingRoute(true);
                                 const data = await fetchDirections({
@@ -143,6 +142,11 @@ export const useNavigationLogic = ({
                                 setNavigationRoute(data.routes);
                             } catch (error) {
                                 console.log("Error rerouting:", error);
+                                showToast({
+                                    title: "Error",
+                                    description: (error as any).message ?? "Some error happened while rerouting.",
+                                    action: "error"
+                                });
                             } finally {
                                 setIsCalculatingRoute(false);
                             }
@@ -150,7 +154,7 @@ export const useNavigationLogic = ({
                     }
                 }
             }
-        }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, setNavigationRoute, navigationProfile, avoidTolls])
+        }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, navigationProfile, avoidTolls, setNavigationRoute, showToast])
     );
 
 
