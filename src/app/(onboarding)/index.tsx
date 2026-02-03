@@ -6,7 +6,7 @@ import { mmkvStorage } from '@/src/utils/mmkv'
 import { useRouter } from 'expo-router'
 import { ArrowRight, Calendar, MapPin, Rocket } from 'lucide-react-native'
 import React, { useRef, useState } from 'react'
-import { Animated, FlatList, useWindowDimensions, View } from 'react-native'
+import { Animated, FlatList, Image, useWindowDimensions, View } from 'react-native'
 
 const SLIDES = [
     {
@@ -14,7 +14,8 @@ const SLIDES = [
         title: 'Welcome to Lakad',
         description: 'A smart way to traverse and manage your travel itineraries with ease.',
         icon: MapPin,
-        color: 'bg-primary-500'
+        color: 'bg-primary-500',
+        image: require("@/assets/images/lakad-cover.png"),
     },
     {
         id: '2',
@@ -74,8 +75,16 @@ const OnboardingScreen = () => {
                 ref={slidesRef}
                 renderItem={({ item }) => (
                     <View style={{ width }} className="flex-1 justify-center items-center px-10">
-                        <View className={`${item.color} p-8 rounded-full mb-10 shadow-soft-2`}>
-                            <item.icon size={80} color="white" />
+                        <View className={`${item.image ? "bg-transparent border-primary-500 border-2 " : item.color} p-8 rounded-full mb-10 shadow-soft-2`}>
+                            {
+                                item.image ? (
+                                    <Image
+                                        source={item.image} className="w-40 h-40"
+                                    />
+                                ) : (
+                                    <item.icon size={80} color="white" />
+                                )
+                            }
                         </View>
                         <Heading size="3xl" className="text-center text-typography-900 mb-4">
                             {item.title}
