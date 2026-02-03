@@ -105,7 +105,6 @@ export const useNavigationLogic = ({
             );
 
             if (distanceToDestination <= 10) {
-                console.log("Arrived at destination!");
                 finishedNavigating(nextUnvisitedStop);
                 return;
             }

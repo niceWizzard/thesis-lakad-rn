@@ -98,7 +98,6 @@ const LandmarkMapView = ({
                 logoEnabled: false,
                 attributionEnabled: false,
                 onPress: () => {
-                    console.log("MAP PRESS")
                     setSelectedLandmark(null);
                     setIsSearchFocused(false);
                     Keyboard.dismiss();

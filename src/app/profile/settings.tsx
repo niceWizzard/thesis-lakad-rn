@@ -103,7 +103,6 @@ const AccountSettingsScreen = () => {
                 throw new Error(errBody?.error || error.message);
             }
 
-            console.log('Account deleted successfully');
             showToast({
                 title: "Account deleted!"
             })

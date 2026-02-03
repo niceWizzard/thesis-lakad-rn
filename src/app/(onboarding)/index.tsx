@@ -53,7 +53,6 @@ const OnboardingScreen = () => {
     }
 
     const handleSkip = () => {
-        console.log("SKIPING")
         mmkvStorage.set(StorageKey.HaveOnboarded, true)
         router.replace("/(onboarding)/preferences")
     }

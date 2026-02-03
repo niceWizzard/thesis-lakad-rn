@@ -119,7 +119,6 @@ const CreateWithAgamScreenContent = () => {
             if (!hasShown) {
                 setExpandedItems([]);
                 timeout = setTimeout(() => {
-                    console.log("STARTING")
                     start();
                     mmkvStorage.set(StorageKey.AgamTutorialShown, true);
                 }, 100);

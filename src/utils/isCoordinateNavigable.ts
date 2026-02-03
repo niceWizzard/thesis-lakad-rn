@@ -9,8 +9,7 @@ export const isCoordinateNavigable = async (location: GeoJSON.Position) => {
             }]
         })
         return true;
-    } catch (e: any) {
-        console.log(e)
+    } catch {
         return false;
     }
 }   
