@@ -11,11 +11,16 @@ import { supabase } from "../supabase";
  * const dist = matrix["10"]["20"]; // Returns distance from 10 to 20
  * * @throws {Error} If the Supabase query fails.
  */
-export const fetchDistanceMatrix = async (landmarkIds: number[]): Promise<Record<string, Record<string, number>>> => {
+export const fetchDistanceMatrix = async (
+    landmarkIds: number[],
+    queryProgress?: (progress: number) => void,
+): Promise<Record<string, Record<string, number>>> => {
     let allData: any[] = [];
     let page = 0;
     const pageSize = 1000;
     let hasMore = true;
+
+    const totalExpected = landmarkIds.length * landmarkIds.length;
 
     while (hasMore) {
         const { data, error } = await supabase
@@ -30,8 +35,15 @@ export const fetchDistanceMatrix = async (landmarkIds: number[]): Promise<Record
         if (data && data.length > 0) {
             allData = [...allData, ...data];
             page++;
+            if (data.length < pageSize) {
+                hasMore = false;
+            }
         } else {
             hasMore = false;
+        }
+
+        if (totalExpected > 0) {
+            queryProgress?.(Math.min(100, (allData.length / totalExpected) * 100));
         }
 
         // Safety break to prevent infinite loops during dev

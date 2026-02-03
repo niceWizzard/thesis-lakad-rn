@@ -107,7 +107,7 @@ const CreateWithAgamScreenContent = () => {
     const isGenerating = state !== GeneratingState.Idle;
     const isFocused = useIsFocused();
 
-    const [queryProgress] = useState(0)
+    const [queryProgress, setQueryProgress] = useState(0)
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     useEffect(() => {
@@ -210,7 +210,10 @@ const CreateWithAgamScreenContent = () => {
             }, {} as any);
 
             const landmarkDistanceMap = await fetchDistanceMatrix(
-                filteredLandmarks.map(v => v.id)
+                filteredLandmarks.map(v => v.id),
+                (progress) => {
+                    setQueryProgress(progress);
+                }
             );
 
 
@@ -256,7 +259,7 @@ const CreateWithAgamScreenContent = () => {
     function getLoadingText() {
         switch (state) {
             case GeneratingState.Fetching:
-                return `Querying information (${queryProgress}%)`
+                return `Querying information (${Math.round(queryProgress)}%)`
             case GeneratingState.Generating:
                 return "Generating itinerary..."
             case GeneratingState.Saving:
