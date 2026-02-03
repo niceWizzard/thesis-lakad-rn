@@ -96,6 +96,7 @@ const LandmarkMapView = ({
                 onPress: () => setSelectedLandmark(null),
                 compassEnabled: true,
                 compassPosition: { top: 96, right: 8 },
+                scaleBarPosition: { bottom: 16, left: 16 },
                 ...mapViewProps,
             }}
             cameraRef={camera}
