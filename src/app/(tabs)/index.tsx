@@ -236,9 +236,6 @@ const ExploreTab = () => {
                 </AlertDialogContent>
             </AlertDialog>
             <LandmarkMapView
-                mapViewProps={{
-                    onPress: () => setSelectedLandmark(null),
-                }}
                 cameraRef={camera}
                 selectedLandmark={selectedLandmark}
                 setSelectedLandmark={setSelectedLandmark}

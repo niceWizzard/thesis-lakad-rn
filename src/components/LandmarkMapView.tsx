@@ -8,7 +8,7 @@ import CustomMapView from '@/src/components/CustomMapView';
 import MapFabs from '@/src/components/MapFabs';
 import { StyleURL } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
-import { View } from 'react-native';
+import { Keyboard, View } from 'react-native';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { useUserLocation } from '../hooks/useUserLocation';
 import LandmarkMarker from './LandmarkMarker';
@@ -46,8 +46,8 @@ const LandmarkMapView = ({
 
     // Filter results based on search
     const showResults = useMemo(() =>
-        isSearchFocused && searchString.trim().length > 0,
-        [isSearchFocused, searchString]);
+        isSearchFocused,
+        [isSearchFocused]);
 
     const centerMap = (coords: [number, number], zoom = 20) => {
         camera.current?.setCamera({
@@ -97,7 +97,12 @@ const LandmarkMapView = ({
                 styleURL: mapStyleUrl,
                 logoEnabled: false,
                 attributionEnabled: false,
-                onPress: () => setSelectedLandmark(null),
+                onPress: () => {
+                    console.log("MAP PRESS")
+                    setSelectedLandmark(null);
+                    setIsSearchFocused(false);
+                    Keyboard.dismiss();
+                },
                 compassEnabled: true,
                 compassPosition: { top: 96, right: 8 },
                 scaleBarPosition: { bottom: 16, left: 16 },
