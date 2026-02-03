@@ -30,6 +30,7 @@ import {
     AlertDialogHeader,
 } from '@/components/ui/alert-dialog';
 import { Center } from '@/components/ui/center';
+import ImageCreditModal from '@/src/components/ImageCreditModal';
 import LandmarkSkeleton from '@/src/components/LandmarkSkeleton';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -42,6 +43,7 @@ export default function LandmarkViewerScreen() {
     const { id, previewMode, itineraryId, currentCount } = useLocalSearchParams();
     const currentCountNum = Number(currentCount || 0);
     const router = useRouter();
+    const [showImageCredits, setShowImageCredits] = useState(false);
 
     const { showToast } = useToastNotification()
     const queryClient = useQueryClient()
@@ -330,12 +332,21 @@ export default function LandmarkViewerScreen() {
                         >
                             <ArrowLeft color="white" size={24} />
                         </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={handleShare}
-                            className="bg-black/30 p-2 rounded-full"
-                        >
-                            <Share2 color="white" size={24} />
-                        </TouchableOpacity>
+
+                        <HStack space="sm">
+                            <TouchableOpacity
+                                onPress={() => setShowImageCredits(true)}
+                                className="bg-black/30 p-2 rounded-full"
+                            >
+                                <Icon as={Info} size="md" className="text-white" />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={handleShare}
+                                className="bg-black/30 p-2 rounded-full"
+                            >
+                                <Share2 color="white" size={24} />
+                            </TouchableOpacity>
+                        </HStack>
                     </HStack>
                 </Box>
 
@@ -424,6 +435,10 @@ export default function LandmarkViewerScreen() {
                     </Box>
                 )
             }
+            <ImageCreditModal
+                isOpen={showImageCredits}
+                onClose={() => setShowImageCredits(false)}
+            />
         </Box>
     );
 }

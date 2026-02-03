@@ -1,3 +1,4 @@
+import ImageCreditModal from '@/src/components/ImageCreditModal';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
@@ -37,6 +38,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 const ExploreTab = () => {
 
     const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
+    const [showImageCredits, setShowImageCredits] = useState(false);
     const router = useRouter();
     const camera = useRef<any>(null);
 
@@ -291,11 +293,19 @@ const ExploreTab = () => {
                                 sheetIndex > 0 && (
                                     <>
                                         {/* Image Section */}
-                                        <Image
-                                            source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
-                                            className="w-full h-56 rounded-[32px] bg-background-100"
-                                            resizeMode="cover"
-                                        />
+                                        <Box className="relative">
+                                            <Image
+                                                source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
+                                                className="w-full h-56 rounded-[32px] bg-background-100"
+                                                resizeMode="cover"
+                                            />
+                                            <Pressable
+                                                className="absolute top-4 right-4 bg-black/40 p-2 rounded-full backdrop-blur-md"
+                                                onPress={() => setShowImageCredits(true)}
+                                            >
+                                                <Icon as={Info} size="sm" className="text-white" />
+                                            </Pressable>
+                                        </Box>
 
                                         {/* Description */}
                                         <VStack space="xs">
@@ -346,6 +356,10 @@ const ExploreTab = () => {
                     )}
                 </BottomSheetScrollView>
             </CustomBottomSheet>
+            <ImageCreditModal
+                isOpen={showImageCredits}
+                onClose={() => setShowImageCredits(false)}
+            />
         </Box >
     );
 };
