@@ -150,9 +150,14 @@ const ReorderScreen = () => {
             if (onGoingStops.length === 0) return;
 
             // 2. Fetch distances only for remaining stops
-            const distanceMatrix = await fetchDistanceMatrix(
-                onGoingStops.map(v => v.landmark_id)
-            );
+            const distanceMatrix = await Promise.race([
+                fetchDistanceMatrix(
+                    onGoingStops.map(v => v.landmark_id)
+                ),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("Query timed out.")), 15000)
+                )
+            ]);
 
             // 3. Get the optimized order (returns array of IDs)
             setLoadingModalMode(LoadingMode.Optimizing)
