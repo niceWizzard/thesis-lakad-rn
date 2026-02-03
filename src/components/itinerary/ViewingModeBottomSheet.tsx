@@ -151,6 +151,7 @@ export function ViewingModeBottomSheet({
                     <Button
                         variant='link'
                         onPress={handleAddPoi}
+                        isDisabled={itinerary.stops.length >= 50}
                     >
                         <ButtonIcon as={PlusCircle} size='xl' className='text-primary-600' />
                         <ButtonText>Add</ButtonText>

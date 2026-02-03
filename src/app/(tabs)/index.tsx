@@ -166,7 +166,7 @@ const ExploreTab = () => {
                                         return (
                                             <Pressable
                                                 key={itinerary.id}
-                                                disabled={isCreating}
+                                                disabled={isCreating || itinerary.stops.length >= 50}
                                                 onPress={() => setSelectedItinerary({
                                                     id: itinerary.id.toString(),
                                                     name: itinerary.name,
@@ -175,12 +175,12 @@ const ExploreTab = () => {
                                             >
                                                 <HStack
                                                     className={`justify-between items-center p-4 rounded-2xl border-2 ${isSelected ? 'bg-primary-50 border-primary-500' : 'bg-background-50 border-outline-100'
-                                                        } ${(isCreating) ? 'opacity-50' : ''}`}
+                                                        } ${(isCreating || itinerary.stops.length >= 50) ? 'opacity-50' : ''}`}
 
                                                 >
                                                     <VStack space="xs">
                                                         <Text className={`font-bold ${isSelected ? 'text-primary-700' : 'text-typography-900'}`}>{itinerary.name}</Text>
-                                                        <Text size="xs" className="text-typography-500">{itinerary.stops.length} stops</Text>
+                                                        <Text size="xs" className="text-typography-500">{itinerary.stops.length} stops {itinerary.stops.length >= 50 ? '(Full)' : ''}</Text>
                                                     </VStack>
                                                     <Box className={`h-5 w-5 rounded-full border-2 items-center justify-center ${isSelected ? 'border-primary-600 bg-primary-600' : 'border-outline-300'}`}>
                                                         {isSelected && <Box className="h-2 w-2 rounded-full bg-white" />}

@@ -40,6 +40,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function LandmarkViewerScreen() {
     const { id, previewMode, itineraryId, currentCount } = useLocalSearchParams();
+    const currentCountNum = Number(currentCount || 0);
     const router = useRouter();
 
     const { showToast } = useToastNotification()
@@ -68,11 +69,16 @@ export default function LandmarkViewerScreen() {
         isPending: isAddingStop,
         mutate: addStopMutation
     } = useMutation({
-        mutationFn: async (landmarkId: number) => insertLandmarkToItinerary({
-            currentCount: currentCount.toString(),
-            itineraryId: itineraryId.toString(),
-            landmarkId: landmarkId.toString(),
-        }),
+        mutationFn: async (landmarkId: number) => {
+            if (currentCountNum >= 50) {
+                throw new Error("Itinerary limit reached (50 stops max)");
+            }
+            return insertLandmarkToItinerary({
+                currentCount: currentCount.toString(),
+                itineraryId: itineraryId.toString(),
+                landmarkId: landmarkId.toString(),
+            });
+        },
         onSuccess: () => {
             // Invalidate queries so the itinerary refreshes when we go back
             queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
@@ -171,6 +177,10 @@ export default function LandmarkViewerScreen() {
     }) => {
         setIsCreating(true)
         try {
+            if (Number(currentCount) >= 50) {
+                throw new Error("Itinerary limit reached (50 stops max)");
+            }
+
             await insertLandmarkToItinerary({
                 currentCount,
                 itineraryId,
@@ -234,7 +244,7 @@ export default function LandmarkViewerScreen() {
                                         return (
                                             <Pressable
                                                 key={itinerary.id}
-                                                disabled={isAddingStop || isCreating}
+                                                disabled={isAddingStop || isCreating || itinerary.stops.length >= 50}
                                                 onPress={() => setSelectedItinerary({
                                                     id: itinerary.id.toString(),
                                                     name: itinerary.name,
@@ -243,12 +253,12 @@ export default function LandmarkViewerScreen() {
                                             >
                                                 <HStack
                                                     className={`justify-between items-center p-4 rounded-2xl border-2 ${isSelected ? 'bg-primary-50 border-primary-500' : 'bg-background-50 border-outline-100'
-                                                        } ${(isAddingStop || isCreating) ? 'opacity-50' : ''}`}
+                                                        } ${(isAddingStop || isCreating || itinerary.stops.length >= 50) ? 'opacity-50' : ''}`}
 
                                                 >
                                                     <VStack space="xs">
                                                         <Text className={`font-bold ${isSelected ? 'text-primary-700' : 'text-typography-900'}`}>{itinerary.name}</Text>
-                                                        <Text size="xs" className="text-typography-500">{itinerary.stops.length} stops</Text>
+                                                        <Text size="xs" className="text-typography-500">{itinerary.stops.length} stops {itinerary.stops.length >= 50 ? '(Full)' : ''}</Text>
                                                     </VStack>
                                                     <Box className={`h-5 w-5 rounded-full border-2 items-center justify-center ${isSelected ? 'border-primary-600 bg-primary-600' : 'border-outline-300'}`}>
                                                         {isSelected && <Box className="h-2 w-2 rounded-full bg-white" />}
@@ -400,7 +410,7 @@ export default function LandmarkViewerScreen() {
                             onPress={handleAddToItinerary}
                             size="lg"
                             className="rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                            isDisabled={isAddingStop}
+                            isDisabled={isAddingStop || (!!itineraryId && currentCountNum >= 50)}
                         >
                             {
                                 isAddingStop && <ButtonSpinner />

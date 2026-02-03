@@ -24,6 +24,7 @@ import { supabase } from '@/src/utils/supabase';
 
 export default function AddPOIScreen() {
     const { id: itineraryId, currentCount } = useLocalSearchParams();
+    const currentCountNum = Number(currentCount);
     const router = useRouter();
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
@@ -57,6 +58,10 @@ export default function AddPOIScreen() {
 
             if (itinerary.stops.find(stop => stop.landmark_id === landmarkId)) {
                 throw new Error("Landmark already in itinerary");
+            }
+
+            if (currentCountNum >= 50) {
+                throw new Error("Itinerary limit reached (50 stops max)");
             }
 
             await insertLandmarkToItinerary({
@@ -168,7 +173,7 @@ export default function AddPOIScreen() {
                                                 e.stopPropagation();
                                                 return addStopMutation.mutate(item.id);
                                             }}
-                                            isDisabled={addStopMutation.isPending}
+                                            isDisabled={addStopMutation.isPending || currentCountNum >= 50}
                                         >
                                             {addStopMutation.isPending && addStopMutation.variables === item.id ? (
                                                 <ButtonSpinner />
