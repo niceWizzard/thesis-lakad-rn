@@ -209,12 +209,17 @@ const CreateWithAgamScreenContent = () => {
                 return obj;
             }, {} as any);
 
-            const landmarkDistanceMap = await fetchDistanceMatrix(
-                filteredLandmarks.map(v => v.id),
-                (progress) => {
-                    setQueryProgress(progress);
-                }
-            );
+            const landmarkDistanceMap = await Promise.race([
+                fetchDistanceMatrix(
+                    filteredLandmarks.map(v => v.id),
+                    (progress) => {
+                        setQueryProgress(progress);
+                    }
+                ),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("Query timed out.")), 15000)
+                )
+            ]);
 
 
             setState(GeneratingState.Generating);
@@ -222,13 +227,18 @@ const CreateWithAgamScreenContent = () => {
             const {
                 itinerary: result,
                 distance,
-            } = await AlgorithmModule.generateItinerary(
-                Number.parseFloat(formData.maxDistance) * 1000,
-                Number.parseInt(formData.maxPoi),
-                [1, 1, 1, 1],
-                pois,
-                landmarkDistanceMap,
-            );
+            } = await Promise.race([
+                AlgorithmModule.generateItinerary(
+                    Number.parseFloat(formData.maxDistance) * 1000,
+                    Number.parseInt(formData.maxPoi),
+                    [1, 1, 1, 1],
+                    pois,
+                    landmarkDistanceMap,
+                ),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("Generation timed out.")), 20000)
+                )
+            ]);
 
             if (!result || result.length === 0) throw new Error("No valid route found.");
 
