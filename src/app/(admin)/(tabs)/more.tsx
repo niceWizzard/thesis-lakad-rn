@@ -47,7 +47,7 @@ function MoreTab() {
         },
         {
             id: '5',
-            title: 'Manage Distance Matrix',
+            title: 'Distance Database',
             icon: RulerDimensionLine,
             onPress: () => router.navigate('/(admin)/landmark/matrix'),
         },
