@@ -51,6 +51,9 @@ export const useNavigationLogic = ({
 
     // Use ref to access latest location without triggering re-renders
     const userLocationRef = useRef(userLocation);
+    // Track where we last rerouted to prevent infinite loops when stationary
+    const lastRerouteLocation = useRef<[number, number] | null>(null);
+
     useEffect(() => {
         userLocationRef.current = userLocation;
     }, [userLocation]);
@@ -118,24 +121,33 @@ export const useNavigationLogic = ({
                 );
 
                 if (distanceToNextStep > 50) {
-                    (async () => {
-                        try {
-                            setIsCalculatingRoute(true);
-                            const data = await fetchDirections({
-                                waypoints: [
-                                    userLocation,
-                                    [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
-                                ],
-                                profile: navigationProfile,
-                                exclude: (avoidTolls && navigationProfile === 'driving') ? ['toll'] : [],
-                            });
-                            setNavigationRoute(data.routes);
-                        } catch (error) {
-                            console.log("Error rerouting:", error);
-                        } finally {
-                            setIsCalculatingRoute(false);
-                        }
-                    })();
+                    // Check if we have moved significantly since the last reroute
+                    const distanceSinceLastReroute = lastRerouteLocation.current
+                        ? getHaversineDistance(userLocation, lastRerouteLocation.current)
+                        : 9999; // If null, treat as moved enough
+
+                    if (distanceSinceLastReroute > 5) {
+                        (async () => {
+                            try {
+                                console.log("Rerouting due to off-route detection...");
+                                lastRerouteLocation.current = userLocation; // Update last reroute location
+                                setIsCalculatingRoute(true);
+                                const data = await fetchDirections({
+                                    waypoints: [
+                                        userLocation,
+                                        [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                                    ],
+                                    profile: navigationProfile,
+                                    exclude: (avoidTolls && navigationProfile === 'driving') ? ['toll'] : [],
+                                });
+                                setNavigationRoute(data.routes);
+                            } catch (error) {
+                                console.log("Error rerouting:", error);
+                            } finally {
+                                setIsCalculatingRoute(false);
+                            }
+                        })();
+                    }
                 }
             }
         }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, setNavigationRoute, navigationProfile, avoidTolls])
@@ -156,6 +168,7 @@ export const useNavigationLogic = ({
             (async () => {
                 try {
                     setIsCalculatingRoute(true);
+                    lastRerouteLocation.current = currentLocation; // Reset anchor to avoid immediate double triggers
                     const data = await fetchDirections({
                         waypoints: [
                             currentLocation,
@@ -193,6 +206,8 @@ export const useNavigationLogic = ({
         try {
             setIsStartingNavigation(true);
             setIsCalculatingRoute(true);
+            // Initialize/Result last reroute location so we don't immediately trigger a reroute if snapped
+            lastRerouteLocation.current = startLocation;
 
             const data = await fetchDirections({
                 waypoints: [
