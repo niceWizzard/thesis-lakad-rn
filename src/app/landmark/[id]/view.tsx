@@ -1,11 +1,12 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
+    AlertCircle,
     ArrowLeft,
     Info,
     LocateIcon,
     MapPin,
     Share2,
-    Star
+    Star,
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Share, TouchableOpacity, View } from 'react-native';
@@ -29,6 +30,7 @@ import {
     AlertDialogHeader,
 } from '@/components/ui/alert-dialog';
 import { Center } from '@/components/ui/center';
+import LandmarkSkeleton from '@/src/components/LandmarkSkeleton';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
@@ -56,7 +58,7 @@ export default function LandmarkViewerScreen() {
     } | null>(null);
 
 
-    const { data: landmark } = useQuery({
+    const { data: landmark, isError, error, isLoading } = useQuery({
         queryKey: ['landmark', id],
         queryFn: () => fetchLandmarkById(Number.parseInt(id!.toString())),
         enabled: !!id,
@@ -92,8 +94,37 @@ export default function LandmarkViewerScreen() {
         enabled: !!userId && showNoItineraryAlert,
     });
 
-    if (!landmark)
-        return <Text>Landmark not found</Text>;
+    if (isLoading) {
+        return <LandmarkSkeleton />
+    }
+
+    if (isError || !landmark) {
+        return (
+            <Box className="flex-1 bg-background-0 items-center justify-center p-6">
+                <Stack.Screen options={{ headerShown: false }} />
+                <VStack className="items-center gap-4 text-center">
+                    <Box className="w-20 h-20 bg-error-50 rounded-full items-center justify-center mb-2">
+                        <Icon as={AlertCircle} size="xl" className="text-error-500" />
+                    </Box>
+                    <Heading size="xl" className="text-center font-bold text-typography-900">
+                        {isError ? "Something went wrong" : "Landmark Not Found"}
+                    </Heading>
+                    <Text className="text-center text-typography-500 mb-4 px-4">
+                        {isError
+                            ? ((error as any)?.message || "We couldn't load the landmark details. Please try again later.")
+                            : "The landmark you're looking for doesn't exist or has been removed."}
+                    </Text>
+                    <Button
+                        onPress={() => router.back()}
+                        size="lg"
+                        className="rounded-xl px-8 bg-primary-600 shadow-soft-1"
+                    >
+                        <ButtonText>Go Back</ButtonText>
+                    </Button>
+                </VStack>
+            </Box>
+        );
+    }
 
     const handleShare = async () => {
         try {
