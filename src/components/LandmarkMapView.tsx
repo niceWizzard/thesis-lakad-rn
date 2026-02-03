@@ -41,6 +41,7 @@ const LandmarkMapView = ({
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [mapStyleUrl, setMapStyleUrl] = useState(StyleURL.Street)
+    const [isMapReady, setIsMapReady] = useState(false);
 
 
     // Filter results based on search
@@ -89,6 +90,9 @@ const LandmarkMapView = ({
 
     return (
         <CustomMapView
+            onDidFinishLoadingStyle={() => {
+                setIsMapReady(true);
+            }}
             mapViewProps={{
                 styleURL: mapStyleUrl,
                 logoEnabled: false,
@@ -141,7 +145,10 @@ const LandmarkMapView = ({
                     {/* Map Controls (FABs) */}
                     <MapFabs
                         handleLocatePress={handleLocatePress}
-                        setMapStyle={setMapStyleUrl}
+                        setMapStyle={(style) => {
+                            setIsMapReady(false);
+                            setMapStyleUrl(style);
+                        }}
                         mapStyle={mapStyleUrl}
                     />
                     {
@@ -151,7 +158,7 @@ const LandmarkMapView = ({
             )}
         >
             {
-                landmarks.map(v => (
+                isMapReady && landmarks.map(v => (
                     <LandmarkMarker
                         landmark={v}
                         key={v.id}

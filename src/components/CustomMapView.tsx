@@ -13,6 +13,7 @@ interface LandmarkMapViewProps {
     overlays?: React.ReactNode;
     mapViewProps?: ComponentProps<typeof MapView>,
     cameraProps?: ComponentProps<typeof Camera>,
+    onDidFinishLoadingStyle?: () => void;
 }
 
 const CustomMapView = ({
@@ -21,11 +22,13 @@ const CustomMapView = ({
     overlays,        // Content OUTSIDE the MapView (FABs, Search)
     mapViewProps,
     cameraProps,
+    onDidFinishLoadingStyle,
 }: LandmarkMapViewProps) => {
     return (
         <Box className="flex-1 bg-background-0">
             <MapView
                 style={{ flex: 1 }}
+                onDidFinishLoadingStyle={onDidFinishLoadingStyle}
                 {...mapViewProps}
             >
                 <Camera ref={cameraRef}
