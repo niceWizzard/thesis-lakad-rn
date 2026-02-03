@@ -149,7 +149,6 @@ const ExploreTab = () => {
                                                         pathname: '/landmark/[id]/view',
                                                         params: {
                                                             id: selectedLandmark.id.toString(),
-                                                            previewMode: 'true',
                                                         },
                                                     });
                                                 }}
