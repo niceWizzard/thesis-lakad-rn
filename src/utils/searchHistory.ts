@@ -34,5 +34,5 @@ export const addRecentSearch = (id: number) => {
  * Clears the recent search history.
  */
 export const clearRecentSearches = () => {
-    mmkvStorage.delete(SEARCH_HISTORY_KEY);
+    mmkvStorage.remove(SEARCH_HISTORY_KEY);
 }
