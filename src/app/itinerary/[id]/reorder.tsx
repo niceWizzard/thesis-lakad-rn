@@ -97,7 +97,7 @@ const ReorderScreen = () => {
         } catch (error) {
             showToast({
                 title: "Error",
-                description: "Failed to sync stop order.",
+                description: (error as any)?.message ?? "Something went wrong.",
                 action: "error"
             })
             console.error(error);
