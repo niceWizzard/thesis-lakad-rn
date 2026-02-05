@@ -171,17 +171,17 @@ export default function ArchivedItinerariesScreen() {
                                 </Progress>
                             </VStack>
 
-                            <HStack space="md">
+                            <HStack space="md" className="flex-wrap">
                                 <Button
                                     size="lg"
                                     variant="outline"
                                     action="secondary"
                                     onPress={() => handleRestore(itinerary.id)}
                                     isDisabled={isProcessing}
-                                    className="flex-1 rounded-2xl border-outline-200"
+                                    className="rounded-2xl border-outline-200 flex-shrink"
                                 >
-                                    <ButtonIcon as={ArchiveRestore} className="mr-2" />
-                                    <ButtonText className="font-bold">
+                                    <ButtonIcon as={ArchiveRestore} />
+                                    <ButtonText>
                                         Restore
                                     </ButtonText>
                                 </Button>
@@ -191,10 +191,10 @@ export default function ArchivedItinerariesScreen() {
                                     variant="solid"
                                     onPress={() => setItemToDelete(itinerary)}
                                     isDisabled={isProcessing}
-                                    className="flex-1 rounded-2xl bg-error-600"
+                                    className="rounded-2xl bg-error-600 flex-shrink"
                                 >
-                                    <ButtonIcon as={Trash2} className="mr-2" />
-                                    <ButtonText className="font-bold">
+                                    <ButtonIcon as={Trash2} />
+                                    <ButtonText>
                                         Delete Forever
                                     </ButtonText>
                                 </Button>
