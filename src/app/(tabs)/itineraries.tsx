@@ -198,7 +198,7 @@ export default function ItinerariesScreen() {
                                             </HStack>
                                         </HStack>
                                     </VStack>
-                                    <Pressable hitSlop={20}
+                                    <Pressable hitSlop={32}
                                         onPress={() => {
                                             router.navigate({
                                                 pathname: '/itinerary/[id]/info',
