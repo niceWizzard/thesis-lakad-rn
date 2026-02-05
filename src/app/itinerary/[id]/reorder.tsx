@@ -170,7 +170,8 @@ const ReorderScreen = () => {
                     distance: calculatedDistance,
                 } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
                 bestDistance = Math.min(bestDistance, calculatedDistance);
-                if (calculatedDistance <= itinerary.distance) {
+                // prevents false improvement due to rounding errors
+                if (calculatedDistance < itinerary.distance - 0.1) {
                     optimizedIds = optimizedItinerary;
                     distance = calculatedDistance;
                     break;
