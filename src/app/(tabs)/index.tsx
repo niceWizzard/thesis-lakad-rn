@@ -250,121 +250,127 @@ const ExploreTab = () => {
                 enablePanDownToClose
                 onClose={handleBackdropPress}
             >
-                <BottomSheetScrollView
-                    contentContainerStyle={styles.scrollContent}
-                >
-                    {selectedLandmark ? (
-                        <VStack className="gap-6">
-                            {/* Drag Indicator */}
-                            <Box className='w-full items-center pt-2 pb-1'>
-                                <Box className='w-12 h-1 bg-outline-300 rounded-full' />
-                            </Box>
-                            {/* Header Info */}
-                            <VStack className="gap-2">
-                                <HStack className="justify-between items-start">
-                                    <VStack className="flex-1 pr-4">
-                                        <Heading size="xl" className="text-typography-900 leading-tight">
-                                            {selectedLandmark.name}
-                                        </Heading>
-                                        <HStack space="xs" className="mt-1 items-center">
-                                            <Icon as={MapPin} size="xs" className="text-primary-600" />
-                                            <Text size="sm" className="text-typography-500 font-medium">
-                                                {selectedLandmark.municipality}, District {selectedLandmark.district}
-                                            </Text>
-                                        </HStack>
-                                    </VStack>
-
-                                    <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
-                                        <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
-                                        <Text size="sm" className="font-bold text-warning-700">
-                                            {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
-                                        </Text>
-                                    </HStack>
-                                </HStack>
-
-                                <HStack space="xs" className="flex-wrap mt-1">
-                                    {selectedLandmark.creation_type === 'COMMERCIAL' ? (
-                                        <Badge
-                                            action="muted" variant="solid" className="rounded-lg bg-background-100 border border-outline-100">
-                                            <BadgeText className="text-[10px] text-typography-600 uppercase font-bold">Commercial</BadgeText>
-                                        </Badge>
-                                    ) : (
-                                        <Badge
-                                            action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
-                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
-                                        </Badge>
-                                    )}
-                                </HStack>
-                            </VStack>
-
-                            {
-                                sheetIndex > 0 && (
-                                    <>
-                                        {/* Image Section */}
-                                        <Box className="relative">
-                                            <Image
-                                                source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
-                                                className="w-full h-56 rounded-[32px] bg-background-100"
-                                                resizeMode="cover"
-                                            />
-                                            <Pressable
-                                                className="absolute top-4 right-4 bg-black/40 p-2 rounded-full backdrop-blur-md"
-                                                onPress={() => setShowImageCredits(true)}
-                                            >
-                                                <Icon as={Info} size="sm" className="text-white" />
-                                            </Pressable>
-                                        </Box>
-
-                                        {/* Description */}
-                                        <VStack space="xs">
-                                            <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
-                                            <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
-                                                <Text size="sm" className="text-typography-600 leading-relaxed">
-                                                    {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
+                <Pressable onPress={() => {
+                    sheetRef.current?.snapToIndex(
+                        sheetIndex === 0 ? 1 : 0
+                    );
+                }}>
+                    <BottomSheetScrollView
+                        contentContainerStyle={styles.scrollContent}
+                    >
+                        {selectedLandmark ? (
+                            <VStack className="gap-6">
+                                {/* Drag Indicator */}
+                                <Box className='w-full items-center pt-2 pb-1'>
+                                    <Box className='w-12 h-1 bg-outline-300 rounded-full' />
+                                </Box>
+                                {/* Header Info */}
+                                <VStack className="gap-2">
+                                    <HStack className="justify-between items-start">
+                                        <VStack className="flex-1 pr-4">
+                                            <Heading size="xl" className="text-typography-900 leading-tight">
+                                                {selectedLandmark.name}
+                                            </Heading>
+                                            <HStack space="xs" className="mt-1 items-center">
+                                                <Icon as={MapPin} size="xs" className="text-primary-600" />
+                                                <Text size="sm" className="text-typography-500 font-medium">
+                                                    {selectedLandmark.municipality}, District {selectedLandmark.district}
                                                 </Text>
-                                            </Box>
+                                            </HStack>
                                         </VStack>
 
-                                        {/* Actions */}
-                                        {selectedLandmark.creation_type !== 'COMMERCIAL' && (
-                                            <HStack space="md" className="pb-10">
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
-                                                    onPress={() => {
-                                                        router.navigate({
-                                                            pathname: '/landmark/[id]/view',
-                                                            params: {
-                                                                id: selectedLandmark.id.toString(),
-                                                            },
-                                                        });
-                                                    }}
-                                                >
-                                                    <ButtonIcon as={Info} className="mr-2 text-typography-900" />
-                                                    <ButtonText className="font-bold text-typography-900">Details</ButtonText>
-                                                </Button>
+                                        <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
+                                            <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
+                                            <Text size="sm" className="font-bold text-warning-700">
+                                                {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
+                                            </Text>
+                                        </HStack>
+                                    </HStack>
 
-                                                <Button
-                                                    className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                                    onPress={handleAddToItinerary}
-                                                >
-                                                    <ButtonIcon as={MapPin} className="mr-2" />
-                                                    <ButtonText className="font-bold">Add to Itinerary</ButtonText>
-                                                </Button>
-                                            </HStack>
+                                    <HStack space="xs" className="flex-wrap mt-1">
+                                        {selectedLandmark.creation_type === 'COMMERCIAL' ? (
+                                            <Badge
+                                                action="muted" variant="solid" className="rounded-lg bg-background-100 border border-outline-100">
+                                                <BadgeText className="text-[10px] text-typography-600 uppercase font-bold">Commercial</BadgeText>
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
+                                                <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                            </Badge>
                                         )}
-                                    </>
-                                )
-                            }
-                        </VStack>
-                    ) : (
-                        <Box className="flex-1 justify-center items-center p-10">
-                            <Text className="text-typography-400 italic text-center">
-                                Select a marker on the map to see details
-                            </Text>
-                        </Box>
-                    )}
-                </BottomSheetScrollView>
+                                    </HStack>
+                                </VStack>
+
+                                {
+                                    sheetIndex > 0 && (
+                                        <>
+                                            {/* Image Section */}
+                                            <Box className="relative">
+                                                <Image
+                                                    source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
+                                                    className="w-full h-56 rounded-[32px] bg-background-100"
+                                                    resizeMode="cover"
+                                                />
+                                                <Pressable
+                                                    className="absolute top-4 right-4 bg-black/40 p-2 rounded-full backdrop-blur-md"
+                                                    onPress={() => setShowImageCredits(true)}
+                                                >
+                                                    <Icon as={Info} size="sm" className="text-white" />
+                                                </Pressable>
+                                            </Box>
+
+                                            {/* Description */}
+                                            <VStack space="xs">
+                                                <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
+                                                <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
+                                                    <Text size="sm" className="text-typography-600 leading-relaxed">
+                                                        {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
+                                                    </Text>
+                                                </Box>
+                                            </VStack>
+
+                                            {/* Actions */}
+                                            {selectedLandmark.creation_type !== 'COMMERCIAL' && (
+                                                <HStack space="md" className="pb-10">
+                                                    <Button
+                                                        variant="outline"
+                                                        className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                                        onPress={() => {
+                                                            router.navigate({
+                                                                pathname: '/landmark/[id]/view',
+                                                                params: {
+                                                                    id: selectedLandmark.id.toString(),
+                                                                },
+                                                            });
+                                                        }}
+                                                    >
+                                                        <ButtonIcon as={Info} className="mr-2 text-typography-900" />
+                                                        <ButtonText className="font-bold text-typography-900">Details</ButtonText>
+                                                    </Button>
+
+                                                    <Button
+                                                        className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                                        onPress={handleAddToItinerary}
+                                                    >
+                                                        <ButtonIcon as={MapPin} className="mr-2" />
+                                                        <ButtonText className="font-bold">Add to Itinerary</ButtonText>
+                                                    </Button>
+                                                </HStack>
+                                            )}
+                                        </>
+                                    )
+                                }
+                            </VStack>
+                        ) : (
+                            <Box className="flex-1 justify-center items-center p-10">
+                                <Text className="text-typography-400 italic text-center">
+                                    Select a marker on the map to see details
+                                </Text>
+                            </Box>
+                        )}
+                    </BottomSheetScrollView>
+                </Pressable>
             </CustomBottomSheet>
             <ImageCreditModal
                 isOpen={showImageCredits}
