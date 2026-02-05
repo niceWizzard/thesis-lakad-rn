@@ -176,7 +176,12 @@ const ReorderScreen = () => {
                     break;
                 }
                 if (i === 14) {
-                    throw new Error("Could not optimize any further.")
+                    showToast({
+                        title: "Already optimized",
+                        description: "The itinerary is already optimized and could not be optimized further.",
+                        action: "info"
+                    })
+                    return;
                 }
             }
 
