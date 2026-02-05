@@ -255,6 +255,10 @@ const ExploreTab = () => {
                 >
                     {selectedLandmark ? (
                         <VStack className="gap-6">
+                            {/* Drag Indicator */}
+                            <Box className='w-full items-center pt-2 pb-1'>
+                                <Box className='w-12 h-1 bg-outline-300 rounded-full' />
+                            </Box>
                             {/* Header Info */}
                             <VStack className="gap-2">
                                 <HStack className="justify-between items-start">
