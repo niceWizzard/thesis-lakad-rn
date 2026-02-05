@@ -27,7 +27,7 @@ import {
 import { Center } from '@/components/ui/center';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
+import { useQueryCombinedLandmarks } from '@/src/hooks/useQueryCombinedLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Landmark } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -48,7 +48,7 @@ const ExploreTab = () => {
     // Define snap points: 0 is closed, 1 is the 40% mark
     const snapPoints = useMemo(() => ["20%", "80%",], []);
 
-    const { landmarks } = useQueryLandmarks()
+    const { landmarks } = useQueryCombinedLandmarks()
 
     // Add to Itinerary Logic
     const { session } = useAuthStore()
