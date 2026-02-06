@@ -95,7 +95,7 @@ function MoreTabContent() {
                 order={1}
                 name="profileHeader"
             >
-                <CopilotBox className="items-center py-10 px-6 bg-background-50 border-b border-outline-50" collapsable={false}>
+                <CopilotBox className="items-center pt-10 pb-4 mb-6 px-6 bg-background-50 border-b border-outline-50" collapsable={false}>
                     <View className="relative">
                         <Image
                             source={coverImage}
@@ -109,11 +109,7 @@ function MoreTabContent() {
 
                     <Heading size="xl" className="mt-4 text-typography-900">Lakad Explorer</Heading>
 
-                    <TouchableOpacity onPress={() => start()}>
-                        <Text size="xs" className="text-primary-600 font-bold mt-1">
-                            How to use this page?
-                        </Text>
-                    </TouchableOpacity>
+
 
                     {session?.user?.email && (
                         <View className="flex-row items-center mt-1 gap-4">
@@ -121,6 +117,13 @@ function MoreTabContent() {
                             <Text size="sm" className="text-typography-500">{session.user.email}</Text>
                         </View>
                     )}
+                    <TouchableOpacity onPress={() => start()}
+                        className='self-end mt-4'
+                    >
+                        <Text size="xs" className="text-primary-600 font-bold">
+                            How to use this page?
+                        </Text>
+                    </TouchableOpacity>
                 </CopilotBox>
             </CopilotStep>
 
