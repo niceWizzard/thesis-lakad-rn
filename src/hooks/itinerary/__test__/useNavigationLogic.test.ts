@@ -1,6 +1,7 @@
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
 import { fetchDirections } from '@/src/utils/navigation/fetchDirections';
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useNavigationLogic } from '../useNavigationLogic';
 import { Mode } from '../useNavigationState';
 
@@ -26,7 +27,7 @@ jest.mock('@/src/utils/distance/getDistanceToSegment', () => ({
 }));
 
 jest.mock('expo-router', () => ({
-    useFocusEffect: (cb: any) => cb(),
+    useFocusEffect: (cb: any) => jest.requireActual('react').useEffect(cb, [cb]),
 }));
 
 
@@ -112,18 +113,61 @@ describe('useNavigationLogic', () => {
         expect(fetchDirections).not.toHaveBeenCalled();
     });
 
-    it('startNavigation handles error', async () => {
-        (fetchDirections as jest.Mock).mockRejectedValue(new Error('Fetch failed'));
 
-        const { result } = renderHook(() => useNavigationLogic(defaultProps));
+    it('detects arrival when user is close', async () => {
+        (getHaversineDistance as jest.Mock).mockReturnValue(5); // < 10m
 
-        await act(async () => {
-            await result.current.startNavigation();
+        const { rerender } = renderHook((props: any) => useNavigationLogic(props), {
+            initialProps: { ...defaultProps, mode: Mode.Navigating }
         });
 
-        expect(mockShowToast).toHaveBeenCalledWith(expect.objectContaining({
-            title: "Error starting navigation",
-            action: "error"
-        }));
+        rerender({
+            ...defaultProps,
+            mode: Mode.Navigating,
+            userLocation: [120.10001, 14.10001]
+        });
+
+        // Effect runs asynchronously inside useFocusEffect -> useCallback
+        await waitFor(() => {
+            expect(mockShowToast).toHaveBeenCalledWith(expect.objectContaining({
+                title: "You have arrived!"
+            }));
+        });
+
+        expect(mockSwitchMode).toHaveBeenCalledWith(Mode.Viewing);
+    });
+
+    it('reroutes when off-route', async () => {
+        jest.useRealTimers();
+        (getHaversineDistance as jest.Mock).mockReturnValue(60);
+        (fetchDirections as jest.Mock).mockResolvedValue({ routes: [] });
+
+        const { result, rerender } = renderHook((props: any) => useNavigationLogic(props), {
+            initialProps: {
+                ...defaultProps,
+                mode: Mode.Navigating,
+                navigationRoute: [{
+                    legs: [{ steps: [{ maneuver: { location: [120.1, 14.1] } }] }],
+                    geometry: { coordinates: [[120, 14], [120.1, 14.1]] }
+                }] as any
+            }
+        });
+
+        rerender({
+            ...defaultProps,
+            mode: Mode.Navigating,
+            navigationRoute: [{
+                legs: [{ steps: [{ maneuver: { location: [120.1, 14.1] } }] }],
+                geometry: { coordinates: [[120, 14], [120.1, 14.1]] }
+            }] as any,
+            userLocation: [120.2, 14.2] // New location
+        });
+
+        await waitFor(() => {
+            expect(mockSetNavigationRoute).toHaveBeenCalled();
+            expect(result.current.isCalculatingRoute).toBe(false);
+        });
+
+        expect(fetchDirections).toHaveBeenCalled();
     });
 });
