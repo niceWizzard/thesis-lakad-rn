@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Stack, useRouter } from 'expo-router';
 import { ArrowUpDown, ClipboardList, EllipsisVertical, Eye, MapPin, Play, Ruler, Search, X } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 
 import { Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper, ActionsheetItem, ActionsheetItemText } from '@/components/ui/actionsheet';
@@ -173,7 +173,16 @@ export default function ItinerariesScreen() {
                         <Pressable
                             onPress={() => handlePress(itinerary.id)}
                         >
-                            <View className="p-5 rounded-3xl  bg-background-50 border border-outline-100 shadow-soft-1 overflow-hidden">
+                            <View
+                                className="p-5 rounded-3xl bg-background-50 border border-success-200"
+                                style={{
+                                    shadowColor: '#22c55e',
+                                    shadowOffset: { width: 0, height: 0 },
+                                    shadowOpacity: 0.5,
+                                    shadowRadius: 10,
+                                    elevation: 5
+                                }}
+                            >
                                 <HStack className="justify-between items-start mb-4">
                                     <VStack className="flex-1 pr-4">
                                         <Text size="xs" className="uppercase font-bold text-typography-500 tracking-wider mb-1">
