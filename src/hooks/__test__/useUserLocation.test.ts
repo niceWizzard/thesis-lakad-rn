@@ -17,7 +17,7 @@ describe('useUserLocation', () => {
         jest.clearAllMocks();
     });
 
-    it('returns null initially', () => {
+    it('returns null initially', async () => {
         (Location.requestForegroundPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
         (Location.getCurrentPositionAsync as jest.Mock).mockResolvedValue({
             coords: { latitude: 10, longitude: 20 },
@@ -25,6 +25,11 @@ describe('useUserLocation', () => {
 
         const { result } = renderHook(() => useUserLocation());
         expect(result.current).toBeNull();
+
+        // Wait for the effect's async update to happen to prevent "not wrapped in act" warning
+        await waitFor(() => {
+            expect(result.current).not.toBeNull();
+        });
     });
 
     it('updates location when permission is granted', async () => {
