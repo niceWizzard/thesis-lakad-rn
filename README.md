@@ -1,6 +1,7 @@
 # Welcome to Lakad
 
 This is an application output for our thesis.
+Lakad is a mobile application designed to help users discover and navigate through landmarks, create personalized itineraries, and explore various points of interest.
 
 ## Quick Setup
 1. Clone the project
@@ -27,4 +28,7 @@ This is an application output for our thesis.
    ```bash
    npx expo run:android
   ```
-
+# Features
+- Landmark Discovery: Browse and search for landmarks based on categories, popularity, and user ratings.
+- Personalized Itineraries: Create and manage custom itineraries for trips, including adding landmarks and notes.
+- Interactive Maps: View landmarks on an interactive map with navigation features.
