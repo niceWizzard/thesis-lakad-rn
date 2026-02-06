@@ -130,7 +130,16 @@ function MoreTabContent() {
                     General
                 </Text>
 
-                <Box className="bg-background-50 rounded-3xl border border-outline-100 overflow-hidden shadow-soft-1">
+                <Box
+                    className="bg-background-50 rounded-3xl border border-success-200"
+                    style={{
+                        shadowColor: '#22c55e',
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 0.5,
+                        shadowRadius: 10,
+                        elevation: 5
+                    }}
+                >
                     <CopilotStep
                         text="Manage your account details and profile settings."
                         order={2}
@@ -143,13 +152,13 @@ function MoreTabContent() {
                             >
                                 <View className="flex-row items-center gap-4">
                                     <View className="bg-background-100 p-2 rounded-xl">
-                                        <Icon as={Settings} size='lg' className="text-typography-700" />
+                                        <Icon as={Settings} size='lg' className="text-success-600" />
                                     </View>
                                     <Text size="md" className="font-medium text-typography-800">
                                         Account Settings
                                     </Text>
                                 </View>
-                                <Icon as={ChevronRight} className='' />
+                                <Icon as={ChevronRight} className='text-success-600' />
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
@@ -169,13 +178,13 @@ function MoreTabContent() {
                             >
                                 <View className="flex-row items-center gap-4">
                                     <View className="bg-background-100 p-2 rounded-xl">
-                                        <Icon as={ArchiveRestore} size='lg' className="text-typography-700" />
+                                        <Icon as={ArchiveRestore} size='lg' className="text-success-600" />
                                     </View>
                                     <Text size="md" className="font-medium text-typography-800">
                                         Archived Itineraries
                                     </Text>
                                 </View>
-                                <Icon as={ChevronRight} className='' />
+                                <Icon as={ChevronRight} className='text-success-600' />
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
@@ -195,13 +204,13 @@ function MoreTabContent() {
                             >
                                 <View className="flex-row items-center gap-4">
                                     <View className="bg-background-100 p-2 rounded-xl">
-                                        <Icon as={Sliders} size='lg' className="text-typography-700" />
+                                        <Icon as={Sliders} size='lg' className="text-success-600" />
                                     </View>
                                     <Text size="md" className="font-medium text-typography-800">
                                         Travel Preferences
                                     </Text>
                                 </View>
-                                <Icon as={ChevronRight} className='' />
+                                <Icon as={ChevronRight} className='text-success-600' />
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
@@ -221,13 +230,13 @@ function MoreTabContent() {
                             >
                                 <View className="flex-row items-center gap-4">
                                     <View className="bg-background-100 p-2 rounded-xl">
-                                        <Icon as={Key} size='lg' className="text-typography-700" />
+                                        <Icon as={Key} size='lg' className="text-success-600" />
                                     </View>
                                     <Text size="md" className="font-medium text-typography-800">
                                         Change Password
                                     </Text>
                                 </View>
-                                <Icon as={ChevronRight} className='' />
+                                <Icon as={ChevronRight} className='text-success-600' />
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
@@ -249,13 +258,13 @@ function MoreTabContent() {
                                     >
                                         <View className="flex-row items-center gap-4">
                                             <View className="bg-background-100 p-2 rounded-xl">
-                                                <Icon as={UserCheck2} size='lg' className="text-typography-700" />
+                                                <Icon as={UserCheck2} size='lg' className="text-success-600" />
                                             </View>
                                             <Text size="md" className="font-medium text-typography-800">
                                                 Admin Mode
                                             </Text>
                                         </View>
-                                        <Icon as={ChevronRight} className='' />
+                                        <Icon as={ChevronRight} className='text-success-600' />
                                     </TouchableOpacity>
                                 </CopilotBox>
                             </CopilotStep>
@@ -277,13 +286,13 @@ function MoreTabContent() {
                             >
                                 <View className="flex-row items-center gap-4">
                                     <View className="bg-background-100 p-2 rounded-xl">
-                                        <Icon as={Info} size='lg' className="text-typography-700" />
+                                        <Icon as={Info} size='lg' className="text-success-600" />
                                     </View>
                                     <Text size="md" className="font-medium text-typography-800">
                                         About Lakad
                                     </Text>
                                 </View>
-                                <Icon as={ChevronRight} className='' />
+                                <Icon as={ChevronRight} className='text-success-600' />
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
