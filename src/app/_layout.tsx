@@ -3,7 +3,9 @@ import { Stack, useRouter } from "expo-router";
 import '@/global.css';
 import Mapbox from '@rnmapbox/maps';
 import * as Linking from 'expo-linking';
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { useColorScheme } from "react-native";
 import ConnectivityStatusBar from "../components/ConnectivityChecker";
 import DefaultProviders from "../providers/DefaultProviders";
 import { useAuthStore } from "../stores/useAuth";
@@ -56,24 +58,31 @@ export default function RootLayout() {
     };
   }, [router, setAuth]);
 
-  return <DefaultProviders>
-    <Stack screenOptions={{
-      headerShown: false,
-    }} >
-      <Stack.Screen
-        name="(tabs)"
-        options={{
-        }}
-      />
-      <Stack.Screen
-        name="(onboarding)"
-        options={{
-        }}
-      />
-      <Stack.Screen
-        name="(admin)"
-      />
-    </Stack>
-    <ConnectivityStatusBar />
-  </DefaultProviders>
+  return (
+    <>
+      <StatusBar style={useColorScheme() === 'dark' ? 'light' : 'dark'} />
+
+      <DefaultProviders>
+
+        <Stack screenOptions={{
+          headerShown: false,
+        }} >
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+            }}
+          />
+          <Stack.Screen
+            name="(onboarding)"
+            options={{
+            }}
+          />
+          <Stack.Screen
+            name="(admin)"
+          />
+        </Stack>
+        <ConnectivityStatusBar />
+      </DefaultProviders>
+    </>
+  )
 }
