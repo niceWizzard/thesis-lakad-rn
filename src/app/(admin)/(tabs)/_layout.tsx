@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router'
 import { Ellipsis, MapPinHouse, MapPinned, Navigation } from 'lucide-react-native'
 import React from 'react'
-import { primaryColor, TabIcon } from '../../(tabs)/_layout'
+import { useColorScheme } from 'react-native'
+import { primaryColorDark, primaryColorLight, TabIcon } from '../../(tabs)/_layout'
 
 const AdminTabsLayout = () => {
+    const colorScheme = useColorScheme();
+    const primaryColor = colorScheme === 'dark' ? primaryColorDark : primaryColorLight;
     return (
         <Tabs
             screenOptions={{
