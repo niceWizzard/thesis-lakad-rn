@@ -174,14 +174,7 @@ export default function ItinerariesScreen() {
                             onPress={() => handlePress(itinerary.id)}
                         >
                             <View
-                                className="p-5 rounded-3xl bg-background-50 border border-success-200"
-                                style={{
-                                    shadowColor: '#22c55e',
-                                    shadowOffset: { width: 0, height: 0 },
-                                    shadowOpacity: 0.5,
-                                    shadowRadius: 10,
-                                    elevation: 5
-                                }}
+                                className="p-5 rounded-3xl bg-background-100 border border-outline-200 shadow-md"
                             >
                                 <HStack className="justify-between items-start mb-4">
                                     <VStack className="flex-1 pr-4">
