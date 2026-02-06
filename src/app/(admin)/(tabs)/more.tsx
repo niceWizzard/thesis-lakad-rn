@@ -1,5 +1,4 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
@@ -128,11 +127,6 @@ function MoreTab() {
                                 </View>
                                 <Icon as={ChevronRight} className='' />
                             </TouchableOpacity>
-                            {index < menuItems.length - 1 && (
-                                <View className="px-5">
-                                    <Divider className="bg-outline-50" />
-                                </View>
-                            )}
                         </View>
                     ))}
                 </View>

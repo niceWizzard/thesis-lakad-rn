@@ -1,5 +1,4 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
@@ -161,9 +160,6 @@ function MoreTabContent() {
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
-                    <View className="px-5">
-                        <Divider className="bg-outline-50" />
-                    </View>
 
                     <CopilotStep
                         text="View and restore your deleted trips."
@@ -187,9 +183,6 @@ function MoreTabContent() {
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
-                    <View className="px-5">
-                        <Divider className="bg-outline-50" />
-                    </View>
 
                     <CopilotStep
                         text="Set your travel preferences to get personalized recommendations."
@@ -213,9 +206,6 @@ function MoreTabContent() {
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
-                    <View className="px-5">
-                        <Divider className="bg-outline-50" />
-                    </View>
 
                     <CopilotStep
                         text="Update your password securely."
@@ -239,9 +229,6 @@ function MoreTabContent() {
                             </TouchableOpacity>
                         </CopilotBox>
                     </CopilotStep>
-                    <View className="px-5">
-                        <Divider className="bg-outline-50" />
-                    </View>
 
                     {isAdmin && (
                         <>
@@ -267,9 +254,6 @@ function MoreTabContent() {
                                     </TouchableOpacity>
                                 </CopilotBox>
                             </CopilotStep>
-                            <View className="px-5">
-                                <Divider className="bg-outline-50" />
-                            </View>
                         </>
                     )}
 
