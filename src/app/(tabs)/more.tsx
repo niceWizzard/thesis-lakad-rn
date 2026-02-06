@@ -118,11 +118,14 @@ function MoreTabContent() {
                         </View>
                     )}
                     <TouchableOpacity onPress={() => start()}
-                        className='self-end mt-4'
+                        className='self-start mt-4 flex-row items-center gap-2'
                     >
-                        <Text size="xs" className="text-primary-600 font-bold">
+                        <Icon as={Info} size="md" className="text-primary-700" />
+
+                        <Text size="xs" className="text-primary-700 font-bold">
                             How to use this page?
                         </Text>
+
                     </TouchableOpacity>
                 </CopilotBox>
             </CopilotStep>
