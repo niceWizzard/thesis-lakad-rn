@@ -52,7 +52,7 @@ export default function LandmarkViewerScreen() {
     const userId = session?.user.id;
     const [showNoItineraryAlert, setShowNoItineraryAlert] = useState(false);
 
-    const [isCreating, setIsCreating] = React.useState(false);
+    const [pendingAction, setPendingAction] = useState<'create' | 'add' | null>(null);
 
     const [selectedItinerary, setSelectedItinerary] = useState<{
         id: string;
@@ -153,7 +153,7 @@ export default function LandmarkViewerScreen() {
     }
 
     const handleAddToNewItinerary = async () => {
-        setIsCreating(true); // Start pending state
+        setPendingAction('create'); // Start pending state
         try {
             const newId = await createItinerary({
                 distance: 0,
@@ -162,14 +162,14 @@ export default function LandmarkViewerScreen() {
             queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
         } catch (e: any) {
-            setIsCreating(false); // Reset if failed
+            setPendingAction(null); // Reset if failed
             showToast({
                 title: "Error",
                 description: e.message ?? "Something went wrong.",
                 action: "error",
             });
         } finally {
-            setIsCreating(false);
+            setPendingAction(null);
         }
     };
 
@@ -177,7 +177,7 @@ export default function LandmarkViewerScreen() {
         itineraryId: string, currentCount: string, landmarkId: string,
         name: string,
     }) => {
-        setIsCreating(true)
+        setPendingAction('add')
         try {
             if (Number(currentCount) >= 50) {
                 throw new Error("Itinerary limit reached (50 stops max)");
@@ -199,7 +199,7 @@ export default function LandmarkViewerScreen() {
         } catch (e: any) {
             showToast({ title: "Error", description: e.message, action: "error" });
         } finally {
-            setIsCreating(false)
+            setPendingAction(null)
         }
     }
 
@@ -223,7 +223,7 @@ export default function LandmarkViewerScreen() {
 
             <AlertDialog
                 isOpen={showNoItineraryAlert}
-                onClose={() => !isAddingStop && !isCreating && setShowNoItineraryAlert(false)}
+                onClose={() => !isAddingStop && !pendingAction && setShowNoItineraryAlert(false)}
                 size="lg"
             >
                 <AlertDialogBackdrop />
@@ -246,7 +246,7 @@ export default function LandmarkViewerScreen() {
                                         return (
                                             <Pressable
                                                 key={itinerary.id}
-                                                disabled={isAddingStop || isCreating || itinerary.stops.length >= 50}
+                                                disabled={isAddingStop || !!pendingAction || itinerary.stops.length >= 50}
                                                 onPress={() => setSelectedItinerary({
                                                     id: itinerary.id.toString(),
                                                     name: itinerary.name,
@@ -255,7 +255,7 @@ export default function LandmarkViewerScreen() {
                                             >
                                                 <HStack
                                                     className={`justify-between items-center p-4 rounded-2xl border-2 ${isSelected ? 'bg-primary-50 border-primary-500' : 'bg-background-50 border-outline-100'
-                                                        } ${(isAddingStop || isCreating || itinerary.stops.length >= 50) ? 'opacity-50' : ''}`}
+                                                        } ${(isAddingStop || !!pendingAction || itinerary.stops.length >= 50) ? 'opacity-50' : ''}`}
 
                                                 >
                                                     <VStack space="xs">
@@ -280,11 +280,11 @@ export default function LandmarkViewerScreen() {
                             <Button
                                 variant="link"
                                 action="primary"
-                                isDisabled={isAddingStop || isCreating}
+                                isDisabled={isAddingStop || !!pendingAction}
                                 onPress={handleAddToNewItinerary}
                             >
-                                {isCreating ? <ButtonSpinner className="mr-2" /> : null}
-                                <ButtonText>{isCreating ? "Creating..." : "+ Create New Itinerary"}</ButtonText>
+                                {pendingAction === 'create' ? <ButtonSpinner className="mr-2" /> : null}
+                                <ButtonText>{pendingAction === 'create' ? "Creating..." : "+ Create New Itinerary"}</ButtonText>
                             </Button>
 
                             <HStack space="md">
@@ -293,7 +293,7 @@ export default function LandmarkViewerScreen() {
                                     action="secondary"
                                     onPress={() => setShowNoItineraryAlert(false)}
                                     className="flex-1 rounded-xl"
-                                    isDisabled={isAddingStop || isCreating}
+                                    isDisabled={isAddingStop || !!pendingAction}
                                 >
                                     <ButtonText>Cancel</ButtonText>
                                 </Button>
@@ -301,12 +301,12 @@ export default function LandmarkViewerScreen() {
                                 {/* Confirm Button */}
                                 <Button
                                     action="primary"
-                                    isDisabled={!selectedItinerary || isAddingStop || isCreating}
+                                    isDisabled={!selectedItinerary || isAddingStop || !!pendingAction}
                                     onPress={handleConfirmSelection}
                                     className="flex-1 rounded-xl bg-primary-600"
                                 >
-                                    {isCreating ? <ButtonSpinner className="mr-2" /> : null}
-                                    <ButtonText>{isCreating ? "Adding..." : "Confirm"}</ButtonText>
+                                    {pendingAction === 'add' ? <ButtonSpinner className="mr-2" /> : null}
+                                    <ButtonText>{pendingAction === 'add' ? "Adding..." : "Confirm"}</ButtonText>
                                 </Button>
                             </HStack>
                         </VStack>

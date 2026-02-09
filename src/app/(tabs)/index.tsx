@@ -54,7 +54,7 @@ const ExploreTab = () => {
     const { session } = useAuthStore()
     const userId = session?.user.id;
     const [showNoItineraryAlert, setShowNoItineraryAlert] = useState(false);
-    const [isCreating, setIsCreating] = React.useState(false);
+    const [pendingAction, setPendingAction] = useState<'create' | 'add' | null>(null);
     const [selectedItinerary, setSelectedItinerary] = useState<{
         id: string;
         name: string;
@@ -76,7 +76,7 @@ const ExploreTab = () => {
 
     const handleAddToNewItinerary = async () => {
         if (!selectedLandmark) return;
-        setIsCreating(true);
+        setPendingAction('create');
         try {
             const newId = await createItinerary({
                 distance: 0,
@@ -92,13 +92,13 @@ const ExploreTab = () => {
                 action: "error",
             });
         } finally {
-            setIsCreating(false);
+            setPendingAction(null);
         }
     };
 
     const handleConfirmSelection = async () => {
         if (!selectedItinerary || !selectedLandmark) return;
-        setIsCreating(true);
+        setPendingAction('add');
         try {
             await insertLandmarkToItinerary({
                 currentCount: selectedItinerary.stopCount.toString(),
@@ -117,7 +117,7 @@ const ExploreTab = () => {
         } catch (e: any) {
             showToast({ title: "Error", description: e.message, action: "error" });
         } finally {
-            setIsCreating(false);
+            setPendingAction(null);
         }
     };
 
@@ -145,7 +145,7 @@ const ExploreTab = () => {
         <Box className="flex-1 bg-background-0">
             <AlertDialog
                 isOpen={showNoItineraryAlert}
-                onClose={() => !isCreating && setShowNoItineraryAlert(false)}
+                onClose={() => !pendingAction && setShowNoItineraryAlert(false)}
                 size="lg"
             >
                 <AlertDialogBackdrop />
@@ -168,7 +168,7 @@ const ExploreTab = () => {
                                         return (
                                             <Pressable
                                                 key={itinerary.id}
-                                                disabled={isCreating || itinerary.stops.length >= 50}
+                                                disabled={!!pendingAction || itinerary.stops.length >= 50}
                                                 onPress={() => setSelectedItinerary({
                                                     id: itinerary.id.toString(),
                                                     name: itinerary.name,
@@ -177,7 +177,7 @@ const ExploreTab = () => {
                                             >
                                                 <HStack
                                                     className={`justify-between items-center p-4 rounded-2xl border-2 ${isSelected ? 'bg-primary-50 border-primary-500' : 'bg-background-50 border-outline-100'
-                                                        } ${(isCreating || itinerary.stops.length >= 50) ? 'opacity-50' : ''}`}
+                                                        } ${(!!pendingAction || itinerary.stops.length >= 50) ? 'opacity-50' : ''}`}
 
                                                 >
                                                     <VStack space="xs">
@@ -202,11 +202,11 @@ const ExploreTab = () => {
                             <Button
                                 variant="link"
                                 action="primary"
-                                isDisabled={isCreating}
+                                isDisabled={!!pendingAction}
                                 onPress={handleAddToNewItinerary}
                             >
-                                {isCreating ? <ButtonSpinner className="mr-2" /> : null}
-                                <ButtonText>{isCreating ? "Creating..." : "+ Create New Itinerary"}</ButtonText>
+                                {pendingAction === 'create' ? <ButtonSpinner className="mr-2" /> : null}
+                                <ButtonText>{pendingAction === 'create' ? "Creating..." : "+ Create New Itinerary"}</ButtonText>
                             </Button>
 
                             <HStack space="md">
@@ -215,7 +215,7 @@ const ExploreTab = () => {
                                     action="secondary"
                                     onPress={() => setShowNoItineraryAlert(false)}
                                     className="flex-1 rounded-xl"
-                                    isDisabled={isCreating}
+                                    isDisabled={!!pendingAction}
                                 >
                                     <ButtonText>Cancel</ButtonText>
                                 </Button>
@@ -223,12 +223,12 @@ const ExploreTab = () => {
                                 {/* Confirm Button */}
                                 <Button
                                     action="primary"
-                                    isDisabled={!selectedItinerary || isCreating}
+                                    isDisabled={!selectedItinerary || !!pendingAction}
                                     onPress={handleConfirmSelection}
                                     className="flex-1 rounded-xl bg-primary-600"
                                 >
-                                    {isCreating ? <ButtonSpinner className="mr-2" /> : null}
-                                    <ButtonText>{isCreating ? "Adding..." : "Confirm"}</ButtonText>
+                                    {pendingAction === 'add' ? <ButtonSpinner className="mr-2" /> : null}
+                                    <ButtonText>{pendingAction === 'add' ? "Adding..." : "Confirm"}</ButtonText>
                                 </Button>
                             </HStack>
                         </VStack>
