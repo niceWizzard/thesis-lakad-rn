@@ -100,7 +100,7 @@ const SearchResultsBox = ({
                                     {landmark.name}
                                 </Text>
                                 <Text size="xs" className="text-typography-500">
-                                    {isSearching ? 'Historical Landmark' : 'Recently viewed'}
+                                    {isSearching ? landmark.type : 'Recently viewed'}
                                 </Text>
                             </VStack>
                         </View>
