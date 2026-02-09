@@ -2,8 +2,8 @@ import { createAndEditLandmarkSchema } from '../landmark';
 
 describe('createAndEditLandmarkSchema', () => {
     const validData = {
-        name: 'Historical Site',
-        type: 'Historic Site',
+        name: 'Landmark',
+        type: 'Landmark',
         district: '1',
         municipality: 'Malolos',
         description: 'This is a description that meets the minimum length requirements.',
@@ -15,7 +15,7 @@ describe('createAndEditLandmarkSchema', () => {
 
     const validLandmarkData = {
         ...validData,
-        type: 'Historical Site'
+        type: 'Landmark'
     };
 
     it('validates correct data', () => {
