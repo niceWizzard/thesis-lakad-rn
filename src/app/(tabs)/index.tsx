@@ -375,6 +375,7 @@ const ExploreTab = () => {
             <ImageCreditModal
                 isOpen={showImageCredits}
                 onClose={() => setShowImageCredits(false)}
+                credits={selectedLandmark?.image_credits}
             />
         </Box >
     );

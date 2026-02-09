@@ -15,9 +15,10 @@ import React from 'react';
 interface ImageCreditModalProps {
     isOpen: boolean;
     onClose: () => void;
+    credits?: string | null;
 }
 
-const ImageCreditModal: React.FC<ImageCreditModalProps> = ({ isOpen, onClose }) => {
+const ImageCreditModal: React.FC<ImageCreditModalProps> = ({ isOpen, onClose, credits }) => {
     return (
         <AlertDialog isOpen={isOpen} onClose={onClose} size="md">
             <AlertDialogBackdrop />
@@ -33,6 +34,13 @@ const ImageCreditModal: React.FC<ImageCreditModalProps> = ({ isOpen, onClose }) 
                         <Text size="sm" className="text-typography-600">
                             Credits to the respective owners. We do not claim ownership of these images.
                         </Text>
+                        {
+                            credits && (
+                                <Text size="sm" className="text-typography-600">
+                                    From: {credits}
+                                </Text>
+                            )
+                        }
                     </VStack>
                 </AlertDialogBody>
                 <AlertDialogFooter className="p-4 border-t border-outline-50">

@@ -438,6 +438,7 @@ export default function LandmarkViewerScreen() {
             <ImageCreditModal
                 isOpen={showImageCredits}
                 onClose={() => setShowImageCredits(false)}
+                credits={landmark.image_credits}
             />
         </Box>
     );
