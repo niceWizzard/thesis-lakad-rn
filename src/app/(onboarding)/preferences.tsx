@@ -7,23 +7,13 @@ import { mmkvStorage } from '@/src/utils/mmkv'
 import { getCategoryPreferences, setCategoryPreferences } from '@/src/utils/preferencesManager'
 import { Stack, useRouter } from 'expo-router'
 import {
-    Building2,
-    Castle,
     Check,
     Church,
     History,
     Landmark,
     Library,
-    Map,
-    Milestone,
-    Mountain,
-    MountainSnow,
-    Palmtree,
     ShoppingBag,
-    Sprout,
-    Trees,
-    Utensils,
-    Waves
+    Trees
 } from "lucide-react-native"
 import React, { useEffect, useState } from 'react'
 import { ScrollView, TouchableOpacity, View } from 'react-native'
@@ -35,26 +25,12 @@ export const TYPES: {
     color: string,
     text: string
 }[] = [
-        { id: 'Caves', label: 'Caves', icon: Mountain, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Church', label: 'Church', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Cultural Heritage', label: 'Cultural Heritage', icon: Castle, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Falls', label: 'Falls', icon: Waves, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Farm', label: 'Farm', icon: Sprout, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Garden', label: 'Garden', icon: Trees, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Historic Monuments', label: 'Historic Monuments', icon: History, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Historical Cultural Attraction', label: 'Historical Cultural Attraction', icon: Map, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Historical Road/Trails', label: 'Historical Road/Trails', icon: Milestone, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Historical Site', label: 'Historical Site', icon: History, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Landscape/Seascape', label: 'Landscape/Seascape', icon: Palmtree, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Mall', label: 'Mall', icon: ShoppingBag, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Monument', label: 'Monument', icon: Landmark, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Mountain/Hill/Highland', label: 'Mountain/Hill/Highland', icon: MountainSnow, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Historical', label: 'Historical', icon: History, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Landmark', label: 'Landmark', icon: Landmark, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Nature', label: 'Nature', icon: Trees, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Religious', label: 'Religious', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
         { id: 'Museum', label: 'Museum', icon: Library, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Natural Attraction', label: 'Natural Attraction', icon: Trees, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Religious Site', label: 'Religious Site', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Restaurant', label: 'Restaurant', icon: Utensils, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'River/Landscape', label: 'River/Landscape', icon: Waves, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Structures', label: 'Structures', icon: Building2, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Mall', label: 'Mall', icon: ShoppingBag, color: 'bg-green-100', text: 'text-green-700' },
     ];
 
 const OnboardingPreferences = () => {

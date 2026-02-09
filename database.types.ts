@@ -86,12 +86,13 @@ export type Database = {
           district: Database["public"]["Enums"]["district"]
           gmaps_rating: number
           id: number
+          image_credits: string | null
           image_url: string | null
           latitude: number
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
           name: string
-          type: Database["public"]["Enums"]["landmark_type"]
+          type: Database["public"]["Enums"]["landmark_type2"]
           updated_at: string
         }
         Insert: {
@@ -102,12 +103,13 @@ export type Database = {
           district: Database["public"]["Enums"]["district"]
           gmaps_rating?: number
           id?: number
+          image_credits?: string | null
           image_url?: string | null
           latitude: number
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
           name?: string
-          type?: Database["public"]["Enums"]["landmark_type"]
+          type?: Database["public"]["Enums"]["landmark_type2"]
           updated_at?: string
         }
         Update: {
@@ -118,12 +120,13 @@ export type Database = {
           district?: Database["public"]["Enums"]["district"]
           gmaps_rating?: number
           id?: number
+          image_credits?: string | null
           image_url?: string | null
           latitude?: number
           longitude?: number
           municipality?: Database["public"]["Enums"]["municipality"]
           name?: string
-          type?: Database["public"]["Enums"]["landmark_type"]
+          type?: Database["public"]["Enums"]["landmark_type2"]
           updated_at?: string
         }
         Relationships: []
@@ -245,6 +248,13 @@ export type Database = {
         | "Restaurant"
         | "River/Landscape"
         | "Structures"
+      landmark_type2:
+        | "Historical"
+        | "Landmark"
+        | "Nature"
+        | "Religious"
+        | "Museum"
+        | "Mall"
       LandmarkCreationType: "TOURIST_ATTRACTION" | "COMMERCIAL" | "PERSONAL"
       municipality:
         | "Bulakan"
@@ -428,6 +438,14 @@ export const Constants = {
         "Restaurant",
         "River/Landscape",
         "Structures",
+      ],
+      landmark_type2: [
+        "Historical",
+        "Landmark",
+        "Nature",
+        "Religious",
+        "Museum",
+        "Mall",
       ],
       LandmarkCreationType: ["TOURIST_ATTRACTION", "COMMERCIAL", "PERSONAL"],
       municipality: [
