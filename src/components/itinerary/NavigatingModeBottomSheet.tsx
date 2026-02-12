@@ -3,12 +3,22 @@ import {
     Car,
     CheckCircle,
     Clock,
+    Copyright,
     Footprints,
     Navigation2,
+    Settings,
     StopCircle
 } from 'lucide-react-native';
-import React from 'react';
-import { ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, Switch } from 'react-native';
+
+import {
+    Actionsheet,
+    ActionsheetBackdrop,
+    ActionsheetContent,
+    ActionsheetDragIndicator,
+    ActionsheetDragIndicatorWrapper
+} from '@/components/ui/actionsheet';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
@@ -47,6 +57,8 @@ export function NavigatingModeBottomSheet({
     avoidTolls,
     setAvoidTolls,
 }: NavigatingModeBottomSheetProps) {
+    const [showActionsheet, setShowActionsheet] = useState(false);
+
     if (mode !== Mode.Navigating) return null;
 
     const currentLeg = navigationRoute[0]?.legs[0];
@@ -76,39 +88,114 @@ export function NavigatingModeBottomSheet({
 
                 {/* Navigation Options - Profile & Settings */}
                 <HStack className="justify-between items-center bg-background-50 p-3 rounded-2xl border border-outline-100">
-                    {/* Profile Selector */}
-                    <HStack space="sm" className="bg-background-200 p-1 rounded-xl">
-                        {(['driving', 'walking', 'cycling'] as const).map((p) => (
-                            <Button
-                                key={p}
-                                size="xs"
-                                variant={navigationProfile === p ? 'solid' : 'outline'}
-                                onPress={() => setNavigationProfile(p)}
-                                className={`rounded-lg ${navigationProfile === p ? 'bg-primary-500' : 'border-0'}`}
-                            >
-                                <ButtonIcon
-                                    as={p === 'driving' ? Car : p === 'walking' ? Footprints : Bike}
-                                    className={navigationProfile === p ? 'text-typography-0' : 'text-typography-500'}
-                                />
-                            </Button>
-                        ))}
+                    <HStack space="md" className="items-center">
+                        <Box className="bg-primary-500 p-2 rounded-xl">
+                            <Icon
+                                as={navigationProfile === 'driving' ? Car : navigationProfile === 'walking' ? Footprints : Bike}
+                                className="text-typography-0"
+                            />
+                        </Box>
+                        <VStack>
+                            <Text size="sm" className="font-bold text-typography-900 capitalize">
+                                {navigationProfile} Mode
+                            </Text>
+                            {navigationProfile === 'driving' && avoidTolls && (
+                                <Text size="xs" className="text-typography-500">
+                                    Avoiding Tolls
+                                </Text>
+                            )}
+                        </VStack>
                     </HStack>
 
-                    {/* Options: Avoid Tolls */}
-                    {navigationProfile === 'driving' && (
-                        <Button
-                            size="xs"
-                            variant={avoidTolls ? 'solid' : 'outline'}
-                            action={avoidTolls ? 'primary' : 'secondary'}
-                            onPress={() => setAvoidTolls(!avoidTolls)}
-                            className="rounded-xl px-3"
-                        >
-                            <ButtonText className={avoidTolls ? 'text-typography-0' : 'text-typography-500'}>
-                                {avoidTolls ? "No Tolls" : "Tolls"}
-                            </ButtonText>
-                        </Button>
-                    )}
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        action="secondary"
+                        onPress={() => setShowActionsheet(true)}
+                        className="rounded-xl border-outline-200"
+                    >
+                        <ButtonIcon as={Settings} className="text-typography-500 mr-2" />
+                        <ButtonText className="text-typography-600">Options</ButtonText>
+                    </Button>
                 </HStack>
+
+                <Actionsheet isOpen={showActionsheet} onClose={() => setShowActionsheet(false)}>
+                    <ActionsheetBackdrop />
+                    <ActionsheetContent>
+                        <ActionsheetDragIndicatorWrapper>
+                            <ActionsheetDragIndicator />
+                        </ActionsheetDragIndicatorWrapper>
+
+                        <VStack className="w-full pb-6 px-4" space="md">
+                            <Text size="lg" className="font-bold text-typography-900 mb-2">
+                                Navigation Settings
+                            </Text>
+
+                            <VStack space="sm">
+                                <Text size="sm" className="font-medium text-typography-500 uppercase tracking-wider">
+                                    Travel Mode
+                                </Text>
+                                <HStack space="sm" className="flex-wrap">
+                                    {([{
+                                        mode: 'driving',
+                                        icon: Car,
+                                    },
+                                    {
+                                        mode: 'walking',
+                                        icon: Footprints,
+                                    },
+                                    {
+                                        mode: 'cycling',
+                                        icon: Bike,
+                                    }
+                                    ] as const).map((p) => (
+                                        <Button
+                                            key={p.mode}
+                                            size="sm"
+                                            variant={navigationProfile === p.mode ? 'solid' : 'outline'}
+                                            onPress={() => {
+                                                setShowActionsheet(false);
+                                                // Delays the change of profile to allow the actionsheet to close first
+                                                setTimeout(() => {
+                                                    setNavigationProfile(p.mode);
+                                                }, 250);
+                                            }}
+                                            className={`rounded-xl px-5 py-2 justify-center gap-2 ${navigationProfile === p.mode ? 'bg-primary-500 border-primary-500' : 'border-outline-200'} `}
+                                        >
+                                            <ButtonIcon
+                                                as={p.icon}
+                                                className={`${navigationProfile === p.mode ? 'text-typography-0' : 'text-typography-500'} `}
+                                            />
+                                            <ButtonText className={`capitalize ${navigationProfile === p.mode ? 'text-typography-0' : 'text-typography-700 '} `}>
+                                                {p.mode}
+                                            </ButtonText>
+                                        </Button>
+                                    ))}
+                                </HStack>
+                            </VStack>
+
+                            {navigationProfile === 'driving' && (
+                                <>
+                                    <Divider className="my-2" />
+                                    <HStack className="justify-between items-center">
+                                        <HStack space="xs" className="items-center">
+                                            <Icon as={Copyright} size="sm" className="text-typography-500" />
+                                            <Text size="md" className="font-medium text-typography-900">
+                                                Avoid Tolls
+                                            </Text>
+                                        </HStack>
+                                        <Switch
+                                            value={avoidTolls}
+                                            onValueChange={(val) => setAvoidTolls(val)}
+                                            trackColor={{ false: '#e2e8f0', true: '#3b82f6' }}
+                                            thumbColor={'#fff'}
+                                        />
+                                    </HStack>
+                                </>
+                            )}
+                        </VStack>
+                    </ActionsheetContent>
+                </Actionsheet>
 
                 {/* ETA and Duration Header */}
                 <HStack className="p-4 bg-primary-50 rounded-2xl border border-primary-200" space="md">
