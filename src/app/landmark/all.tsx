@@ -1,49 +1,28 @@
 import { Stack, useRouter } from 'expo-router';
 import {
-    ArrowDown,
-    ArrowUp,
-    Check,
     ChevronRight,
-    Clock,
     Filter,
-    Map as MapIcon,
     MapPin,
     Search,
-    SortAsc,
     Star, // Added Star icon
     X
 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { FlatList, Image, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, RefreshControl, ScrollView, TouchableOpacity } from 'react-native';
 
 import { Box } from '@/components/ui/box';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { Button, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
-import {
-    Modal,
-    ModalBackdrop,
-    ModalBody,
-    ModalCloseButton,
-    ModalContent,
-    ModalFooter,
-    ModalHeader
-} from '@/components/ui/modal';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
-import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
-import { LandmarkDistrict } from '@/src/model/landmark.types';
-
-// --- Updated SortKey Type ---
-type SortKey = 'id' | 'name' | 'rating';
-type SortOrder = 'asc' | 'desc';
+import { FilterFormData, LandmarkFilterModal, SortKey, SortOrder } from './components/LandmarkFilterModal';
 
 export default function LandmarkListScreen() {
     const router = useRouter();
@@ -57,37 +36,21 @@ export default function LandmarkListScreen() {
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
-    // --- TEMPORARY FILTER STATE (for Modal) ---
-    const [tempSortKey, setTempSortKey] = useState<SortKey>('id');
-    const [tempSortOrder, setTempSortOrder] = useState<SortOrder>('desc');
-    const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
-    const [tempSelectedDistrict, setTempSelectedDistrict] = useState<string | null>(null);
-    const [tempSelectedMunicipality, setTempSelectedMunicipality] = useState<string | null>(null);
-
-    const openFilterModal = () => {
-        setTempSortKey(sortKey);
-        setTempSortOrder(sortOrder);
-        setTempSelectedTypes(selectedTypes);
-        setTempSelectedDistrict(selectedDistrict);
-        setTempSelectedMunicipality(selectedMunicipality);
-        setShowFilterModal(true);
-    };
-
-    const applyFilters = () => {
-        setSortKey(tempSortKey);
-        setSortOrder(tempSortOrder);
-        setSelectedTypes(tempSelectedTypes);
-        setSelectedDistrict(tempSelectedDistrict);
-        setSelectedMunicipality(tempSelectedMunicipality);
+    const handleApplyFilters = (data: FilterFormData) => {
+        setSortKey(data.sortKey);
+        setSortOrder(data.sortOrder);
+        setSelectedTypes(data.selectedTypes);
+        setSelectedDistrict(data.selectedDistrict);
+        setSelectedMunicipality(data.selectedMunicipality);
         setShowFilterModal(false);
     };
 
-    const clearTempFilters = () => {
-        setTempSortKey('id');
-        setTempSortOrder('desc');
-        setTempSelectedTypes([]);
-        setTempSelectedDistrict(null);
-        setTempSelectedMunicipality(null);
+    const currentFilters: FilterFormData = {
+        sortKey,
+        sortOrder,
+        selectedTypes,
+        selectedDistrict,
+        selectedMunicipality
     };
 
     const {
@@ -173,7 +136,7 @@ export default function LandmarkListScreen() {
                                 )}
                             </VStack>
                             <TouchableOpacity
-                                onPress={openFilterModal}
+                                onPress={() => setShowFilterModal(true)}
                                 className={`flex-row items-center gap-2 px-4 py-2 rounded-full border ${(selectedDistrict || selectedMunicipality || selectedTypes.length > 0)
                                     ? 'bg-primary-600 border-primary-600'
                                     : 'bg-primary-50 border-primary-100'
@@ -232,137 +195,12 @@ export default function LandmarkListScreen() {
             />
 
             {/* --- FILTER & SORT MODAL --- */}
-            <Modal isOpen={showFilterModal} onClose={() => setShowFilterModal(false)}>
-                <ModalBackdrop />
-                <ModalContent className="rounded-[32px] max-h-[90%]">
-                    <ModalHeader className="p-4 border-b border-outline-50">
-                        <VStack>
-                            <Heading size="lg">Refine List</Heading>
-                            <Text size="xs" className="text-typography-500">Apply sorting and geographic filters</Text>
-                        </VStack>
-                        <ModalCloseButton><Icon as={X} /></ModalCloseButton>
-                    </ModalHeader>
-                    <ModalBody>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            <VStack className="p-4 gap-8">
-                                {/* 1. Sort Section */}
-                                <VStack className='gap-3'>
-                                    <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Sort By</Text>
-                                    <HStack className='gap-2 flex-wrap' >
-                                        <Button
-                                            className={`rounded-xl ${tempSortKey === 'id' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                            onPress={() => setTempSortKey('id')}
-                                        >
-                                            <ButtonIcon as={Clock} color={tempSortKey === 'id' ? 'white' : '#6b7280'} />
-                                            <ButtonText className={tempSortKey === 'id' ? 'text-white' : 'text-typography-600'}>Recent</ButtonText>
-                                        </Button>
-                                        <Button
-                                            className={`rounded-xl ${tempSortKey === 'name' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                            onPress={() => setTempSortKey('name')}
-                                        >
-                                            <ButtonIcon as={SortAsc} color={tempSortKey === 'name' ? 'white' : '#6b7280'} />
-                                            <ButtonText className={tempSortKey === 'name' ? 'text-white' : 'text-typography-600'}>A-Z</ButtonText>
-                                        </Button>
-
-                                        {/* --- New Rating Sort Button --- */}
-                                        <Button
-                                            className={`rounded-xl ${tempSortKey === 'rating' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                            onPress={() => setTempSortKey('rating')}
-                                        >
-                                            <ButtonIcon as={Star} color={tempSortKey === 'rating' ? 'white' : '#6b7280'} />
-                                            <ButtonText className={tempSortKey === 'rating' ? 'text-white' : 'text-typography-600'}>Rating</ButtonText>
-                                        </Button>
-                                    </HStack>
-                                    <HStack className='gap-2'>
-                                        <Button variant="outline" className={`rounded-xl ${tempSortOrder === 'asc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setTempSortOrder('asc')}>
-                                            <ButtonIcon as={ArrowUp} className="text-primary-600" /><ButtonText className="text-primary-700 font-bold">Asc</ButtonText>
-                                        </Button>
-                                        <Button variant="outline" className={`rounded-xl ${tempSortOrder === 'desc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setTempSortOrder('desc')}>
-                                            <ButtonIcon as={ArrowDown} className="text-primary-600" /><ButtonText className="text-primary-700 font-bold">Desc</ButtonText>
-                                        </Button>
-                                    </HStack>
-                                </VStack>
-
-                                {/* 2. Jurisdiction Filter */}
-                                <VStack className='gap-3'>
-                                    <HStack className="items-center gap-2">
-                                        <Icon as={MapIcon} size="xs" className="text-typography-500" />
-                                        <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Jurisdiction</Text>
-                                    </HStack>
-                                    <VStack className="gap-2">
-                                        <Text size="xs" className="font-bold text-typography-400">DISTRICT</Text>
-                                        <HStack className="gap-2 flex-wrap">
-                                            <TouchableOpacity
-                                                onPress={() => { setTempSelectedDistrict(null); setTempSelectedMunicipality(null); }}
-                                                className={`px-4 py-2 rounded-xl border ${!tempSelectedDistrict ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
-                                            >
-                                                <Text className={`text-xs font-bold ${!tempSelectedDistrict ? 'text-white' : 'text-typography-600'}`}>All</Text>
-                                            </TouchableOpacity>
-                                            {Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map(dist => (
-                                                <TouchableOpacity
-                                                    key={dist}
-                                                    onPress={() => { setTempSelectedDistrict(dist); setTempSelectedMunicipality(null); }}
-                                                    className={`px-4 py-2 rounded-xl border mr-2 ${tempSelectedDistrict === dist ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
-                                                >
-                                                    <Text className={`text-xs font-bold ${tempSelectedDistrict === dist ? 'text-white' : 'text-typography-600'}`}>D-{dist}</Text>
-                                                </TouchableOpacity>
-                                            ))}
-                                        </HStack>
-                                    </VStack>
-
-                                    {tempSelectedDistrict && (
-                                        <VStack className="gap-2 mt-2">
-                                            <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
-                                            <View className="flex-row flex-wrap gap-2">
-                                                {DISTRICT_TO_MUNICIPALITY_MAP[tempSelectedDistrict as LandmarkDistrict].map(muni => (
-                                                    <TouchableOpacity
-                                                        key={muni}
-                                                        onPress={() => setTempSelectedMunicipality(prev => prev === muni ? null : muni)}
-                                                        className={`px-3 py-1.5 rounded-lg border ${tempSelectedMunicipality === muni ? 'bg-secondary-500 border-secondary-500' : 'bg-background-50 border-outline-200'}`}
-                                                    >
-                                                        <Text className={`text-[11px] font-bold ${tempSelectedMunicipality === muni ? 'text-white' : 'text-typography-600'}`}>
-                                                            {muni.replace('_', ' ')}
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                        </VStack>
-                                    )}
-                                </VStack>
-
-                                {/* 3. Category Filter Section */}
-                                <VStack className='gap-3'>
-                                    <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Filter Category</Text>
-                                    <View className="flex-row flex-wrap gap-2 ">
-                                        {LANDMARK_TYPES.map(cat => (
-                                            <TouchableOpacity
-                                                key={cat}
-                                                onPress={() => setTempSelectedTypes(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
-                                                className={`px-4 py-2 rounded-full border ${tempSelectedTypes.includes(cat) ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
-                                            >
-                                                <HStack space="xs" className="items-center">
-                                                    {tempSelectedTypes.includes(cat) && <Icon as={Check} size="xs" color="white" />}
-                                                    <Text size="xs" className={`font-bold ${tempSelectedTypes.includes(cat) ? 'text-white' : 'text-typography-600'}`}>{cat}</Text>
-                                                </HStack>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </View>
-                                </VStack>
-                            </VStack>
-                        </ScrollView>
-                    </ModalBody>
-                    <ModalFooter className="p-4 border-t border-outline-50">
-                        <HStack space="md" className="w-full">
-                            <Button variant="outline" action="secondary" className="flex-1 rounded-2xl" onPress={clearTempFilters}>
-                                <ButtonText>Clear All</ButtonText>
-                            </Button>
-                            <Button onPress={applyFilters} className="flex-[2] rounded-2xl bg-primary-600">
-                                <ButtonText className="font-bold">Apply Filters</ButtonText>
-                            </Button>
-                        </HStack>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <LandmarkFilterModal
+                isOpen={showFilterModal}
+                onClose={() => setShowFilterModal(false)}
+                initialFilters={currentFilters}
+                onApply={handleApplyFilters}
+            />
         </Box>
     );
 }
