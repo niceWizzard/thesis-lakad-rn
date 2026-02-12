@@ -7,7 +7,8 @@ import {
     Footprints,
     Navigation2,
     Settings,
-    StopCircle
+    StopCircle,
+    Volume2
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ScrollView, Switch } from 'react-native';
@@ -49,6 +50,8 @@ interface NavigatingModeBottomSheetProps {
     onArrive: () => void;
     currentStepIndex: number;
     currentStepRemainingDistance: number;
+    isVoiceEnabled: boolean;
+    setVoiceEnabled: (enabled: boolean) => void;
 }
 
 export function NavigatingModeBottomSheet({
@@ -63,6 +66,8 @@ export function NavigatingModeBottomSheet({
     onArrive,
     currentStepIndex,
     currentStepRemainingDistance,
+    isVoiceEnabled,
+    setVoiceEnabled,
 }: NavigatingModeBottomSheetProps) {
     const [showActionsheet, setShowActionsheet] = useState(false);
 
@@ -200,6 +205,22 @@ export function NavigatingModeBottomSheet({
                                     </HStack>
                                 </>
                             )}
+
+                            <Divider className="my-2" />
+                            <HStack className="justify-between items-center">
+                                <HStack space="xs" className="items-center">
+                                    <Icon as={Volume2} size="sm" className="text-typography-500" />
+                                    <Text size="md" className="font-medium text-typography-900">
+                                        Voice Navigation
+                                    </Text>
+                                </HStack>
+                                <Switch
+                                    value={isVoiceEnabled}
+                                    onValueChange={(val) => setVoiceEnabled(val)}
+                                    trackColor={{ false: '#e2e8f0', true: '#3b82f6' }}
+                                    thumbColor={'#fff'}
+                                />
+                            </HStack>
                         </VStack>
                     </ActionsheetContent>
                 </Actionsheet>
