@@ -57,6 +57,39 @@ export default function LandmarkListScreen() {
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
+    // --- TEMPORARY FILTER STATE (for Modal) ---
+    const [tempSortKey, setTempSortKey] = useState<SortKey>('id');
+    const [tempSortOrder, setTempSortOrder] = useState<SortOrder>('desc');
+    const [tempSelectedTypes, setTempSelectedTypes] = useState<string[]>([]);
+    const [tempSelectedDistrict, setTempSelectedDistrict] = useState<string | null>(null);
+    const [tempSelectedMunicipality, setTempSelectedMunicipality] = useState<string | null>(null);
+
+    const openFilterModal = () => {
+        setTempSortKey(sortKey);
+        setTempSortOrder(sortOrder);
+        setTempSelectedTypes(selectedTypes);
+        setTempSelectedDistrict(selectedDistrict);
+        setTempSelectedMunicipality(selectedMunicipality);
+        setShowFilterModal(true);
+    };
+
+    const applyFilters = () => {
+        setSortKey(tempSortKey);
+        setSortOrder(tempSortOrder);
+        setSelectedTypes(tempSelectedTypes);
+        setSelectedDistrict(tempSelectedDistrict);
+        setSelectedMunicipality(tempSelectedMunicipality);
+        setShowFilterModal(false);
+    };
+
+    const clearTempFilters = () => {
+        setTempSortKey('id');
+        setTempSortOrder('desc');
+        setTempSelectedTypes([]);
+        setTempSelectedDistrict(null);
+        setTempSelectedMunicipality(null);
+    };
+
     const {
         landmarks,
         isLoading,
@@ -140,7 +173,7 @@ export default function LandmarkListScreen() {
                                 )}
                             </VStack>
                             <TouchableOpacity
-                                onPress={() => setShowFilterModal(true)}
+                                onPress={openFilterModal}
                                 className={`flex-row items-center gap-2 px-4 py-2 rounded-full border ${(selectedDistrict || selectedMunicipality || selectedTypes.length > 0)
                                     ? 'bg-primary-600 border-primary-600'
                                     : 'bg-primary-50 border-primary-100'
@@ -215,36 +248,36 @@ export default function LandmarkListScreen() {
                                 {/* 1. Sort Section */}
                                 <VStack className='gap-3'>
                                     <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Sort By</Text>
-                                    <HStack className='gap-2'>
+                                    <HStack className='gap-2 flex-wrap' >
                                         <Button
-                                            className={`flex-1 rounded-xl h-11 ${sortKey === 'id' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                            onPress={() => setSortKey('id')}
+                                            className={`rounded-xl ${tempSortKey === 'id' ? 'bg-primary-600' : 'bg-background-100'}`}
+                                            onPress={() => setTempSortKey('id')}
                                         >
-                                            <ButtonIcon as={Clock} color={sortKey === 'id' ? 'white' : '#6b7280'} />
-                                            <ButtonText className={sortKey === 'id' ? 'text-white' : 'text-typography-600'}>Recent</ButtonText>
+                                            <ButtonIcon as={Clock} color={tempSortKey === 'id' ? 'white' : '#6b7280'} />
+                                            <ButtonText className={tempSortKey === 'id' ? 'text-white' : 'text-typography-600'}>Recent</ButtonText>
                                         </Button>
                                         <Button
-                                            className={`flex-1 rounded-xl h-11 ${sortKey === 'name' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                            onPress={() => setSortKey('name')}
+                                            className={`rounded-xl ${tempSortKey === 'name' ? 'bg-primary-600' : 'bg-background-100'}`}
+                                            onPress={() => setTempSortKey('name')}
                                         >
-                                            <ButtonIcon as={SortAsc} color={sortKey === 'name' ? 'white' : '#6b7280'} />
-                                            <ButtonText className={sortKey === 'name' ? 'text-white' : 'text-typography-600'}>A-Z</ButtonText>
+                                            <ButtonIcon as={SortAsc} color={tempSortKey === 'name' ? 'white' : '#6b7280'} />
+                                            <ButtonText className={tempSortKey === 'name' ? 'text-white' : 'text-typography-600'}>A-Z</ButtonText>
                                         </Button>
 
                                         {/* --- New Rating Sort Button --- */}
                                         <Button
-                                            className={`flex-1 rounded-xl h-11 ${sortKey === 'rating' ? 'bg-primary-600' : 'bg-background-100'}`}
-                                            onPress={() => setSortKey('rating')}
+                                            className={`rounded-xl ${tempSortKey === 'rating' ? 'bg-primary-600' : 'bg-background-100'}`}
+                                            onPress={() => setTempSortKey('rating')}
                                         >
-                                            <ButtonIcon as={Star} color={sortKey === 'rating' ? 'white' : '#6b7280'} />
-                                            <ButtonText className={sortKey === 'rating' ? 'text-white' : 'text-typography-600'}>Rating</ButtonText>
+                                            <ButtonIcon as={Star} color={tempSortKey === 'rating' ? 'white' : '#6b7280'} />
+                                            <ButtonText className={tempSortKey === 'rating' ? 'text-white' : 'text-typography-600'}>Rating</ButtonText>
                                         </Button>
                                     </HStack>
                                     <HStack className='gap-2'>
-                                        <Button variant="outline" className={`flex-1 rounded-xl h-11 ${sortOrder === 'asc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setSortOrder('asc')}>
+                                        <Button variant="outline" className={`rounded-xl ${tempSortOrder === 'asc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setTempSortOrder('asc')}>
                                             <ButtonIcon as={ArrowUp} className="text-primary-600" /><ButtonText className="text-primary-700 font-bold">Asc</ButtonText>
                                         </Button>
-                                        <Button variant="outline" className={`flex-1 rounded-xl h-11 ${sortOrder === 'desc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setSortOrder('desc')}>
+                                        <Button variant="outline" className={`rounded-xl ${tempSortOrder === 'desc' ? 'border-primary-600 bg-primary-50' : 'border-outline-100'}`} onPress={() => setTempSortOrder('desc')}>
                                             <ButtonIcon as={ArrowDown} className="text-primary-600" /><ButtonText className="text-primary-700 font-bold">Desc</ButtonText>
                                         </Button>
                                     </HStack>
@@ -260,34 +293,34 @@ export default function LandmarkListScreen() {
                                         <Text size="xs" className="font-bold text-typography-400">DISTRICT</Text>
                                         <HStack className="gap-2 flex-wrap">
                                             <TouchableOpacity
-                                                onPress={() => { setSelectedDistrict(null); setSelectedMunicipality(null); }}
-                                                className={`px-4 py-2 rounded-xl border ${!selectedDistrict ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                                onPress={() => { setTempSelectedDistrict(null); setTempSelectedMunicipality(null); }}
+                                                className={`px-4 py-2 rounded-xl border ${!tempSelectedDistrict ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
                                             >
-                                                <Text className={`text-xs font-bold ${!selectedDistrict ? 'text-white' : 'text-typography-600'}`}>All</Text>
+                                                <Text className={`text-xs font-bold ${!tempSelectedDistrict ? 'text-white' : 'text-typography-600'}`}>All</Text>
                                             </TouchableOpacity>
                                             {Object.keys(DISTRICT_TO_MUNICIPALITY_MAP).map(dist => (
                                                 <TouchableOpacity
                                                     key={dist}
-                                                    onPress={() => { setSelectedDistrict(dist); setSelectedMunicipality(null); }}
-                                                    className={`px-4 py-2 rounded-xl border mr-2 ${selectedDistrict === dist ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                                    onPress={() => { setTempSelectedDistrict(dist); setTempSelectedMunicipality(null); }}
+                                                    className={`px-4 py-2 rounded-xl border mr-2 ${tempSelectedDistrict === dist ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
                                                 >
-                                                    <Text className={`text-xs font-bold ${selectedDistrict === dist ? 'text-white' : 'text-typography-600'}`}>D-{dist}</Text>
+                                                    <Text className={`text-xs font-bold ${tempSelectedDistrict === dist ? 'text-white' : 'text-typography-600'}`}>D-{dist}</Text>
                                                 </TouchableOpacity>
                                             ))}
                                         </HStack>
                                     </VStack>
 
-                                    {selectedDistrict && (
+                                    {tempSelectedDistrict && (
                                         <VStack className="gap-2 mt-2">
                                             <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
                                             <View className="flex-row flex-wrap gap-2">
-                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict].map(muni => (
+                                                {DISTRICT_TO_MUNICIPALITY_MAP[tempSelectedDistrict as LandmarkDistrict].map(muni => (
                                                     <TouchableOpacity
                                                         key={muni}
-                                                        onPress={() => setSelectedMunicipality(prev => prev === muni ? null : muni)}
-                                                        className={`px-3 py-1.5 rounded-lg border ${selectedMunicipality === muni ? 'bg-secondary-500 border-secondary-500' : 'bg-background-50 border-outline-200'}`}
+                                                        onPress={() => setTempSelectedMunicipality(prev => prev === muni ? null : muni)}
+                                                        className={`px-3 py-1.5 rounded-lg border ${tempSelectedMunicipality === muni ? 'bg-secondary-500 border-secondary-500' : 'bg-background-50 border-outline-200'}`}
                                                     >
-                                                        <Text className={`text-[11px] font-bold ${selectedMunicipality === muni ? 'text-white' : 'text-typography-600'}`}>
+                                                        <Text className={`text-[11px] font-bold ${tempSelectedMunicipality === muni ? 'text-white' : 'text-typography-600'}`}>
                                                             {muni.replace('_', ' ')}
                                                         </Text>
                                                     </TouchableOpacity>
@@ -304,12 +337,12 @@ export default function LandmarkListScreen() {
                                         {LANDMARK_TYPES.map(cat => (
                                             <TouchableOpacity
                                                 key={cat}
-                                                onPress={() => setSelectedTypes(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
-                                                className={`px-4 py-2 rounded-full border ${selectedTypes.includes(cat) ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
+                                                onPress={() => setTempSelectedTypes(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])}
+                                                className={`px-4 py-2 rounded-full border ${tempSelectedTypes.includes(cat) ? 'bg-primary-600 border-primary-600' : 'bg-background-50 border-outline-200'}`}
                                             >
                                                 <HStack space="xs" className="items-center">
-                                                    {selectedTypes.includes(cat) && <Icon as={Check} size="xs" color="white" />}
-                                                    <Text size="xs" className={`font-bold ${selectedTypes.includes(cat) ? 'text-white' : 'text-typography-600'}`}>{cat}</Text>
+                                                    {tempSelectedTypes.includes(cat) && <Icon as={Check} size="xs" color="white" />}
+                                                    <Text size="xs" className={`font-bold ${tempSelectedTypes.includes(cat) ? 'text-white' : 'text-typography-600'}`}>{cat}</Text>
                                                 </HStack>
                                             </TouchableOpacity>
                                         ))}
@@ -320,10 +353,10 @@ export default function LandmarkListScreen() {
                     </ModalBody>
                     <ModalFooter className="p-4 border-t border-outline-50">
                         <HStack space="md" className="w-full">
-                            <Button variant="outline" action="secondary" className="flex-1 rounded-2xl h-12" onPress={resetFilters}>
+                            <Button variant="outline" action="secondary" className="flex-1 rounded-2xl" onPress={clearTempFilters}>
                                 <ButtonText>Clear All</ButtonText>
                             </Button>
-                            <Button onPress={() => setShowFilterModal(false)} className="flex-[2] rounded-2xl h-12 bg-primary-600">
+                            <Button onPress={applyFilters} className="flex-[2] rounded-2xl bg-primary-600">
                                 <ButtonText className="font-bold">Apply Filters</ButtonText>
                             </Button>
                         </HStack>
