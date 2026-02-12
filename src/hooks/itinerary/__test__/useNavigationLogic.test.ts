@@ -2,8 +2,10 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
 import { fetchDirections } from '@/src/utils/navigation/fetchDirections';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { nearestPointOnLine } from '@turf/turf';
 import { useNavigationLogic } from '../useNavigationLogic';
 import { Mode } from '../useNavigationState';
+import { route } from './navigation.sample';
 
 // Mock dependencies
 jest.mock('@/src/utils/navigation/fetchDirections', () => ({
@@ -37,6 +39,10 @@ jest.mock('@tanstack/react-query', () => ({
     })),
 }));
 
+jest.mock('@turf/turf', () => ({
+    nearestPointOnLine: jest.fn(),
+}));
+
 describe('useNavigationLogic', () => {
     const mockShowToast = jest.fn();
     const mockSetNavigationRoute = jest.fn();
@@ -49,7 +55,7 @@ describe('useNavigationLogic', () => {
     const defaultProps = {
         mode: Mode.Viewing,
         userLocation: [120.0, 14.0] as [number, number],
-        navigationRoute: [],
+        navigationRoute: route,
         setNavigationRoute: mockSetNavigationRoute,
         switchMode: mockSwitchMode,
         nextUnvisitedStop: {
@@ -61,7 +67,8 @@ describe('useNavigationLogic', () => {
         cameraRef: { current: mockCamera } as any,
         navigationProfile: 'driving' as const,
         avoidTolls: false,
-    };
+
+    } as Parameters<typeof useNavigationLogic>[0];
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -141,6 +148,9 @@ describe('useNavigationLogic', () => {
         jest.useRealTimers();
         (getHaversineDistance as jest.Mock).mockReturnValue(60);
         (fetchDirections as jest.Mock).mockResolvedValue({ routes: [] });
+        (nearestPointOnLine as jest.Mock).mockReturnValue({
+            geometry: { coordinates: [120.1, 14.1] }
+        });
 
         const { result, rerender } = renderHook((props: any) => useNavigationLogic(props), {
             initialProps: {
