@@ -48,6 +48,7 @@ interface NavigatingModeBottomSheetProps {
     setAvoidTolls: (avoid: boolean) => void;
     onArrive: () => void;
     currentStepIndex: number;
+    currentStepRemainingDistance: number;
 }
 
 export function NavigatingModeBottomSheet({
@@ -61,6 +62,7 @@ export function NavigatingModeBottomSheet({
     setAvoidTolls,
     onArrive,
     currentStepIndex,
+    currentStepRemainingDistance,
 }: NavigatingModeBottomSheetProps) {
     const [showActionsheet, setShowActionsheet] = useState(false);
 
@@ -238,7 +240,7 @@ export function NavigatingModeBottomSheet({
                         </Box>
                         <VStack className="flex-1">
                             <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
-                                {formatDistance(currentStep.distance)}
+                                {formatDistance(currentStepRemainingDistance)}
                             </Text>
                             <Heading size='lg' className="leading-tight">
                                 {currentStep?.maneuver.instruction}

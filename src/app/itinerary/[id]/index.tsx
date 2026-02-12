@@ -78,7 +78,8 @@ export default function ItineraryView() {
         isCalculatingRoute,
         isStartingNavigation,
         onArrive,
-        currentStepIndex
+        currentStepIndex,
+        currentStepRemainingDistance
     } = useNavigationLogic({
         mode,
         userLocation,
@@ -185,7 +186,6 @@ export default function ItineraryView() {
                     <NavigatingModeMapView
                         show={mode === Mode.Navigating}
                         targetLandmark={nextUnvisitedStop?.landmark || null}
-                        route={navigationRoute[0]}
                     />
 
                     <ViewingModeMapView
@@ -242,6 +242,7 @@ export default function ItineraryView() {
                             setAvoidTolls={setAvoidTolls}
                             onArrive={onArrive}
                             currentStepIndex={currentStepIndex}
+                            currentStepRemainingDistance={currentStepRemainingDistance}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>
