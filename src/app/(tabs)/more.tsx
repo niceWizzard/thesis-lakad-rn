@@ -20,6 +20,7 @@ import {
     Key,
     LogOut,
     Mail,
+    MapPin,
     Settings,
     Sliders,
     User,
@@ -258,8 +259,31 @@ function MoreTabContent() {
                     )}
 
                     <CopilotStep
-                        text="View application information."
+                        text="Explore all landmarks."
                         order={7}
+                        name="allLandmarks"
+                    >
+                        <CopilotBox collapsable={false}>
+                            <TouchableOpacity
+                                onPress={() => router.push('/landmark/all')}
+                                className="flex-row items-center justify-between p-5 active:bg-background-100"
+                            >
+                                <View className="flex-row items-center gap-4">
+                                    <View className="bg-background-100 p-2 rounded-xl">
+                                        <Icon as={MapPin} size='lg' />
+                                    </View>
+                                    <Text size="md" className="font-medium text-typography-800">
+                                        View All Landmarks
+                                    </Text>
+                                </View>
+                                <Icon as={ChevronRight} />
+                            </TouchableOpacity>
+                        </CopilotBox>
+                    </CopilotStep>
+
+                    <CopilotStep
+                        text="View application information."
+                        order={8}
                         name="aboutLakad"
                     >
                         <CopilotBox collapsable={false}>
@@ -287,7 +311,7 @@ function MoreTabContent() {
             <View className="px-4 mt-8">
                 <CopilotStep
                     text="Tap here to sign out of your account."
-                    order={8}
+                    order={9}
                     name="signOutButton"
                 >
                     <CopilotBox collapsable={false}>
