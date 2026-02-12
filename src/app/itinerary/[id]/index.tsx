@@ -79,7 +79,8 @@ export default function ItineraryView() {
         isStartingNavigation,
         onArrive,
         currentStepIndex,
-        currentStepRemainingDistance
+        currentStepRemainingDistance,
+        routeLine
     } = useNavigationLogic({
         mode,
         userLocation,
@@ -170,7 +171,7 @@ export default function ItineraryView() {
 
                     {/* Route Line */}
                     {navigationRoute.length > 0 && (
-                        <ShapeSource id="routeSource" shape={navigationRoute[0].geometry}>
+                        <ShapeSource id="routeSource" shape={mode === Mode.Navigating && routeLine ? routeLine : navigationRoute[0].geometry}>
                             <LineLayer
                                 id="routeLayer"
                                 style={{

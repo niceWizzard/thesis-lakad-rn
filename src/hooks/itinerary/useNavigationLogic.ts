@@ -344,6 +344,40 @@ export const useNavigationLogic = ({
     };
 
 
+    // -------------------------------------------------------------------------
+    // 5. Route Line Slicing (Visuals)
+    // -------------------------------------------------------------------------
+    const [routeLine, setRouteLine] = useState<any>(null);
+
+    useEffect(() => {
+        if (!navigationRoute.length) {
+            setRouteLine(null);
+            return;
+        }
+
+        const fullLine = navigationRoute[0].geometry;
+
+        if (mode === Mode.Navigating && userLocation) {
+            try {
+                const userP = point(userLocation);
+                const snapped = nearestPointOnLine(fullLine, userP);
+                const lastCoord = fullLine.coordinates[fullLine.coordinates.length - 1];
+                const endP = point(lastCoord);
+
+                // lineSlice requires the start point to be on the line (nearestPointOnLine ensures this mostly, but snapping helps)
+                // If the user is very far, nearestPointOnLine still finds the projection.
+                const sliced = lineSlice(snapped, endP, fullLine);
+                setRouteLine(sliced);
+            } catch (e) {
+                console.warn("Error slicing route line:", e);
+                setRouteLine(fullLine);
+            }
+        } else {
+            setRouteLine(fullLine);
+        }
+    }, [navigationRoute, userLocation, mode]);
+
+
     return {
         startNavigation: handleNavigationButtonClick,
         closePasalubongsInPath,
@@ -352,5 +386,6 @@ export const useNavigationLogic = ({
         onArrive: () => finishedNavigating(nextUnvisitedStop!),
         currentStepIndex,
         currentStepRemainingDistance,
+        routeLine,
     };
 };
