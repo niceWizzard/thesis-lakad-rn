@@ -250,14 +250,15 @@ const ExploreTab = () => {
                 enablePanDownToClose
                 onClose={handleBackdropPress}
             >
-                <Pressable onPress={() => {
-                    sheetRef.current?.snapToIndex(
-                        sheetIndex === 0 ? 1 : 0
-                    );
-                }}>
-                    <BottomSheetScrollView
-                        contentContainerStyle={styles.scrollContent}
-                    >
+
+                <BottomSheetScrollView
+                    contentContainerStyle={styles.scrollContent}
+                >
+                    <Pressable onPress={() => {
+                        sheetRef.current?.snapToIndex(
+                            sheetIndex === 0 ? 1 : 0
+                        );
+                    }}>
                         {selectedLandmark ? (
                             <VStack className="gap-6">
                                 {/* Drag Indicator */}
@@ -369,8 +370,8 @@ const ExploreTab = () => {
                                 </Text>
                             </Box>
                         )}
-                    </BottomSheetScrollView>
-                </Pressable>
+                    </Pressable>
+                </BottomSheetScrollView>
             </CustomBottomSheet>
             <ImageCreditModal
                 isOpen={showImageCredits}
