@@ -32,19 +32,19 @@ export const config = {
     '--color-primary-900': '6 78 59',
     '--color-primary-950': '2 44 34',
 
-    /* Secondary - Balanced High Contrast Grays */
+    /* Secondary - Light Gray */
     '--color-secondary-0': '255 255 255',
-    '--color-secondary-50': '243 243 243', // Balanced (Not too dark, not too light)
-    '--color-secondary-100': '230 230 230', // Balanced
-    '--color-secondary-200': '215 215 215',
-    '--color-secondary-300': '180 180 180',
-    '--color-secondary-400': '138 138 138',
-    '--color-secondary-500': '95 95 95',
-    '--color-secondary-600': '70 70 70',
-    '--color-secondary-700': '55 55 55',
-    '--color-secondary-800': '40 40 40',
-    '--color-secondary-900': '20 20 20',
-    '--color-secondary-950': '0 0 0',
+    '--color-secondary-50': '252 252 252',
+    '--color-secondary-100': '250 250 250',
+    '--color-secondary-200': '248 248 248',
+    '--color-secondary-300': '244 244 244',
+    '--color-secondary-400': '232 232 232',
+    '--color-secondary-500': '224 224 224',
+    '--color-secondary-600': '200 200 200',
+    '--color-secondary-700': '160 160 160',
+    '--color-secondary-800': '120 120 120',
+    '--color-secondary-900': '80 80 80',
+    '--color-secondary-950': '40 40 40',
 
     /* Tertiary - Indigo */
     '--color-tertiary-0': '238 242 255',
