@@ -104,7 +104,7 @@ export const useNavigationLogic = ({
                 [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
             );
 
-            if (distanceToDestination <= 10) {
+            if (distanceToDestination <= 50) {
                 finishedNavigating(nextUnvisitedStop);
                 return;
             }
@@ -295,6 +295,7 @@ export const useNavigationLogic = ({
         startNavigation: handleNavigationButtonClick,
         closePasalubongsInPath,
         isCalculatingRoute,
-        isStartingNavigation
+        isStartingNavigation,
+        onArrive: () => finishedNavigating(nextUnvisitedStop!)
     };
 };

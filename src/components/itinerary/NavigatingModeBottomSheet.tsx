@@ -45,6 +45,7 @@ interface NavigatingModeBottomSheetProps {
     setNavigationProfile: (profile: 'driving' | 'walking' | 'cycling') => void;
     avoidTolls: boolean;
     setAvoidTolls: (avoid: boolean) => void;
+    onArrive: () => void;
 }
 
 export function NavigatingModeBottomSheet({
@@ -56,6 +57,7 @@ export function NavigatingModeBottomSheet({
     setNavigationProfile,
     avoidTolls,
     setAvoidTolls,
+    onArrive,
 }: NavigatingModeBottomSheetProps) {
     const [showActionsheet, setShowActionsheet] = useState(false);
 
@@ -244,13 +246,19 @@ export function NavigatingModeBottomSheet({
                     </HStack>
                 </Box>
 
-                {/* Destination Target */}
-                <HStack className="items-center" space="sm">
-                    <Icon as={CheckCircle} size="sm" className="text-success-500" />
-                    <Text size="sm" className="text-typography-500 font-medium">
-                        Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
-                    </Text>
-                </HStack>
+                <VStack className="items-center justify-between" space="sm">
+                    <HStack space="sm" className='items-center'>
+                        <Icon as={CheckCircle} size="sm" className="text-success-500" />
+                        <Text size="sm" className="text-typography-500 font-medium">
+                            Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
+                        </Text>
+                    </HStack>
+
+                    <Button size='sm' onPress={onArrive}>
+                        <ButtonText>Mark as Arrived</ButtonText>
+                        <ButtonIcon as={CheckCircle} />
+                    </Button>
+                </VStack>
             </VStack>
 
             <Divider className="mx-4" />
