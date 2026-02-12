@@ -5,8 +5,8 @@
 export function getHaversineDistance(pos1: GeoJSON.Position, pos2: GeoJSON.Position): number {
   const R = 6371e3; // Earth's radius in METERS (6,371,000m)
 
-  const [lat1, lon1] = pos1;
-  const [lat2, lon2] = pos2;
+  const [lon1, lat1] = pos1;
+  const [lon2, lat2] = pos2;
 
   const toRad = (v: number) => (v * Math.PI) / 180;
 
