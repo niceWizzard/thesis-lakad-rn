@@ -21,8 +21,8 @@ import { VStack } from '@/components/ui/vstack';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
+import { FilterFormData, LandmarkFilterModal, SortKey, SortOrder } from '@/src/components/LandmarkFilterModal';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
-import { FilterFormData, LandmarkFilterModal, SortKey, SortOrder } from './components/LandmarkFilterModal';
 
 export default function LandmarkListScreen() {
     const router = useRouter();
