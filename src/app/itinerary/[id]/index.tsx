@@ -69,6 +69,8 @@ export default function ItineraryView() {
         setNavigationProfile,
         avoidTolls,
         setAvoidTolls,
+        isVoiceEnabled,
+        setIsVoiceEnabled,
     } = useNavigationState(userLocation);
 
     // 4. Navigation Logic
@@ -93,6 +95,7 @@ export default function ItineraryView() {
         cameraRef,
         navigationProfile,
         avoidTolls,
+        isVoiceEnabled,
     });
 
     // Auto-center camera on user location during navigation
@@ -245,6 +248,8 @@ export default function ItineraryView() {
                             onArrive={onArrive}
                             currentStepIndex={currentStepIndex}
                             currentStepRemainingDistance={currentStepRemainingDistance}
+                            isVoiceEnabled={isVoiceEnabled}
+                            setVoiceEnabled={setIsVoiceEnabled}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>

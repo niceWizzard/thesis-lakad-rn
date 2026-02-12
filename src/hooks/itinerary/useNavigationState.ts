@@ -23,8 +23,10 @@ export const useNavigationState = (userLocation: [number, number] | null) => {
     // Navigation Settings
     const [navigationProfile, setNavigationProfile] = useState<'driving' | 'walking' | 'cycling'>('driving');
     const [avoidTolls, setAvoidTolls] = useState(false);
+    const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
 
     const cameraRef = useRef<Camera>(null);
+
     const bottomSheetRef = useRef<BottomSheet>(null);
 
     // Sync BottomSheet with state
@@ -86,5 +88,7 @@ export const useNavigationState = (userLocation: [number, number] | null) => {
         setNavigationProfile,
         avoidTolls,
         setAvoidTolls,
+        isVoiceEnabled,
+        setIsVoiceEnabled,
     };
 };

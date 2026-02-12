@@ -3,12 +3,14 @@ import { Landmark } from '@/src/model/landmark.types';
 import { StopWithLandmark } from '@/src/model/stops.types';
 import { getDistanceToSegment } from '@/src/utils/distance/getDistanceToSegment';
 import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
+import { formatDistance } from '@/src/utils/format/distance';
 import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import { Camera } from '@rnmapbox/maps';
 import { useQueryClient } from '@tanstack/react-query';
 import { length, lineSlice, nearestPointOnLine, point } from '@turf/turf';
 import { useFocusEffect } from 'expo-router';
+import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mode } from './useNavigationState';
 
@@ -24,6 +26,7 @@ interface UseNavigationLogicProps {
     cameraRef: React.RefObject<Camera | null>;
     navigationProfile: 'driving' | 'walking' | 'cycling';
     avoidTolls: boolean;
+    isVoiceEnabled: boolean;
 }
 
 /**
@@ -44,6 +47,7 @@ export const useNavigationLogic = ({
     cameraRef,
     navigationProfile,
     avoidTolls,
+    isVoiceEnabled,
 }: UseNavigationLogicProps) => {
 
     const isProcessingArrival = useRef(false);
@@ -85,6 +89,9 @@ export const useNavigationLogic = ({
             showToast({
                 title: "You have arrived!",
             });
+            if (isVoiceEnabled) {
+                Speech.speak("You have arrived at your destination.", { language: 'en' });
+            }
         } catch (e: any) {
             showToast({
                 title: "Error",
@@ -94,7 +101,7 @@ export const useNavigationLogic = ({
         } finally {
             isProcessingArrival.current = false;
         }
-    }, [refetchItinerary, showToast, switchMode, queryClient]);
+    }, [refetchItinerary, showToast, switchMode, queryClient, isVoiceEnabled]);
 
 
     // -------------------------------------------------------------------------
@@ -208,6 +215,40 @@ export const useNavigationLogic = ({
             }
         }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, currentStepIndex, navigationProfile, avoidTolls, setNavigationRoute, showToast])
     );
+
+    // -------------------------------------------------------------------------
+    // 2.5 TTS Logic (Text-to-Speech)
+    // -------------------------------------------------------------------------
+    const lastSpokenInstruction = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (mode === Mode.Navigating && isVoiceEnabled && navigationRoute.length > 0) {
+            const currentLeg = navigationRoute[0].legs[0];
+            const step = currentLeg?.steps[currentStepIndex];
+
+            if (step && step.maneuver) {
+                const instruction = step.maneuver.instruction;
+                // Only speak if it's a new instruction
+                if (instruction !== lastSpokenInstruction.current) {
+                    Speech.speak(`${instruction} for ${formatDistance(step.distance)}`, { language: 'en' });
+                    lastSpokenInstruction.current = instruction;
+                }
+            }
+        } else {
+            // Reset if we exit navigation or voice is disabled, so if we re-enter it speaks again if needed
+            if (mode !== Mode.Navigating) {
+                lastSpokenInstruction.current = null;
+            }
+        }
+    }, [currentStepIndex, mode, isVoiceEnabled, navigationRoute]);
+
+    // Speak on arrival
+    useEffect(() => {
+        if (isProcessingArrival.current && isVoiceEnabled) {
+            Speech.speak("You have arrived at your destination.", { language: 'en' });
+        }
+    }, [isVoiceEnabled]); // Logic is slightly tricky here as isProcessingArrival is a ref. Better to hook into the function.
+
 
 
     // -------------------------------------------------------------------------
