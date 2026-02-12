@@ -41,6 +41,10 @@ jest.mock('@tanstack/react-query', () => ({
 
 jest.mock('@turf/turf', () => ({
     nearestPointOnLine: jest.fn(),
+    distance: jest.requireActual('@turf/turf').distance,
+    point: jest.requireActual('@turf/turf').point,
+    lineSlice: jest.fn(),
+    length: jest.fn(),
 }));
 
 describe('useNavigationLogic', () => {
@@ -180,4 +184,28 @@ describe('useNavigationLogic', () => {
 
         expect(fetchDirections).toHaveBeenCalled();
     });
+
+    it('moves to next step when user is close', async () => {
+        // 1. Mock Haversine sequence
+        (getHaversineDistance as jest.Mock)
+            .mockReturnValueOnce(100) // Arrival check (> 10)
+            .mockReturnValueOnce(3)   // Step advance check (< 5)
+            .mockReturnValue(10);  // Reroute check (< 20)
+
+        const { rerender, result } = renderHook((props: any) => useNavigationLogic(props), {
+            initialProps: { ...defaultProps, mode: Mode.Navigating }
+        });
+
+        rerender({
+            ...defaultProps,
+            mode: Mode.Navigating,
+            userLocation: [121.1, 14.1],
+        });
+
+        await waitFor(() => {
+            expect(result.current.currentStepIndex).toBe(1);
+        });
+    });
+
+
 });
