@@ -163,7 +163,7 @@ export const useNavigationLogic = ({
 
                         // If we are close to the next step, advance
                         // Also check if we have "completed" the current step distance-wise
-                        if (distanceToNextStepStart < 5) {
+                        if (distanceToNextStepStart < 10) {
                             setCurrentStepIndex(currentStepIndex + 1);
                             return;
                         }
@@ -240,7 +240,7 @@ export const useNavigationLogic = ({
                 lastSpokenInstruction.current = null;
             }
         }
-    }, [currentStepIndex, mode, isVoiceEnabled, navigationRoute]);
+    }, [currentStepIndex, mode, isVoiceEnabled, navigationRoute, currentStepRemainingDistance]);
 
     // Speak on arrival
     useEffect(() => {
