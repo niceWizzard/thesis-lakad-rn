@@ -72,7 +72,7 @@ export default function ItineraryView() {
     } = useNavigationState(userLocation);
 
     // 4. Navigation Logic
-    const { startNavigation, closePasalubongsInPath, isCalculatingRoute, isStartingNavigation } = useNavigationLogic({
+    const { startNavigation, closePasalubongsInPath, isCalculatingRoute, isStartingNavigation, onArrive } = useNavigationLogic({
         mode,
         userLocation,
         navigationRoute,
@@ -232,6 +232,7 @@ export default function ItineraryView() {
                             setNavigationProfile={setNavigationProfile}
                             avoidTolls={avoidTolls}
                             setAvoidTolls={setAvoidTolls}
+                            onArrive={onArrive}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>
