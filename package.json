@@ -8,8 +8,10 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "test": "jest --watchAll"
+    "lint": "expo lint && eslint",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@expo/html-elements": "^0.12.5",
