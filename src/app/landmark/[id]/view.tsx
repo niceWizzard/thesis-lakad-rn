@@ -148,6 +148,7 @@ export default function LandmarkViewerScreen() {
         if (itineraryId && currentCount) {
             addStopMutation(landmark.id);
         } else {
+            setSelectedItinerary(null)
             setShowNoItineraryAlert(true);
         }
     }

@@ -117,6 +117,7 @@ const ExploreTab = () => {
         } catch (e: any) {
             showToast({ title: "Error", description: e.message, action: "error" });
         } finally {
+            setSelectedItinerary(null)
             setPendingAction(null);
         }
     };
