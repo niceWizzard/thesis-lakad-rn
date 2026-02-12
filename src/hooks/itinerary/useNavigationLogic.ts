@@ -7,6 +7,7 @@ import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirect
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import { Camera } from '@rnmapbox/maps';
 import { useQueryClient } from '@tanstack/react-query';
+import { nearestPointOnLine } from '@turf/turf';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mode } from './useNavigationState';
@@ -61,6 +62,11 @@ export const useNavigationLogic = ({
     // Loading states
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
     const [isStartingNavigation, setIsStartingNavigation] = useState(false);
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+    useEffect(() => {
+        setCurrentStepIndex(0);
+    }, [navigationRoute]);
 
     // -------------------------------------------------------------------------
     // 1. Logic for Completing Navigation (Arrival)
@@ -112,14 +118,31 @@ export const useNavigationLogic = ({
             // B. Check Rerouting (Distance to next maneuver > 50m)
             if (navigationRoute.length && navigationRoute[0].legs.length) {
                 const currentLeg = navigationRoute[0].legs[0];
-                const nextStep = currentLeg.steps[0];
+                if (currentStepIndex < currentLeg.steps.length) {
+                    const nextStep = currentLeg.steps[currentStepIndex + 1];
+                    const distanceToNextStep = getHaversineDistance(
+                        userLocation,
+                        [nextStep.geometry.coordinates[currentStepIndex][0], nextStep.geometry.coordinates[currentStepIndex][1]]
+                    );
+                    console.log(distanceToNextStep)
 
-                const distanceToNextStep = getHaversineDistance(
+                    if (distanceToNextStep < 10) {
+                        setCurrentStepIndex(currentStepIndex + 1);
+                        return;
+                    }
+                }
+
+
+
+                // Check distance to Route (if off-route, fetch mapbox api)
+                const distanceToRoute = getHaversineDistance(
                     userLocation,
-                    nextStep.maneuver.location
+                    nearestPointOnLine(
+                        navigationRoute[0].geometry,
+                        userLocation
+                    ).geometry.coordinates
                 );
-
-                if (distanceToNextStep > 50) {
+                if (distanceToRoute > 20) {
                     // Check if we have moved significantly since the last reroute
                     const distanceSinceLastReroute = lastRerouteLocation.current
                         ? getHaversineDistance(userLocation, lastRerouteLocation.current)
@@ -153,7 +176,7 @@ export const useNavigationLogic = ({
                     }
                 }
             }
-        }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, navigationProfile, avoidTolls, setNavigationRoute, showToast])
+        }, [mode, nextUnvisitedStop, userLocation, navigationRoute, finishedNavigating, currentStepIndex, navigationProfile, avoidTolls, setNavigationRoute, showToast])
     );
 
 
@@ -296,6 +319,7 @@ export const useNavigationLogic = ({
         closePasalubongsInPath,
         isCalculatingRoute,
         isStartingNavigation,
-        onArrive: () => finishedNavigating(nextUnvisitedStop!)
+        onArrive: () => finishedNavigating(nextUnvisitedStop!),
+        currentStepIndex,
     };
 };

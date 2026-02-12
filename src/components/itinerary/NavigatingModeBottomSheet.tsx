@@ -31,6 +31,7 @@ import { VStack } from '@/components/ui/vstack';
 
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
 import { StopWithLandmark } from '@/src/model/stops.types';
+import { formatDistance } from '@/src/utils/format/distance';
 import { formatDuration } from '@/src/utils/format/duration';
 import { getETATime } from '@/src/utils/navigation/calculateETA';
 import { MapboxRoute } from '@/src/utils/navigation/fetchDirections';
@@ -46,6 +47,7 @@ interface NavigatingModeBottomSheetProps {
     avoidTolls: boolean;
     setAvoidTolls: (avoid: boolean) => void;
     onArrive: () => void;
+    currentStepIndex: number;
 }
 
 export function NavigatingModeBottomSheet({
@@ -58,13 +60,14 @@ export function NavigatingModeBottomSheet({
     avoidTolls,
     setAvoidTolls,
     onArrive,
+    currentStepIndex,
 }: NavigatingModeBottomSheetProps) {
     const [showActionsheet, setShowActionsheet] = useState(false);
 
     if (mode !== Mode.Navigating) return null;
 
     const currentLeg = navigationRoute[0]?.legs[0];
-    const currentStep = currentLeg?.steps[0];
+    const currentStep = currentLeg?.steps[currentStepIndex];
     const remainingSteps = currentLeg?.steps.slice(1) || [];
 
     // Calculate ETA and duration
@@ -235,9 +238,7 @@ export function NavigatingModeBottomSheet({
                         </Box>
                         <VStack className="flex-1">
                             <Text size="sm" className="text-primary-400 font-bold uppercase tracking-wider">
-                                {navigationRoute[0]?.distance > 1000
-                                    ? `${(navigationRoute[0]?.distance / 1000).toFixed(1)} km`
-                                    : `${navigationRoute[0]?.distance.toFixed(0)} m`}
+                                {formatDistance(currentStep.distance)}
                             </Text>
                             <Heading size='lg' className="leading-tight">
                                 {currentStep?.maneuver.instruction}
@@ -267,7 +268,7 @@ export function NavigatingModeBottomSheet({
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1 px-4 mt-2">
                 <Text size="xs" className="px-2 mb-3 uppercase font-bold text-typography-400">Upcoming Steps</Text>
                 <VStack space='sm' className="pb-6">
-                    {remainingSteps.map((step, i) => (
+                    {remainingSteps.slice(currentStepIndex).map((step, i) => (
                         <HStack key={i} space="md" className='bg-background-50 p-4 rounded-2xl items-center border border-outline-50'>
                             <Box className="bg-background-300 p-2 rounded-xl shadow-sm border border-outline-100">
                                 <Icon as={getStepIcon(step.maneuver.instruction)} size="xs" className="text-typography-400" />

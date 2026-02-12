@@ -72,7 +72,14 @@ export default function ItineraryView() {
     } = useNavigationState(userLocation);
 
     // 4. Navigation Logic
-    const { startNavigation, closePasalubongsInPath, isCalculatingRoute, isStartingNavigation, onArrive } = useNavigationLogic({
+    const {
+        startNavigation,
+        closePasalubongsInPath,
+        isCalculatingRoute,
+        isStartingNavigation,
+        onArrive,
+        currentStepIndex
+    } = useNavigationLogic({
         mode,
         userLocation,
         navigationRoute,
@@ -178,6 +185,7 @@ export default function ItineraryView() {
                     <NavigatingModeMapView
                         show={mode === Mode.Navigating}
                         targetLandmark={nextUnvisitedStop?.landmark || null}
+                        route={navigationRoute[0]}
                     />
 
                     <ViewingModeMapView
@@ -233,6 +241,7 @@ export default function ItineraryView() {
                             avoidTolls={avoidTolls}
                             setAvoidTolls={setAvoidTolls}
                             onArrive={onArrive}
+                            currentStepIndex={currentStepIndex}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>
