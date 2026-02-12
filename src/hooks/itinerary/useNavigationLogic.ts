@@ -218,7 +218,7 @@ export const useNavigationLogic = ({
                     [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
                 ],
                 profile: navigationProfile,
-                exclude: avoidTolls ? ['toll'] : [],
+                exclude: getExclude(),
             });
 
             setNavigationRoute(data.routes);
@@ -238,7 +238,7 @@ export const useNavigationLogic = ({
             // Keep loading overlay for smooth transition
             setTimeout(() => {
                 setIsStartingNavigation(false);
-            }, 1500);
+            }, 150);
 
         } catch (error: any) {
             setIsCalculatingRoute(false);
@@ -280,6 +280,15 @@ export const useNavigationLogic = ({
             return false;
         });
     }, [mode, navigationRoute, commercials, userLocation]);
+
+
+    const getExclude = () => {
+        const exclude: string[] = [];
+        if (navigationProfile === 'driving') {
+            if (avoidTolls) exclude.push('toll');
+        }
+        return exclude;
+    };
 
 
     return {
