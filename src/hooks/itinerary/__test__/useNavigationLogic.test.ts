@@ -3,6 +3,7 @@ import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance'
 import { fetchDirections } from '@/src/utils/navigation/fetchDirections';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { nearestPointOnLine } from '@turf/turf';
+import * as ExpoSpeech from 'expo-speech';
 import { useNavigationLogic } from '../useNavigationLogic';
 import { Mode } from '../useNavigationState';
 import { route } from './navigation.sample';
@@ -43,8 +44,13 @@ jest.mock('@turf/turf', () => ({
     nearestPointOnLine: jest.fn(),
     distance: jest.requireActual('@turf/turf').distance,
     point: jest.requireActual('@turf/turf').point,
-    lineSlice: jest.fn(),
-    length: jest.fn(),
+    lineSlice: jest.fn(() => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: [] } })),
+    length: jest.fn(() => 0.1), // Mock 100m
+}));
+
+jest.mock('expo-speech', () => ({
+    speak: jest.fn(),
+    stop: jest.fn(),
 }));
 
 describe('useNavigationLogic', () => {
@@ -71,6 +77,7 @@ describe('useNavigationLogic', () => {
         cameraRef: { current: mockCamera } as any,
         navigationProfile: 'driving' as const,
         avoidTolls: false,
+        isVoiceEnabled: true,
 
     } as Parameters<typeof useNavigationLogic>[0];
 
@@ -268,6 +275,29 @@ describe('useNavigationLogic', () => {
 
         await waitFor(() => {
             expect(result.current.currentStepIndex).toBe(2);
+        });
+    });
+
+    it('speaks the correct calculated distance', async () => {
+        (getHaversineDistance as jest.Mock)
+            .mockReturnValueOnce(100)
+            .mockReturnValue(20);
+        const { result } = renderHook(() => useNavigationLogic({
+            ...defaultProps,
+            mode: Mode.Navigating,
+            isVoiceEnabled: true,
+        }));
+
+        await waitFor(() => {
+            expect(ExpoSpeech.stop).toHaveBeenCalledTimes(1);
+            expect(ExpoSpeech.speak).toHaveBeenCalledTimes(1);
+            expect(ExpoSpeech.speak).toHaveBeenCalledWith(
+                expect.stringContaining(route[0].legs[0].steps[0].maneuver.instruction),
+                expect.objectContaining({
+                    language: 'en'
+                })
+            )
+            expect(result.current.isCalculatingRoute).toBe(false);
         });
     });
 
