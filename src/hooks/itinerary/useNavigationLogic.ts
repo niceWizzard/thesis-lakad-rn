@@ -7,7 +7,7 @@ import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirect
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import { Camera } from '@rnmapbox/maps';
 import { useQueryClient } from '@tanstack/react-query';
-import { nearestPointOnLine } from '@turf/turf';
+import { length, lineSlice, nearestPointOnLine, point } from '@turf/turf';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Mode } from './useNavigationState';
@@ -63,9 +63,11 @@ export const useNavigationLogic = ({
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
     const [isStartingNavigation, setIsStartingNavigation] = useState(false);
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [currentStepRemainingDistance, setCurrentStepRemainingDistance] = useState(0);
 
     useEffect(() => {
         setCurrentStepIndex(0);
+        setCurrentStepRemainingDistance(0);
     }, [navigationRoute]);
 
     // -------------------------------------------------------------------------
@@ -116,20 +118,50 @@ export const useNavigationLogic = ({
                 return;
             }
 
-            // B. Check Rerouting (Distance to next maneuver > 50m)
+            // B. Distance Calculation for Current Step
+            if (navigationRoute.length && currentLeg) {
+                const currentStep = currentLeg.steps[currentStepIndex];
+                if (currentStep && currentStep.geometry) {
+                    try {
+                        // Snap user location to the current step line
+                        const userPoint = point(userLocation);
+                        const line = currentStep.geometry;
+                        const snappedPoint = nearestPointOnLine(line, userPoint);
+
+                        // Calculate distance from snapped point to the end of the line
+                        const endPoint = point(currentStep.geometry.coordinates[currentStep.geometry.coordinates.length - 1]);
+                        const slicedLine = lineSlice(snappedPoint, endPoint, line);
+                        const distanceInKm = length(slicedLine, { units: 'kilometers' });
+
+                        setCurrentStepRemainingDistance(distanceInKm * 1000); // Convert to meters
+                    } catch (e) {
+                        // Fallback in case of turf errors (e.g. invalid geometry)
+                        console.warn("Error calculating step distance", e);
+                        setCurrentStepRemainingDistance(currentStep.distance);
+                    }
+                }
+            }
+
+
+            // C. Check Rerouting (Distance to next maneuver > 50m)
             if (navigationRoute.length && navigationRoute[0].legs.length) {
                 if (currentStepIndex < currentLeg.steps.length) {
                     const nextStep = currentLeg.steps[currentStepIndex + 1];
-                    const distanceToNextStep = getHaversineDistance(
-                        userLocation,
-                        [nextStep.geometry.coordinates[currentStepIndex][0], nextStep.geometry.coordinates[currentStepIndex][1]]
-                    );
-                    if (distanceToNextStep < 10) {
-                        setCurrentStepIndex(currentStepIndex + 1);
-                        return;
+                    // Only advance if we are really close to the start of the next step
+                    if (nextStep) {
+                        const distanceToNextStepStart = getHaversineDistance(
+                            userLocation,
+                            [nextStep.geometry.coordinates[0][0], nextStep.geometry.coordinates[0][1]]
+                        );
+
+                        // If we are close to the next step, advance
+                        // Also check if we have "completed" the current step distance-wise
+                        if (distanceToNextStepStart < 5) {
+                            setCurrentStepIndex(currentStepIndex + 1);
+                            return;
+                        }
                     }
                 }
-
 
 
                 // Check distance to Route (if off-route, fetch mapbox api)
@@ -319,5 +351,6 @@ export const useNavigationLogic = ({
         isStartingNavigation,
         onArrive: () => finishedNavigating(nextUnvisitedStop!),
         currentStepIndex,
+        currentStepRemainingDistance,
     };
 };
