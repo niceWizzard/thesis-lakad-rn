@@ -207,5 +207,69 @@ describe('useNavigationLogic', () => {
         });
     });
 
+    it('moves through multiple steps sequentially', async () => {
+        const multiStepRoute = [{
+            legs: [{
+                steps: [
+                    { geometry: { coordinates: [[120.0, 14.0], [120.1, 14.0]] }, maneuver: { location: [120.0, 14.0] } }, // Step 0
+                    { geometry: { coordinates: [[120.1, 14.0], [120.2, 14.0]] }, maneuver: { location: [120.1, 14.0] } }, // Step 1
+                    { geometry: { coordinates: [[120.2, 14.0], [120.3, 14.0]] }, maneuver: { location: [120.2, 14.0] } }  // Step 2
+                ],
+                distance: 1000 // Ensure not < 10 for arrival check
+            }],
+            geometry: { coordinates: [[120.0, 14.0], [120.3, 14.0]] }
+        }];
+
+        const { result, rerender } = renderHook((props: any) => useNavigationLogic(props), {
+            initialProps: {
+                ...defaultProps,
+                mode: Mode.Navigating,
+                navigationRoute: multiStepRoute as any,
+                userLocation: [120.0, 14.0], // Start at Step 0 start
+            }
+        });
+
+        // Initial state
+        expect(result.current.currentStepIndex).toBe(0);
+
+        // Move to Step 1
+        // 1. Arrival Check (> 10)
+        // 2. Step Advance Check (< 5)
+        (getHaversineDistance as jest.Mock)
+            .mockReturnValueOnce(100) // Arrival check (> 10)
+            .mockReturnValueOnce(3)   // Step advance check (< 5)
+            .mockReturnValue(10); // Fallback
+
+        rerender({
+            ...defaultProps,
+            mode: Mode.Navigating,
+            navigationRoute: multiStepRoute as any,
+            userLocation: [120.1, 14.0], // Near start of Step 1
+        });
+
+        await waitFor(() => {
+            expect(result.current.currentStepIndex).toBe(1);
+        });
+
+        // Move to Step 2
+        // 1. Arrival Check (> 10)
+        // 2. Step Advance Check (< 5)
+        (getHaversineDistance as jest.Mock)
+            .mockReturnValueOnce(100) // Arrival check (> 10)
+            .mockReturnValueOnce(3)   // Step advance check (< 5)
+            .mockReturnValue(10); // Fallback
+
+        rerender({
+            ...defaultProps,
+            mode: Mode.Navigating,
+            navigationRoute: multiStepRoute as any,
+            userLocation: [120.2, 14.0], // Near start of Step 2
+        });
+
+        await waitFor(() => {
+            expect(result.current.currentStepIndex).toBe(2);
+        });
+    });
 
 });
+
