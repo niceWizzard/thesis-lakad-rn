@@ -19,7 +19,7 @@ interface UseNavigationLogicProps {
     switchMode: (mode: Mode) => void;
     nextUnvisitedStop: StopWithLandmark | null;
     refetchItinerary: () => Promise<any>;
-    commercials: Landmark[] | undefined;
+    pasalubongs: Landmark[] | undefined;
     cameraRef: React.RefObject<Camera | null>;
     navigationProfile: 'driving' | 'walking' | 'cycling';
     avoidTolls: boolean;
@@ -29,7 +29,7 @@ interface UseNavigationLogicProps {
  * Hook to handle the core navigation logic:
  * - Starting navigation (calculating routes)
  * - Monitoring progress (arrival detection, rerouting)
- * - Identifying commercial landmarks along the path
+ * - Identifying pasalubong centers along the path
  */
 export const useNavigationLogic = ({
     mode,
@@ -39,7 +39,7 @@ export const useNavigationLogic = ({
     switchMode,
     nextUnvisitedStop,
     refetchItinerary,
-    commercials,
+    pasalubongs,
     cameraRef,
     navigationProfile,
     avoidTolls,
@@ -252,15 +252,15 @@ export const useNavigationLogic = ({
     };
 
     // -------------------------------------------------------------------------
-    // 4. Commercials (POIs) along the path
+    // 4. Pasalubong Centers along the path
     // -------------------------------------------------------------------------
-    const closeCommercialsInPath = useMemo(() => {
-        if (mode !== Mode.Navigating || !navigationRoute.length || !commercials) {
+    const closePasalubongsInPath = useMemo(() => {
+        if (mode !== Mode.Navigating || !navigationRoute.length || !pasalubongs) {
             return [];
         }
         const pathCoordinates = navigationRoute[0].geometry.coordinates;
 
-        return commercials.filter((poi) => {
+        return pasalubongs.filter((poi) => {
             const poiCoords: [number, number] = [poi.longitude, poi.latitude];
 
             // Quick check: Is the POI within 100m of the USER currently?
@@ -279,7 +279,7 @@ export const useNavigationLogic = ({
             }
             return false;
         });
-    }, [mode, navigationRoute, commercials, userLocation]);
+    }, [mode, navigationRoute, pasalubongs, userLocation]);
 
 
     const getExclude = () => {
@@ -293,7 +293,7 @@ export const useNavigationLogic = ({
 
     return {
         startNavigation: handleNavigationButtonClick,
-        closeCommercialsInPath,
+        closePasalubongsInPath,
         isCalculatingRoute,
         isStartingNavigation
     };

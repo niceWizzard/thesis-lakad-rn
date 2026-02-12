@@ -289,17 +289,10 @@ const ExploreTab = () => {
                                     </HStack>
 
                                     <HStack space="xs" className="flex-wrap mt-1">
-                                        {selectedLandmark.creation_type === 'COMMERCIAL' ? (
-                                            <Badge
-                                                action="muted" variant="solid" className="rounded-lg bg-background-100 border border-outline-100">
-                                                <BadgeText className="text-[10px] text-typography-600 uppercase font-bold">Commercial</BadgeText>
-                                            </Badge>
-                                        ) : (
-                                            <Badge
-                                                action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
-                                                <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
-                                            </Badge>
-                                        )}
+                                        <Badge
+                                            action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
+                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                        </Badge>
                                     </HStack>
                                 </VStack>
 
@@ -332,7 +325,7 @@ const ExploreTab = () => {
                                             </VStack>
 
                                             {/* Actions */}
-                                            {selectedLandmark.creation_type !== 'COMMERCIAL' && (
+                                            {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
                                                 <HStack space="md" className="pb-10">
                                                     <Button
                                                         variant="outline"

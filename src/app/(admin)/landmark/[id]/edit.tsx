@@ -153,7 +153,7 @@ export default function AdminLandmarkEditScreen() {
 
     return (
         <LandmarkForm
-            initialData={landmark}
+            initialData={landmark ?? undefined}
             onSubmit={(data, img) => updateMutation.mutateAsync({ formData: data, pendingImageData: img })}
             isUpdating={updateMutation.isPending}
             submitLabel="Update Landmark"

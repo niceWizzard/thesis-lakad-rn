@@ -45,7 +45,7 @@ export default function ItineraryView() {
         itinerary,
         isLoading,
         refetch,
-        commercials,
+        pasalubongs,
         nextUnvisitedStop,
         completedStops,
         pendingStops
@@ -72,7 +72,7 @@ export default function ItineraryView() {
     } = useNavigationState(userLocation);
 
     // 4. Navigation Logic
-    const { startNavigation, closeCommercialsInPath, isCalculatingRoute, isStartingNavigation } = useNavigationLogic({
+    const { startNavigation, closePasalubongsInPath, isCalculatingRoute, isStartingNavigation } = useNavigationLogic({
         mode,
         userLocation,
         navigationRoute,
@@ -80,7 +80,7 @@ export default function ItineraryView() {
         switchMode,
         nextUnvisitedStop,
         refetchItinerary: refetch,
-        commercials,
+        pasalubongs,
         cameraRef,
         navigationProfile,
         avoidTolls,
@@ -185,8 +185,8 @@ export default function ItineraryView() {
                         show={mode === Mode.Viewing}
                     />
 
-                    {/* Commercials along the route */}
-                    {mode === Mode.Navigating && closeCommercialsInPath.map(poi => (
+                    {/* Pasalubongs Centers along the route */}
+                    {mode === Mode.Navigating && closePasalubongsInPath.map(poi => (
                         <LandmarkMarker
                             key={`nearby-${poi.id}`}
                             landmark={poi}

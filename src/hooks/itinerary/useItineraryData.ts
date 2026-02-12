@@ -1,4 +1,4 @@
-import { useQueryCommercialLandmarks } from '@/src/hooks/useQueryCommercialLandmarks';
+import { useQueryPasalubongCenters } from '@/src/hooks/useQueryPasalubongs';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,7 @@ export const useItineraryData = (id: string | number) => {
         queryFn: async () => fetchItineraryById(userId!, parsedId)
     });
 
-    const { landmarks: commercials } = useQueryCommercialLandmarks();
+    const { landmarks: pasalubongs } = useQueryPasalubongCenters();
 
     const nextUnvisitedStop = useMemo(() => {
         if (!itinerary) return null;
@@ -42,7 +42,7 @@ export const useItineraryData = (id: string | number) => {
         itinerary,
         isLoading,
         refetch,
-        commercials,
+        pasalubongs,
         nextUnvisitedStop,
         completedStops,
         pendingStops

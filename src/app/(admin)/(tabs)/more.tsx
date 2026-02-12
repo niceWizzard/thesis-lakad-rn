@@ -40,9 +40,9 @@ function MoreTab() {
         },
         {
             id: '6',
-            title: 'Archived Commercials',
+            title: 'Archived Pasalubong Centers',
             icon: Archive,
-            onPress: () => router.navigate('/(admin)/landmark/archived-commercial'),
+            onPress: () => router.navigate('/(admin)/landmark/archived-pasalubong-centers'),
         },
         {
             id: '5',

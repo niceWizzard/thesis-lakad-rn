@@ -57,7 +57,7 @@ describe('useNavigationLogic', () => {
             landmark: { longitude: 120.1, latitude: 14.1 }
         } as any,
         refetchItinerary: mockRefetchItinerary,
-        commercials: [],
+        pasalubongs: [],
         cameraRef: { current: mockCamera } as any,
         navigationProfile: 'driving' as const,
         avoidTolls: false,

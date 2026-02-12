@@ -65,12 +65,13 @@ export const fetchLandmarkById = async (id: number | string) => {
         throw new Error("Invalid ID. Must be a number.")
     }
     const parsedId = Number(id)
-    const { data, error } = await supabase
+
+    let { data, error } = await supabase
         .from('landmark')
         .select('*')
         .eq('id', parsedId)
         .order('created_at', { ascending: false })
-        .single();
+        .maybeSingle();
 
     if (error) {
         throw error;

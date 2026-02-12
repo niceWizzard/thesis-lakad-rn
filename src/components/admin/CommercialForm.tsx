@@ -21,16 +21,17 @@ import { Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalH
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
-import { createAndEditCommercialLandmarkSchema } from '@/src/schema/commercial';
+import { LandmarkDistrict } from '@/src/model/landmark.types';
+import { PasalubongCenter } from '@/src/model/pasalubong.types';
+import { createAndEditPasalubongCenterSchema } from '@/src/schema/pasalubong';
 import { useNavigation, useRouter } from 'expo-router';
 import * as z from 'zod';
 import { LocationDialogSelection } from '../LocationDialogSelection';
 
-type FormData = z.infer<typeof createAndEditCommercialLandmarkSchema>;
+type FormData = z.infer<typeof createAndEditPasalubongCenterSchema>;
 
-interface LandmarkFormProps {
-    initialData?: Landmark;
+interface PasalubongCenterFormProps {
+    initialData?: PasalubongCenter;
     onSubmit: (data: FormData, pendingImage: { base64?: string; remoteUrl?: string } | null) => Promise<void>;
     isUpdating: boolean;
     submitLabel: string;
@@ -38,14 +39,14 @@ interface LandmarkFormProps {
     disregardDiscardDialog?: boolean;
 }
 
-export function CommercialLandmarkForm({
+export function PasalubongCenterForm({
     initialData, onSubmit,
     submitLabel,
     onDirtyChange,
     isUpdating,
     disregardDiscardDialog,
 }:
-    LandmarkFormProps) {
+    PasalubongCenterFormProps) {
     const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file');
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image_url || null);
     const [pendingImageData, setPendingImageData] = useState<{ base64?: string, remoteUrl?: string } | null>(null);
@@ -57,7 +58,7 @@ export function CommercialLandmarkForm({
 
 
     const { control, handleSubmit, watch, setValue, getValues, formState: { errors, isDirty, isValid }, reset } = useForm<FormData>({
-        resolver: zodResolver(createAndEditCommercialLandmarkSchema),
+        resolver: zodResolver(createAndEditPasalubongCenterSchema),
         mode: "onChange",
         defaultValues: initialData ? {
             ...initialData,

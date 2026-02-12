@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchCommercialLandmarks } from "../utils/landmark/fetchCommercial"
+import { fetchPasalubongCenters } from "../utils/landmark/fetchPasalubongCenters"
 
-export const useQueryCommercialLandmarks = () => {
+export const useQueryPasalubongCenters = () => {
     const {
         data,
         isLoading,
@@ -9,8 +9,8 @@ export const useQueryCommercialLandmarks = () => {
         refetch,
         ...rest
     } = useQuery({
-        queryKey: ['commercial-landmarks'],
-        queryFn: fetchCommercialLandmarks,
+        queryKey: ['pasalubong-centers'],
+        queryFn: fetchPasalubongCenters,
         initialData: [],
     })
 

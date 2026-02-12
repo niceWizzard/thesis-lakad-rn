@@ -13,7 +13,7 @@ import { Landmark } from '@/src/model/landmark.types';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
+import { useQueryCombinedLandmarks } from '@/src/hooks/useQueryCombinedLandmarks';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
 import { useRouter } from 'expo-router';
@@ -28,7 +28,7 @@ const AdminExploreTab = () => {
     const [sheetIndex, setSheetIndex] = useState(0)
 
 
-    const { landmarks } = useQueryLandmarks();
+    const { landmarks } = useQueryCombinedLandmarks();
 
     useEffect(() => {
         if (selectedLandmark) {

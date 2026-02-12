@@ -7,7 +7,7 @@ import { addRecentSearch, getRecentSearches } from '@/src/utils/searchHistory'
 import { ChevronRight, Clock, MapPin } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import { FlatList, Keyboard, TouchableOpacity, View } from 'react-native'
-import { useQueryLandmarks } from '../hooks/useQueryLandmarks'
+import { useQueryCombinedLandmarks } from '../hooks/useQueryCombinedLandmarks'
 import { Landmark } from '../model/landmark.types'
 
 const SearchResultsBox = ({
@@ -20,7 +20,7 @@ const SearchResultsBox = ({
     visible: boolean
 }) => {
 
-    const { landmarks } = useQueryLandmarks();
+    const { landmarks } = useQueryCombinedLandmarks();
     const [recentLandmarks, setRecentLandmarks] = useState<Landmark[]>([])
 
     // Load recent searches when visible becomes true
@@ -41,7 +41,19 @@ const SearchResultsBox = ({
     let title = "";
 
     if (isSearching) {
-        results = landmarks.filter(v => v.name?.toLowerCase().includes(query));
+        results = landmarks.filter(v => {
+            const nameMatch = v.name?.toLowerCase().includes(query);
+            if (nameMatch) return true;
+
+            // Special case: "pasalubong" search term
+            // If the user searches for "pasalubong", we show all pasalubong centers.
+            // We identify them by checking if they lack the `creation_type` property 
+            // (since standard landmarks have it as 'TOURIST_ATTRACTION').
+            if (query.includes('pasalubong')) {
+                return !('creation_type' in v);
+            }
+            return false;
+        });
         title = `Found ${results.length} Locations`;
     } else {
         results = recentLandmarks;

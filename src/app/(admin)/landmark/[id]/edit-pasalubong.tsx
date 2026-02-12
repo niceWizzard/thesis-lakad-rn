@@ -8,15 +8,15 @@ import * as z from 'zod';
 
 import { Box } from '@/components/ui/box';
 
-import { CommercialLandmarkForm } from '@/src/components/admin/CommercialForm';
+import { PasalubongCenterForm } from '@/src/components/admin/CommercialForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { createAndEditCommercialLandmarkSchema } from '@/src/schema/commercial';
-import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
+import { createAndEditPasalubongCenterSchema } from '@/src/schema/pasalubong';
+import { fetchPasalubongCenterById } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 
-type LandmarkFormData = z.infer<typeof createAndEditCommercialLandmarkSchema>;
+type LandmarkFormData = z.infer<typeof createAndEditPasalubongCenterSchema>;
 
 export default function AdminLandmarkEditScreen() {
     const { id } = useLocalSearchParams();
@@ -27,8 +27,8 @@ export default function AdminLandmarkEditScreen() {
 
 
     const { data: landmark, isLoading } = useQuery({
-        queryKey: ['landmark', id],
-        queryFn: () => fetchLandmarkById(id.toString()),
+        queryKey: ['pasalubong', id],
+        queryFn: () => fetchPasalubongCenterById(id.toString()),
         enabled: !!id,
     });
 
@@ -101,11 +101,11 @@ export default function AdminLandmarkEditScreen() {
     if (isLoading) return <Box className="flex-1 justify-center items-center"><ActivityIndicator size="large" /></Box>;
 
     return (
-        <CommercialLandmarkForm
+        <PasalubongCenterForm
             initialData={landmark}
             onSubmit={(data, img) => updateMutation.mutateAsync({ formData: data, pendingImageData: img })}
             isUpdating={updateMutation.isPending}
-            submitLabel="Update Commercial"
+            submitLabel="Update Pasalubong Center"
             disregardDiscardDialog={disregardDiscardDialog}
         />
     )

@@ -33,7 +33,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { fetchCommercialLandmarks } from '@/src/utils/landmark/fetchCommercial';
+import { fetchPasalubongCenters } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -48,12 +48,29 @@ export default function AdminLandmarkDetailScreen() {
   const { data: landmark, isLoading } = useQuery({
     queryKey: ['landmark', id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Try fetching from landmark first
+      let { data, error } = await supabase
         .from('landmark')
         .select('*')
         .eq('id', id as any)
-        .single();
+        .maybeSingle();
+
       if (error) throw error;
+
+      if (!data) {
+        // If not found, try pasalubong_centers
+        const { data: pasalubongData, error: pasalubongError } = await supabase
+          .from('pasalubong_centers')
+          .select('*')
+          .eq('id', id as any)
+          .single();
+
+        if (pasalubongError) throw pasalubongError;
+        // Cast to any to satisfy the complex union type of Landmark, 
+        // acknowledging we are mixing types for UI convenience
+        data = pasalubongData as any;
+      }
+
       return data;
     },
     enabled: !!id,
@@ -64,17 +81,23 @@ export default function AdminLandmarkDetailScreen() {
   // --- DELETE/RESTORE MUTATION ---
   const toggleArchiveMutation = useMutation({
     mutationFn: async (shouldRestore: boolean = false) => {
+      // Check which table it belongs to based on fields
+      // We check if it has the 'creation_type' property which only exists on 'landmark' table rows
+      const isTouristy = landmark && 'creation_type' in landmark;
+      const table = isTouristy ? 'landmark' : 'pasalubong_centers';
+
       const { error } = await supabase
-        .from('landmark')
+        .from(table)
         .update({
           deleted_at: shouldRestore ? null : new Date().toISOString(),
         })
         .eq('id', id as any);
       if (error) throw error;
-      if (landmark?.creation_type === "TOURIST_ATTRACTION")
+
+      if (isTouristy)
         await queryClient.fetchQuery({ queryKey: ['landmarks'] });
-      else if (landmark?.creation_type === "COMMERCIAL")
-        await queryClient.fetchQuery({ queryKey: ['commercial-landmarks'], queryFn: fetchCommercialLandmarks })
+      else
+        await queryClient.fetchQuery({ queryKey: ['pasalubong-centers'], queryFn: fetchPasalubongCenters })
     },
     onSuccess: (_, isRestoring) => {
       showToast({
@@ -308,7 +331,7 @@ export default function AdminLandmarkDetailScreen() {
           <HStack space="md">
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
-              onPress={() => !isArchived && router.navigate(`/(admin)/landmark/${landmark.id}/edit-commercial`)}
+              onPress={() => !isArchived && router.navigate(`/(admin)/landmark/${landmark.id}/edit-pasalubong`)}
               disabled={isArchived}
             >
               <ButtonIcon as={Edit2} className={isArchived ? "text-typography-300" : "mr-2"} />

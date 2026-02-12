@@ -131,6 +131,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pasalubong_centers: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          district: Database["public"]["Enums"]["district"]
+          gmaps_rating: number
+          id: number
+          image_credits: string | null
+          image_url: string | null
+          latitude: number
+          longitude: number
+          municipality: Database["public"]["Enums"]["municipality"]
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          district: Database["public"]["Enums"]["district"]
+          gmaps_rating?: number
+          id?: number
+          image_credits?: string | null
+          image_url?: string | null
+          latitude: number
+          longitude: number
+          municipality: Database["public"]["Enums"]["municipality"]
+          name?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          district?: Database["public"]["Enums"]["district"]
+          gmaps_rating?: number
+          id?: number
+          image_credits?: string | null
+          image_url?: string | null
+          latitude?: number
+          longitude?: number
+          municipality?: Database["public"]["Enums"]["municipality"]
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

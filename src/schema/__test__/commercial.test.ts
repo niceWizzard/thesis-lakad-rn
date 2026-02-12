@@ -1,6 +1,6 @@
-import { createAndEditCommercialLandmarkSchema } from '../commercial';
+import { createAndEditPasalubongCenterSchema } from '../pasalubong';
 
-describe('createAndEditCommercialLandmarkSchema', () => {
+describe('createAndEditPasalubongCenterSchema', () => {
     const validData = {
         name: 'Valid Name',
         district: '1',
@@ -13,12 +13,12 @@ describe('createAndEditCommercialLandmarkSchema', () => {
     };
 
     it('validates correct data', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse(validData);
+        const result = createAndEditPasalubongCenterSchema.safeParse(validData);
         expect(result.success).toBe(true);
     });
 
     it('validates minimum name length', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             name: 'Ab'
         });
@@ -29,7 +29,7 @@ describe('createAndEditCommercialLandmarkSchema', () => {
     });
 
     it('validates minimum description length', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             description: 'Short'
         });
@@ -40,7 +40,7 @@ describe('createAndEditCommercialLandmarkSchema', () => {
     });
 
     it('validates latitude range', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             latitude: '91'
         });
@@ -48,7 +48,7 @@ describe('createAndEditCommercialLandmarkSchema', () => {
     });
 
     it('validates latitude format', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             latitude: 'abc'
         });
@@ -57,7 +57,7 @@ describe('createAndEditCommercialLandmarkSchema', () => {
 
     it('validates mismatching district and municipality', () => {
         // Malolos is in District 1, not District 2
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             district: '2',
             municipality: 'Malolos'
@@ -70,7 +70,7 @@ describe('createAndEditCommercialLandmarkSchema', () => {
     });
 
     it('validates gmaps_rating range', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             gmaps_rating: '6'
         });
@@ -78,7 +78,7 @@ describe('createAndEditCommercialLandmarkSchema', () => {
     });
 
     it('validates externalImageUrl URL format', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             externalImageUrl: 'not-a-url'
         });
@@ -87,12 +87,12 @@ describe('createAndEditCommercialLandmarkSchema', () => {
 
     it('accepts optional fields missing', () => {
         const { gmaps_rating, externalImageUrl, ...requiredData } = validData;
-        const result = createAndEditCommercialLandmarkSchema.safeParse(requiredData);
+        const result = createAndEditPasalubongCenterSchema.safeParse(requiredData);
         expect(result.success).toBe(true);
     });
 
     it('accepts empty string for optional externalImageUrl', () => {
-        const result = createAndEditCommercialLandmarkSchema.safeParse({
+        const result = createAndEditPasalubongCenterSchema.safeParse({
             ...validData,
             externalImageUrl: ''
         });

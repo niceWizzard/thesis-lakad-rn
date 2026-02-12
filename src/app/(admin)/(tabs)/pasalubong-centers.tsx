@@ -7,9 +7,10 @@ import {
     Filter,
     Map as MapIcon,
     MapPin,
+    Plus,
     Search,
     SortAsc,
-    Star,
+    Star, // Added Star icon
     X
 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
@@ -33,20 +34,18 @@ import {
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
-import { useAuthStore } from '@/src/stores/useAuth';
-import { fetchArchivedCommercialLandmarks } from '@/src/utils/landmark/fetchCommercial';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryPasalubongCenters } from '@/src/hooks/useQueryPasalubongs';
+import { LandmarkDistrict } from '@/src/model/landmark.types';
 
+// --- Updated SortKey Type ---
 type SortKey = 'id' | 'name' | 'rating';
 type SortOrder = 'asc' | 'desc';
 
-export default function AdminArchivedCommercialLandmarksScreen() {
+export default function AdminPasalubongCenterScreens() {
     const router = useRouter();
-    const auth = useAuthStore();
-    const userId = auth.session?.user?.id;
 
     const [searchString, setSearchString] = useState('');
     const [showFilterModal, setShowFilterModal] = useState(false);
@@ -57,16 +56,13 @@ export default function AdminArchivedCommercialLandmarksScreen() {
     const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
     const {
-        data: landmarks = [],
+        landmarks,
         isLoading,
         isRefetching,
         refetch
-    } = useQuery<Landmark[]>({
-        queryKey: ['archived_commercial_landmarks'],
-        queryFn: fetchArchivedCommercialLandmarks,
-        enabled: !!userId,
-    });
+    } = useQueryPasalubongCenters()
 
+    // --- ENHANCED FILTERING & SORTING LOGIC ---
     const processedLandmarks = useMemo(() => {
         let result = landmarks.filter(landmark => {
             const matchesSearch = landmark.name.toLowerCase().includes(searchString.toLowerCase());
@@ -81,6 +77,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
             if (sortKey === 'name') {
                 comparison = a.name.localeCompare(b.name);
             } else if (sortKey === 'rating') {
+                // Sort by gmaps_rating (defaulting to 0 if null/undefined)
                 comparison = (a.gmaps_rating ?? 0) - (b.gmaps_rating ?? 0);
             } else {
                 comparison = a.id - b.id;
@@ -102,7 +99,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
     if (isLoading && landmarks.length === 0) {
         return (
             <Box className="flex-1 bg-background-0">
-                <Stack.Screen options={{ headerTitle: "Archived Commercials" }} />
+                <Stack.Screen options={{ headerTitle: "Manage Content" }} />
                 <ScrollView contentContainerClassName="p-6 gap-6">
                     <Box className="h-12 w-full bg-background-100 rounded-2xl mb-2" />
                     {[1, 2, 3, 4].map((i) => <ItinerarySkeleton key={i} />)}
@@ -113,7 +110,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
 
     return (
         <Box className="flex-1 bg-background-0">
-            <Stack.Screen options={{ headerTitle: "Archived Commercials" }} />
+            <Stack.Screen options={{ headerTitle: "Admin Panel" }} />
 
             <FlatList
                 data={processedLandmarks}
@@ -167,6 +164,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                             </Box>
                             <VStack className='flex-1 gap-1'>
                                 <HStack className="justify-between items-start">
+                                    {/* --- Rating Badge on Card --- */}
                                     <HStack className="items-center bg-warning-50 px-1.5 py-0.5 rounded-lg border border-warning-100">
                                         <Icon as={Star} size='sm' fill="#d97706" color="#d97706" className="mr-1" />
                                         <Text size="xs" className="font-bold text-warning-700">{landmark.gmaps_rating ?? '0'}</Text>
@@ -186,13 +184,13 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                 ListEmptyComponent={
                     <VStack className="items-center justify-center py-20 gap-4">
                         <Icon as={Search} size="xl" className="text-typography-200" />
-                        <Text className="text-typography-400">No matching commercials.</Text>
+                        <Text className="text-typography-400">No matching landmarks.</Text>
                         <Button variant="link" onPress={resetFilters}><ButtonText>Reset All Filters</ButtonText></Button>
                     </VStack>
                 }
             />
 
-            {/* FILTER & SORT MODAL */}
+            {/* --- FILTER & SORT MODAL --- */}
             <Modal isOpen={showFilterModal} onClose={() => setShowFilterModal(false)}>
                 <ModalBackdrop />
                 <ModalContent className="rounded-[32px] max-h-[90%]">
@@ -206,7 +204,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                     <ModalBody>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <VStack className="p-4 gap-8">
-                                {/* Sort Section */}
+                                {/* 1. Sort Section */}
                                 <VStack className='gap-3'>
                                     <Text size="xs" className="font-bold text-typography-500 uppercase tracking-widest">Sort By</Text>
                                     <HStack className='gap-2'>
@@ -224,6 +222,8 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                                             <ButtonIcon as={SortAsc} color={sortKey === 'name' ? 'white' : '#6b7280'} />
                                             <ButtonText className={sortKey === 'name' ? 'text-white' : 'text-typography-600'}>A-Z</ButtonText>
                                         </Button>
+
+                                        {/* --- New Rating Sort Button --- */}
                                         <Button
                                             className={`flex-1 rounded-xl h-11 ${sortKey === 'rating' ? 'bg-primary-600' : 'bg-background-100'}`}
                                             onPress={() => setSortKey('rating')}
@@ -242,7 +242,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                                     </HStack>
                                 </VStack>
 
-                                {/* Jurisdiction Filter */}
+                                {/* 2. Jurisdiction Filter */}
                                 <VStack className='gap-3'>
                                     <HStack className="items-center gap-2">
                                         <Icon as={MapIcon} size="xs" className="text-typography-500" />
@@ -304,6 +304,10 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                 </ModalContent>
             </Modal>
 
+            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create-commercial')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
+                <FabIcon as={Plus} />
+                <FabLabel className="font-bold">Add New</FabLabel>
+            </Fab>
         </Box>
     );
 }

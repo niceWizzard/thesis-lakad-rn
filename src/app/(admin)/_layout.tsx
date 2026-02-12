@@ -69,14 +69,14 @@ const AdminRootLayout = () => {
             />
 
             <Stack.Screen
-                name='landmark/create-commercial'
+                name='landmark/create-pasalubong'
                 options={{
                     headerTitle: ''
                 }}
             />
 
             <Stack.Screen
-                name='landmark/[id]/edit-commercial'
+                name='landmark/[id]/edit-pasalubong'
                 options={{
                     headerTitle: ''
                 }}

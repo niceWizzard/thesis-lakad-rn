@@ -106,3 +106,28 @@ export const createLandmark = async (data: Database['public']['Tables']['landmar
         throw new Error("Landmark was not created.")
     return dbData.id
 }
+
+/**
+ * Creates a new pasalubong center entry in the global database.
+ * * @param {Database['public']['Tables']['pasalubong_centers']['Insert']} data - The pasalubong center data
+ * conforming to the Supabase schema.
+ * * @returns {Promise<number>} The ID of the newly created pasalubong center.
+ * * @throws {PostgrestError} If the database prevents the creation.
+ * @throws {Error} If the insertion completes but no ID is returned.
+ */
+export const createPasalubongCenter = async (data: Database['public']['Tables']['pasalubong_centers']['Insert']) => {
+    const { error: dbError, data: dbData } = await supabase
+        .from('pasalubong_centers')
+        .insert([{
+            ...data,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        }])
+        .select('id')
+        .single();
+
+    if (dbError) throw dbError;
+    if (!dbData)
+        throw new Error("Pasalubong Center was not created.")
+    return dbData.id
+}

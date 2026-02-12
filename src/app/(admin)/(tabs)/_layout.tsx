@@ -30,11 +30,11 @@ const AdminTabsLayout = () => {
                 }}
             />
             <Tabs.Screen
-                name='commercials'
+                name='pasalubong-centers'
                 options={{
                     tabBarIcon: TabIcon(MapPinHouse),
                     headerShown: false,
-                    tabBarLabel: "Commercials"
+                    tabBarLabel: "Pasalubong Centers"
                 }}
             />
             <Tabs.Screen

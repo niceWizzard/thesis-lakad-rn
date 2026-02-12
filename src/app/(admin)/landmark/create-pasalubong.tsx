@@ -4,16 +4,16 @@ import React, { useState } from 'react';
 import * as z from 'zod';
 
 
-import { CommercialLandmarkForm } from '@/src/components/admin/CommercialForm';
+import { PasalubongCenterForm } from '@/src/components/admin/CommercialForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { createAndEditCommercialLandmarkSchema } from '@/src/schema/commercial';
-import { fetchCommercialLandmarks } from '@/src/utils/landmark/fetchCommercial';
-import { createLandmark } from '@/src/utils/landmark/insertLandmark';
+import { createAndEditPasalubongCenterSchema } from '@/src/schema/pasalubong';
+import { fetchPasalubongCenters } from '@/src/utils/landmark/fetchPasalubongCenters';
+import { createPasalubongCenter } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 
-type CreateFormData = z.infer<typeof createAndEditCommercialLandmarkSchema>;
+type CreateFormData = z.infer<typeof createAndEditPasalubongCenterSchema>;
 
 export default function AdminLandmarkCreateScreen() {
     const router = useRouter();
@@ -53,7 +53,7 @@ export default function AdminLandmarkCreateScreen() {
 
             const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
 
-            await createLandmark({
+            await createPasalubongCenter({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),
@@ -63,10 +63,10 @@ export default function AdminLandmarkCreateScreen() {
                 gmaps_rating: parseFloat(formData.gmaps_rating || '0'),
                 image_url: publicUrl,
                 created_at: new Date().toISOString(),
-                creation_type: "COMMERCIAL",
+                updated_at: new Date().toISOString(),
             })
 
-            await queryClient.fetchQuery({ queryKey: ['commercial-landmarks'], queryFn: fetchCommercialLandmarks });
+            await queryClient.fetchQuery({ queryKey: ['commercial-landmarks'], queryFn: fetchPasalubongCenters });
         },
         onSuccess: () => {
             showToast({
@@ -83,7 +83,7 @@ export default function AdminLandmarkCreateScreen() {
     });
 
     return (
-        <CommercialLandmarkForm
+        <PasalubongCenterForm
             onSubmit={(data, img) => createMutation.mutateAsync({ formData: data, pendingImageData: img })}
             isUpdating={createMutation.isPending}
             submitLabel="Publish Commercial"
