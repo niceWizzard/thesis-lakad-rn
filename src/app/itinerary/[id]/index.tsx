@@ -156,6 +156,7 @@ export default function ItineraryView() {
                     logoEnabled={false}
                     attributionEnabled={false}
                     onPress={() => setIsSheetOpen(false)}
+                    compassEnabled
                 >
                     <Camera
                         ref={cameraRef as any}
