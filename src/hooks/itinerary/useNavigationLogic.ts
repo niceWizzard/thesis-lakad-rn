@@ -103,6 +103,7 @@ export const useNavigationLogic = ({
             if (mode !== Mode.Navigating || !nextUnvisitedStop || !userLocation) {
                 return;
             }
+            const currentLeg = navigationRoute[0].legs[0];
 
             // A. Check Arrival (Distance to destination < 10m)
             const distanceToDestination = getHaversineDistance(
@@ -110,22 +111,19 @@ export const useNavigationLogic = ({
                 [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
             );
 
-            if (distanceToDestination <= 50) {
+            if (distanceToDestination <= 10 || currentLeg.distance <= 10) {
                 finishedNavigating(nextUnvisitedStop);
                 return;
             }
 
             // B. Check Rerouting (Distance to next maneuver > 50m)
             if (navigationRoute.length && navigationRoute[0].legs.length) {
-                const currentLeg = navigationRoute[0].legs[0];
                 if (currentStepIndex < currentLeg.steps.length) {
                     const nextStep = currentLeg.steps[currentStepIndex + 1];
                     const distanceToNextStep = getHaversineDistance(
                         userLocation,
                         [nextStep.geometry.coordinates[currentStepIndex][0], nextStep.geometry.coordinates[currentStepIndex][1]]
                     );
-                    console.log(distanceToNextStep)
-
                     if (distanceToNextStep < 10) {
                         setCurrentStepIndex(currentStepIndex + 1);
                         return;
