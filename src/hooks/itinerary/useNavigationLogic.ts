@@ -8,7 +8,7 @@ import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirect
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
 import { Camera } from '@rnmapbox/maps';
 import { useQueryClient } from '@tanstack/react-query';
-import { length, lineSlice, nearestPointOnLine, point } from '@turf/turf';
+import { lineSlice, nearestPointOnLine, point, length as turfLength } from '@turf/turf';
 import { useFocusEffect } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -128,25 +128,8 @@ export const useNavigationLogic = ({
             // B. Distance Calculation for Current Step
             if (navigationRoute.length && currentLeg) {
                 const currentStep = currentLeg.steps[currentStepIndex];
-                if (currentStep && currentStep.geometry) {
-                    try {
-                        // Snap user location to the current step line
-                        const userPoint = point(userLocation);
-                        const line = currentStep.geometry;
-                        const snappedPoint = nearestPointOnLine(line, userPoint);
-
-                        // Calculate distance from snapped point to the end of the line
-                        const endPoint = point(currentStep.geometry.coordinates[currentStep.geometry.coordinates.length - 1]);
-                        const slicedLine = lineSlice(snappedPoint, endPoint, line);
-                        const distanceInKm = length(slicedLine, { units: 'kilometers' });
-
-                        setCurrentStepRemainingDistance(distanceInKm * 1000); // Convert to meters
-                    } catch (e) {
-                        // Fallback in case of turf errors (e.g. invalid geometry)
-                        console.warn("Error calculating step distance", e);
-                        setCurrentStepRemainingDistance(currentStep.distance);
-                    }
-                }
+                const calculatedDistance = calculateRemainingStepDistance(userLocation, currentStep);
+                setCurrentStepRemainingDistance(calculatedDistance);
             }
 
 
@@ -230,7 +213,9 @@ export const useNavigationLogic = ({
                 const instruction = step.maneuver.instruction;
                 // Only speak if it's a new instruction
                 if (instruction !== lastSpokenInstruction.current) {
-                    Speech.speak(`${instruction} for ${formatDistance(step.distance)}`, { language: 'en' });
+                    const distanceToSpeak = calculateRemainingStepDistance(userLocation, step);
+                    Speech.stop();
+                    Speech.speak(`${instruction} for ${formatDistance(distanceToSpeak)}`, { language: 'en' });
                     lastSpokenInstruction.current = instruction;
                 }
             }
@@ -240,15 +225,7 @@ export const useNavigationLogic = ({
                 lastSpokenInstruction.current = null;
             }
         }
-    }, [currentStepIndex, mode, isVoiceEnabled, navigationRoute, currentStepRemainingDistance]);
-
-    // Speak on arrival
-    useEffect(() => {
-        if (isProcessingArrival.current && isVoiceEnabled) {
-            Speech.speak("You have arrived at your destination.", { language: 'en' });
-        }
-    }, [isVoiceEnabled]); // Logic is slightly tricky here as isProcessingArrival is a ref. Better to hook into the function.
-
+    }, [currentStepIndex, mode, isVoiceEnabled, navigationRoute, userLocation]);
 
 
     // -------------------------------------------------------------------------
@@ -429,4 +406,25 @@ export const useNavigationLogic = ({
         currentStepRemainingDistance,
         routeLine,
     };
+};
+
+const calculateRemainingStepDistance = (userLocation: [number, number] | null, step: any) => {
+    if (!userLocation || !step || !step.geometry) return step?.distance || 0;
+    try {
+        // Snap user location to the current step line
+        const userPoint = point(userLocation);
+        const line = step.geometry;
+        const snappedPoint = nearestPointOnLine(line, userPoint);
+
+        // Calculate distance from snapped point to the end of the line
+        const endPoint = point(step.geometry.coordinates[step.geometry.coordinates.length - 1]);
+        const slicedLine = lineSlice(snappedPoint, endPoint, line);
+        const distanceInKm = turfLength(slicedLine, { units: 'kilometers' });
+
+        return distanceInKm * 1000; // Convert to meters
+    } catch (e) {
+        // Fallback in case of turf errors (e.g. invalid geometry)
+        console.warn("Error calculating step distance", e);
+        return step.distance;
+    }
 };
