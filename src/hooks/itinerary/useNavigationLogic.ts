@@ -120,7 +120,7 @@ export const useNavigationLogic = ({
                 [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
             );
 
-            if (distanceToDestination <= 10 || currentLeg.distance <= 10) {
+            if (distanceToDestination <= 20 || currentLeg.distance <= 10) {
                 finishedNavigating(nextUnvisitedStop);
                 return;
             }
@@ -162,13 +162,13 @@ export const useNavigationLogic = ({
                         userLocation
                     ).geometry.coordinates
                 );
-                if (distanceToRoute > 20) {
+                if (distanceToRoute > 30) {
                     // Check if we have moved significantly since the last reroute
                     const distanceSinceLastReroute = lastRerouteLocation.current
                         ? getHaversineDistance(userLocation, lastRerouteLocation.current)
                         : 9999; // If null, treat as moved enough
 
-                    if (distanceSinceLastReroute > 5) {
+                    if (distanceSinceLastReroute > 20) {
                         (async () => {
                             try {
                                 lastRerouteLocation.current = userLocation; // Update last reroute location

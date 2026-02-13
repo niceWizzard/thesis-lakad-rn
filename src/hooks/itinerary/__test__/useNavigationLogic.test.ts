@@ -281,7 +281,7 @@ describe('useNavigationLogic', () => {
     it('speaks the correct calculated distance', async () => {
         (getHaversineDistance as jest.Mock)
             .mockReturnValueOnce(100)
-            .mockReturnValue(20);
+            .mockReturnValue(30);
         const { result } = renderHook(() => useNavigationLogic({
             ...defaultProps,
             mode: Mode.Navigating,
