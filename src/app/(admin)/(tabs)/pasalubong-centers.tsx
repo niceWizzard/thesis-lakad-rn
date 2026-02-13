@@ -304,7 +304,7 @@ export default function AdminPasalubongCenterScreens() {
                 </ModalContent>
             </Modal>
 
-            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create-commercial')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
+            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create-pasalubong')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
                 <FabIcon as={Plus} />
                 <FabLabel className="font-bold">Add New</FabLabel>
             </Fab>
