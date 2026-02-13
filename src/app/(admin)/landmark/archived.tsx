@@ -67,7 +67,7 @@ export default function AdminArchivedLandmarksScreen() {
         isRefetching,
         refetch
     } = useQuery<Landmark[]>({
-        queryKey: ['archived_landmarks'],
+        queryKey: ['archived-landmarks'],
         queryFn: fetchArchivedLandmarks,
         enabled: !!userId,
     });

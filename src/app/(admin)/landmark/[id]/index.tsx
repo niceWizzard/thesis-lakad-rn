@@ -34,7 +34,7 @@ import { VStack } from '@/components/ui/vstack';
 
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
-import { fetchPasalubongCenterById, fetchPasalubongCenters } from '@/src/utils/landmark/fetchPasalubongCenters';
+import { fetchPasalubongCenterById } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -77,10 +77,14 @@ export default function AdminLandmarkDetailScreen() {
       if (error) throw error;
 
       await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-      if (isTouristy)
-        await queryClient.fetchQuery({ queryKey: ['landmarks'] });
-      else
-        await queryClient.fetchQuery({ queryKey: ['pasalubong-centers'], queryFn: fetchPasalubongCenters })
+      if (isTouristy) {
+        await queryClient.invalidateQueries({ queryKey: ['landmarks'] })
+        await queryClient.invalidateQueries({ queryKey: ['archived-landmarks'] })
+      }
+      else {
+        await queryClient.invalidateQueries({ queryKey: ['pasalubong-centers'], });
+        await queryClient.invalidateQueries({ queryKey: ['archived-pasalubong-centers'] })
+      }
     },
     onSuccess: (_, isRestoring) => {
       showToast({

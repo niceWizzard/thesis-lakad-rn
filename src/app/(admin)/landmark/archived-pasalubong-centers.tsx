@@ -62,7 +62,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
         isRefetching,
         refetch
     } = useQuery<Landmark[]>({
-        queryKey: ['archived_pasalubong_centers'],
+        queryKey: ['archived-pasalubong-centers'],
         queryFn: fetchArchivedPasalubongCenters,
         enabled: !!userId,
     });
