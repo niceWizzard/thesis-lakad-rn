@@ -86,7 +86,7 @@ const ManageDistanceMatrix = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['distance-stats'] });
-            showToast({ title: "Matrix updated successfully", action: "success" });
+            showToast({ title: "Database updated successfully", action: "success" });
         },
         onError: (err: any) => {
             showToast({ title: "Update failed", description: err.message, action: "error" });
@@ -108,9 +108,9 @@ const ManageDistanceMatrix = () => {
     const getLoadingText = () => {
         switch (status) {
             case 'fetching':
-                return `Querying matrix (${queryProgress}%)`
+                return `Querying distances (${queryProgress}%)`
             case 'saving':
-                return 'Saving matrix calculations...'
+                return 'Saving distances...'
             case 'idle':
                 return 'idle';
             default:
@@ -169,7 +169,7 @@ const ManageDistanceMatrix = () => {
                         <Text size="xs" className="text-info-700 font-bold uppercase">Important</Text>
                     </HStack>
                     <Text size="xs" className="text-info-600 leading-5">
-                        Updating the matrix will re-calculate every possible path between all landmarks.
+                        Updating the database will re-calculate every possible path between all landmarks.
                         This may take a few moments depending on the number of waypoints.
                     </Text>
                 </VStack>
@@ -182,7 +182,7 @@ const ManageDistanceMatrix = () => {
                 >
                     {isPending ? <ButtonSpinner className="mr-2" /> : <ButtonIcon as={RefreshCw} className="mr-2" />}
                     <ButtonText className="font-bold">
-                        {isPending ? "Calculating Matrix..." : "Update Distance Matrix"}
+                        {isPending ? "Calculating Distances ..." : "Update Distance Database"}
                     </ButtonText>
                 </Button>
             </Box>
