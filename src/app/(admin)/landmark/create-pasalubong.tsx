@@ -86,7 +86,7 @@ export default function AdminLandmarkCreateScreen() {
         <PasalubongCenterForm
             onSubmit={(data, img) => createMutation.mutateAsync({ formData: data, pendingImageData: img })}
             isUpdating={createMutation.isPending}
-            submitLabel="Publish Commercial"
+            submitLabel="Publish Pasalubong Center"
             disregardDiscardDialog={disregardDiscardDialog}
         />
     )
