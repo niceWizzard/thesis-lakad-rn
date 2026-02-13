@@ -50,7 +50,7 @@ export default function AdminLandmarkDetailScreen() {
   const { data: landmark, isLoading, error } = useQuery({
     queryKey: ['landmark', id, isPasalubong],
     queryFn: () => {
-      if (isPasalubong.toString() === 'true') {
+      if (isPasalubong?.toString() === 'true') {
         return fetchPasalubongCenterById(id as string);
       }
 
