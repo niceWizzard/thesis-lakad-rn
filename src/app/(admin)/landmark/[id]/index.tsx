@@ -77,6 +77,7 @@ export default function AdminLandmarkDetailScreen() {
         .eq('id', id as any);
       if (error) throw error;
 
+      await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
       if (isTouristy)
         await queryClient.fetchQuery({ queryKey: ['landmarks'] });
       else
