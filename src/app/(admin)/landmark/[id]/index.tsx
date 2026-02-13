@@ -39,23 +39,22 @@ import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function AdminLandmarkDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, isPasalubong } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToastNotification();
   const queryClient = useQueryClient();
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
+
   // --- DATA FETCHING ---
   const { data: landmark, isLoading, error } = useQuery({
-    queryKey: ['landmark', id],
-    queryFn: async () => {
-      // Try fetching from landmark first
-      let data = await fetchLandmarkById(id as string);
-      if (!data) {
-        data = await fetchPasalubongCenterById(id as string);
+    queryKey: ['landmark', id, isPasalubong],
+    queryFn: () => {
+      if (isPasalubong.toString() === 'true') {
+        return fetchPasalubongCenterById(id as string);
       }
 
-      return data;
+      return fetchLandmarkById(id as string);
     },
     enabled: !!id,
   });
@@ -323,7 +322,13 @@ export default function AdminLandmarkDetailScreen() {
           <HStack space="md">
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
-              onPress={() => !isArchived && router.navigate(`/(admin)/landmark/${landmark.id}/edit${!isTouristy ? '-pasalubong' : ''}`)}
+              onPress={() => !isArchived && router.navigate({
+                pathname: isPasalubong ? `/(admin)/landmark/[id]/edit-pasalubong` : `/(admin)/landmark/[id]/edit`,
+                params: {
+                  id: landmark.id.toString(),
+                  isPasalubong: (!!isPasalubong).toString(),
+                }
+              })}
               disabled={isArchived}
             >
               <ButtonIcon as={Edit2} className={isArchived ? "text-typography-300" : "mr-2"} />
