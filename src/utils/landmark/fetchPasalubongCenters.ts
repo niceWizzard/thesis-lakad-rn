@@ -58,7 +58,7 @@ export const fetchPasalubongCenterById = async (id: number | string): Promise<La
         .from('pasalubong_centers')
         .select('*')
         .eq('id', parsedId)
-        .single();
+        .maybeSingle();
 
     if (error) {
         throw error;
