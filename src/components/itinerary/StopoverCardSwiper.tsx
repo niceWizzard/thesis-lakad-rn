@@ -87,10 +87,38 @@ const SwipeableCard = forwardRef(({ stop, onSwipeLeftConfirmed, onSwipeRightConf
         };
     });
 
+    const leftHintStyle = useAnimatedStyle(() => {
+        return {
+            opacity: translateX.value > 0 ? translateX.value / (SCREEN_WIDTH * 0.3) : 0,
+        };
+    });
+
+    const rightHintStyle = useAnimatedStyle(() => {
+        return {
+            opacity: translateX.value < 0 ? -translateX.value / (SCREEN_WIDTH * 0.3) : 0,
+        };
+    });
+
     return (
         <GestureDetector gesture={panGesture}>
             <Animated.View style={[animatedStyle, { flex: 1, width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }]}>
-                <StopOverCard stop={stop} />
+                <View className='relative'>
+                    <StopOverCard stop={stop} />
+
+                    {/* Keep Hint (Swipe Right) */}
+                    <Animated.View style={[leftHintStyle, { position: 'absolute', top: 40, left: 40, transform: [{ rotate: '-30deg' }] }]}>
+                        <View className='border-4 border-green-500 rounded-lg p-2 bg-white/80'>
+                            <Text className='text-green-500 font-bold text-4xl uppercase tracking-widest'>Keep</Text>
+                        </View>
+                    </Animated.View>
+
+                    {/* Remove Hint (Swipe Left) */}
+                    <Animated.View style={[rightHintStyle, { position: 'absolute', top: 40, right: 40, transform: [{ rotate: '30deg' }] }]}>
+                        <View className='border-4 border-red-500 rounded-lg p-2 bg-white/80'>
+                            <Text className='text-red-500 font-bold text-4xl uppercase tracking-widest'>Remove</Text>
+                        </View>
+                    </Animated.View>
+                </View>
             </Animated.View>
         </GestureDetector>
     );
