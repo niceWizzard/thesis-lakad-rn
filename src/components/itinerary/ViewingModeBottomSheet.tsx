@@ -162,20 +162,8 @@ export function ViewingModeBottomSheet({
                         <ButtonText>Add</ButtonText>
                     </Button>
                 </HStack>
-                <HStack space='md' className='w-full justify-center flex-wrap'>
-                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
-                        isDisabled={pendingStops.length < 2}
-                    >
-                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                        <ButtonText>Reorder</ButtonText>
-                    </Button>
-                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={pendingStops.length < 1}>
-                        <ButtonIcon as={Navigation} className='mr-2' />
-                        <ButtonText>Navigate</ButtonText>
-                    </Button>
-                </HStack>
                 <Divider />
-                <HStack className='justify-end px-4'
+                <HStack className='justify-end px-4 gap-4'
                 >
                     {
                         itinerary.stops.length > 0 && (
@@ -186,6 +174,17 @@ export function ViewingModeBottomSheet({
                             </Button>
                         )
                     }
+                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
+                        isDisabled={pendingStops.length < 2}
+                    >
+                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
+                        <ButtonText>Reorder</ButtonText>
+                    </Button>
+                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={pendingStops.length < 1}>
+                        <ButtonIcon as={Navigation} className='mr-2' />
+                        <ButtonText>Navigate</ButtonText>
+                    </Button>
+
                 </HStack>
                 {itinerary.stops.map((item, currentIndex) => {
                     const isVisited = !!item.visited_at;
@@ -206,6 +205,11 @@ export function ViewingModeBottomSheet({
                         </View>
                     );
                 })}
+                {
+                    itinerary.stops.length === 0 && (
+                        <Text className='text-center text-typography-500'>No stops added yet.</Text>
+                    )
+                }
             </VStack>
         </>
     );
