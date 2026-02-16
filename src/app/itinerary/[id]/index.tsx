@@ -35,6 +35,8 @@ import StopoverCardSwiper from '@/src/components/itinerary/StopoverCardSwiper';
 import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 import LoadingModal from '@/src/components/LoadingModal';
+import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 export default function ItineraryView() {
@@ -42,6 +44,8 @@ export default function ItineraryView() {
     const router = useRouter();
     const { showToast } = useToastNotification();
     const [isCardViewOpened, setIsCardViewOpened] = useState(false)
+    const [localStops, setLocalStops] = useState<ItineraryWithStops['stops']>([])
+    const queryClient = useQueryClient()
 
 
     // 1. Data Hooks
@@ -161,10 +165,16 @@ export default function ItineraryView() {
             <Portal isOpen={isCardViewOpened}>
                 <StopoverCardSwiper
                     onClose={() => {
+                        setLocalStops([])
                         setIsSheetOpen(true);
                         setIsCardViewOpened(false);
                     }}
-                    landmarks={itinerary.stops.map((stop) => stop.landmark)}
+                    stops={localStops}
+                    refetch={async () => {
+                        await refetch()
+                        await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+                    }}
+                    showToast={showToast}
                 />
             </Portal>
 
@@ -250,6 +260,7 @@ export default function ItineraryView() {
                             pendingStops={pendingStops}
                             completedStops={completedStops}
                             onCardViewOpen={() => {
+                                setLocalStops(itinerary.stops)
                                 setIsSheetOpen(false);
                                 setIsCardViewOpened(true);
                             }}

@@ -3,14 +3,15 @@ import { Heading } from '@/components/ui/heading'
 import { HStack } from '@/components/ui/hstack'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
-import { Landmark } from '@/src/model/landmark.types'
+import { ItineraryWithStops } from '@/src/model/itinerary.types'
 import React from 'react'
 import { Image, View } from 'react-native'
 
-const StopOverCard = ({ landmark }: {
-    landmark: Landmark,
+const StopOverCard = ({ stop }: {
+    stop: ItineraryWithStops['stops'][number],
 
 }) => {
+    const landmark = stop.landmark
     return (
         <View className='w-96 h-[400px] rounded-lg bg-background-0'>
             {
