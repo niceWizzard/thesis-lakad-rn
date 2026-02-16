@@ -202,7 +202,7 @@ const StopoverCardSwiper = ({
                 <VStack className='flex-1 w-full h-full p-safe'>
                     <Center className='flex-1 w-full h-full'>
                         <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
-                            <Text>All stops swiped</Text>
+                            <Text>End of stops</Text>
                         </VStack>
                     </Center>
                     <HStack className='p-4 gap-4 justify-center'>
