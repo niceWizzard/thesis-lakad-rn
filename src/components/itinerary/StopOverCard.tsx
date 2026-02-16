@@ -1,9 +1,11 @@
 import { Badge, BadgeText } from '@/components/ui/badge'
+import { Center } from '@/components/ui/center'
 import { Heading } from '@/components/ui/heading'
 import { HStack } from '@/components/ui/hstack'
 import { Text } from '@/components/ui/text'
 import { VStack } from '@/components/ui/vstack'
 import { ItineraryWithStops } from '@/src/model/itinerary.types'
+import { ImageOff } from 'lucide-react-native'
 import React from 'react'
 import { Image, View } from 'react-native'
 
@@ -15,11 +17,15 @@ const StopOverCard = ({ stop }: {
     return (
         <View className='w-96 h-[400px] rounded-lg bg-background-0 overflow-hidden'>
             {
-                landmark.image_url && (
+                landmark.image_url ? (
                     <Image
                         source={{ uri: landmark.image_url }}
                         className='w-full h-48'
                     />
+                ) : (
+                    <Center className='w-full h-48 bg-white'>
+                        <ImageOff size={48} color='#d1d5db' />
+                    </Center>
                 )
             }
             <VStack
