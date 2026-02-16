@@ -161,9 +161,15 @@ const StopoverCardSwiper = ({
     useEffect(() => {
         stops.forEach(stop => {
             if (!stop.landmark.image_url) return;
-            Image.prefetch(stop.landmark.image_url);
+            Image.prefetch(stop.landmark.image_url).catch((err) => {
+                showToast({
+                    title: "Error prefetching image",
+                    description: err.message ?? "Could not prefetch image.",
+                    action: 'error'
+                })
+            });
         })
-    }, [stops]);
+    }, [showToast, stops]);
 
     const currentStop = stops[currentIndex];
 
