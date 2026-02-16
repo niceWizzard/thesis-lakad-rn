@@ -11,7 +11,8 @@
     "lint": "expo lint && eslint",
     "test": "jest",
     "test:watch": "jest --watchAll",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "lintest": "expo lint && eslint && jest"
   },
   "dependencies": {
     "@expo/html-elements": "^0.12.5",
