@@ -359,7 +359,7 @@ const CreateWithAgamScreenContent = () => {
                                             className="flex-row items-center gap-2 border border-primary-200 rounded-lg px-2 py-1"
                                         >
                                             <Icon as={ListCheck} className="text-primary-600" />
-                                            <Text size="xs" className="text-primary-600 font-bold uppercase tracking-wider">
+                                            <Text size="sm" className="text-primary-600 font-bold uppercase tracking-wider">
                                                 {selectedMunicipalities.length === MUNICIPALITIES.length ? "Deselect All Districts" : "Select All Districts"}
                                             </Text>
                                         </TouchableOpacity>
@@ -372,9 +372,9 @@ const CreateWithAgamScreenContent = () => {
                                             return (
                                                 <VStack key={district.id} className="gap-2 pb-2 border-b border-outline-50">
                                                     <HStack className="justify-between items-center bg-background-100 p-2 rounded-lg">
-                                                        <Text size="sm" className="font-bold text-typography-900">{district.label}</Text>
+                                                        <Text size="md" className="font-bold text-typography-900">{district.label}</Text>
                                                         <TouchableOpacity onPress={() => toggleAllInDistrict(district.id)}>
-                                                            <Text size="xs" className="text-primary-600 font-bold">
+                                                            <Text size="sm" className="text-primary-600 font-bold">
                                                                 {areAllSelected ? "Deselect All" : "Select All"}
                                                             </Text>
                                                         </TouchableOpacity>
@@ -390,7 +390,7 @@ const CreateWithAgamScreenContent = () => {
                                                                     className={`px-3 py-1.5 rounded-md border ${isMuniActive ? 'bg-primary-100 border-primary-600' : 'bg-background-0 border-outline-200'
                                                                         }`}
                                                                 >
-                                                                    <Text size="xs" className={isMuniActive ? 'text-typography-900 font-bold' : 'text-typography-500'}>
+                                                                    <Text size="sm" className={isMuniActive ? 'text-typography-900 font-bold' : 'text-typography-500'}>
                                                                         {muni}
                                                                     </Text>
                                                                 </TouchableOpacity>
@@ -426,7 +426,7 @@ const CreateWithAgamScreenContent = () => {
                                 <AccordionContent>
                                     <HStack className="justify-end gap-4 px-2 mb-2">
                                         <TouchableOpacity onPress={() => toggleAll('types', selectedTypes.length === LANDMARK_TYPES.length ? 'deselect' : 'select')}>
-                                            <Text size="xs" className="text-primary-600 font-bold">
+                                            <Text size="sm" className="text-primary-600 font-bold">
                                                 {selectedTypes.length === LANDMARK_TYPES.length ? "Deselect All" : "Select All"}
                                             </Text>
                                         </TouchableOpacity>
@@ -440,7 +440,7 @@ const CreateWithAgamScreenContent = () => {
                                                     onPress={() => toggleItem(selectedTypes, c.id, 'types')}
                                                     className={`px-3 py-1.5 rounded-md border ${active ? 'bg-primary-100 border-primary-600' : 'bg-background-0 border-outline-200'}`}
                                                 >
-                                                    <Text size="xs" className={active ? 'text-typography-900 font-bold' : 'text-typography-500'}>{c.label}</Text>
+                                                    <Text size="sm" className={active ? 'text-typography-900 font-bold' : 'text-typography-500'}>{c.label}</Text>
                                                 </TouchableOpacity>
                                             );
                                         })}
@@ -461,7 +461,7 @@ const CreateWithAgamScreenContent = () => {
                                 <FormControl isInvalid={!!errors.maxDistance}>
                                     <FormControlLabel className="mb-2">
                                         <HStack className="items-center gap-2">
-                                            <Icon as={Navigation2} size="xs" className="text-primary-600" />
+                                            <Icon as={Navigation2} size="sm" className="text-primary-600" />
                                             <FormControlLabelText size="sm" className="font-bold">Max Distance (KM)</FormControlLabelText>
                                         </HStack>
                                     </FormControlLabel>
@@ -480,8 +480,8 @@ const CreateWithAgamScreenContent = () => {
                                         )}
                                     />
                                     <FormControlError className="mt-1">
-                                        <FormControlErrorIcon as={AlertCircle} size="xs" />
-                                        <FormControlErrorText size="xs">{errors.maxDistance?.message}</FormControlErrorText>
+                                        <FormControlErrorIcon as={AlertCircle} size="sm" />
+                                        <FormControlErrorText size="sm">{errors.maxDistance?.message}</FormControlErrorText>
                                     </FormControlError>
                                 </FormControl>
                             </CopilotBox>
@@ -495,7 +495,7 @@ const CreateWithAgamScreenContent = () => {
                                 <FormControl isInvalid={!!errors.maxPoi}>
                                     <FormControlLabel className="mb-2">
                                         <HStack className="items-center gap-2">
-                                            <Icon as={CheckCircle2} size="xs" className="text-primary-600" />
+                                            <Icon as={CheckCircle2} size="sm" className="text-primary-600" />
                                             <FormControlLabelText size="sm" className="font-bold">Max Stopovers</FormControlLabelText>
                                         </HStack>
                                     </FormControlLabel>
@@ -514,8 +514,8 @@ const CreateWithAgamScreenContent = () => {
                                         )}
                                     />
                                     <FormControlError className="mt-1">
-                                        <FormControlErrorIcon as={AlertCircle} size="xs" />
-                                        <FormControlErrorText size="xs">{errors.maxPoi?.message}</FormControlErrorText>
+                                        <FormControlErrorIcon as={AlertCircle} size="sm" />
+                                        <FormControlErrorText size="sm">{errors.maxPoi?.message}</FormControlErrorText>
                                     </FormControlError>
                                 </FormControl>
                             </CopilotBox>
@@ -525,8 +525,8 @@ const CreateWithAgamScreenContent = () => {
                     {/* Warning Hint */}
                     {availableCount < 2 && (
                         <HStack className="mt-4 p-3 bg-warning-50 rounded-lg border border-warning-100 gap-2 items-center">
-                            <Icon as={AlertCircle} size="xs" className="text-warning-600" />
-                            <Text size="xs" className="text-warning-700">Select more filters to generate a valid route.</Text>
+                            <Icon as={AlertCircle} size="sm" className="text-warning-600" />
+                            <Text size="sm" className="text-warning-700">Select more filters to generate a valid route.</Text>
                         </HStack>
                     )}
                     <CopilotStep
