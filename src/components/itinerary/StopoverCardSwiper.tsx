@@ -10,7 +10,8 @@ import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native';
 import React, { ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { BackHandler, Image, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import StopOverCard from './StopOverCard';
 
 // Interface for the exposed methods
@@ -36,14 +37,14 @@ const SwipeableCard = forwardRef(({ stop, onSwipeLeftConfirmed, onSwipeRightConf
         swipeLeft: () => {
             translateX.value = withTiming(-SCREEN_WIDTH, { duration: 200 }, (finished) => {
                 if (finished) {
-                    runOnJS(onSwipeLeftConfirmed)();
+                    scheduleOnRN(onSwipeLeftConfirmed);
                 }
             });
         },
         swipeRight: () => {
             translateX.value = withTiming(SCREEN_WIDTH, { duration: 200 }, (finished) => {
                 if (finished) {
-                    runOnJS(onSwipeRightConfirmed)();
+                    scheduleOnRN(onSwipeRightConfirmed);
                 }
             });
         }
@@ -63,9 +64,9 @@ const SwipeableCard = forwardRef(({ stop, onSwipeLeftConfirmed, onSwipeRightConf
                     (finished) => {
                         if (finished) {
                             if (isSwipingRight) {
-                                runOnJS(onSwipeRightConfirmed)();
+                                scheduleOnRN(onSwipeRightConfirmed);
                             } else {
-                                runOnJS(onSwipeLeftConfirmed)();
+                                scheduleOnRN(onSwipeLeftConfirmed);
                             }
                         }
                     }
