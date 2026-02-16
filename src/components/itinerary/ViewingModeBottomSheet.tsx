@@ -177,11 +177,15 @@ export function ViewingModeBottomSheet({
                 <Divider />
                 <HStack className='justify-end px-4'
                 >
-                    <Button action='secondary' className='rounded-2xl shadow-md'
-                        onPress={() => onCardViewOpen(true)}
-                    >
-                        <ButtonIcon as={SquareStack} />
-                    </Button>
+                    {
+                        itinerary.stops.length > 0 && (
+                            <Button action='secondary' className='rounded-2xl shadow-md'
+                                onPress={() => onCardViewOpen(true)}
+                            >
+                                <ButtonIcon as={SquareStack} />
+                            </Button>
+                        )
+                    }
                 </HStack>
                 {itinerary.stops.map((item, currentIndex) => {
                     const isVisited = !!item.visited_at;
