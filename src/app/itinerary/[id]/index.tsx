@@ -8,7 +8,7 @@ import {
 } from '@rnmapbox/maps';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Edit } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 // UI Components
@@ -40,7 +40,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 
 export default function ItineraryView() {
-    const { id } = useLocalSearchParams();
+    const { id, autoOpenCardView } = useLocalSearchParams();
     const router = useRouter();
     const { showToast } = useToastNotification();
     const [isCardViewOpened, setIsCardViewOpened] = useState(false)
@@ -79,7 +79,7 @@ export default function ItineraryView() {
         setAvoidTolls,
         isVoiceEnabled,
         setIsVoiceEnabled,
-    } = useNavigationState(userLocation);
+    } = useNavigationState(userLocation, !!autoOpenCardView);
 
     // 4. Navigation Logic
     const {
@@ -118,6 +118,25 @@ export default function ItineraryView() {
         }
     }, [userLocation, mode, cameraRef]);
 
+    const openCardView = useCallback(() => {
+        if (!itinerary) return;
+        setLocalStops(itinerary.stops)
+        setIsSheetOpen(false);
+        setIsCardViewOpened(true);
+    }, [itinerary, setIsSheetOpen])
+
+    const closeCardView = () => {
+        setLocalStops([])
+        setIsSheetOpen(true);
+        setIsCardViewOpened(false);
+    }
+
+    useEffect(() => {
+        if (autoOpenCardView) {
+            openCardView();
+        }
+    }, [autoOpenCardView, openCardView]);
+
 
     // Loading State
     if (isLoading || !itinerary) {
@@ -144,6 +163,10 @@ export default function ItineraryView() {
         }
     };
 
+
+
+
+
     return (
         <>
             <Stack.Screen
@@ -164,11 +187,7 @@ export default function ItineraryView() {
 
             <Portal isOpen={isCardViewOpened}>
                 <StopoverCardSwiper
-                    onClose={() => {
-                        setLocalStops([])
-                        setIsSheetOpen(true);
-                        setIsCardViewOpened(false);
-                    }}
+                    onClose={closeCardView}
                     stops={localStops}
                     refetch={async () => {
                         await refetch()
@@ -239,7 +258,7 @@ export default function ItineraryView() {
                 />
 
                 <CustomBottomSheet
-                    index={0}
+                    index={isSheetOpen ? 0 : -1}
                     bottomSheetRef={bottomSheetRef}
                     snapPoints={mode === Mode.Navigating ? ["45%", "70%"] : ["50%", "70%"]}
                     isBottomSheetOpened={isSheetOpen}
@@ -259,11 +278,7 @@ export default function ItineraryView() {
                             goNavigationMode={startNavigation}
                             pendingStops={pendingStops}
                             completedStops={completedStops}
-                            onCardViewOpen={() => {
-                                setLocalStops(itinerary.stops)
-                                setIsSheetOpen(false);
-                                setIsCardViewOpened(true);
-                            }}
+                            onCardViewOpen={openCardView}
                         />
                         <NavigatingModeBottomSheet
                             navigationRoute={navigationRoute}

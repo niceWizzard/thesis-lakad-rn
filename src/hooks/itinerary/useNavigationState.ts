@@ -15,9 +15,9 @@ export enum Mode {
  * @param userLocation - Current user location to center camera on viewing mode switch.
  * @returns State and setters for navigation mode.
  */
-export const useNavigationState = (userLocation: [number, number] | null) => {
+export const useNavigationState = (userLocation: [number, number] | null, autoOpenCardView: boolean) => {
     const [mode, setMode] = useState<Mode>(Mode.Viewing);
-    const [isSheetOpen, setIsSheetOpen] = useState(true);
+    const [isSheetOpen, setIsSheetOpen] = useState(!autoOpenCardView);
     const [navigationRoute, setNavigationRoute] = useState<MapboxRoute[]>([]);
 
     // Navigation Settings
