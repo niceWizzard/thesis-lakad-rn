@@ -1,6 +1,7 @@
 import { supabase } from '@/src/utils/supabase';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
+import { Image } from 'react-native';
 import StopoverCardSwiper from '../StopoverCardSwiper';
 
 // Setup chaining mocks
@@ -120,6 +121,9 @@ describe('StopoverCardSwiper', () => {
 
         // Link the mock
         (supabase.from as jest.Mock).mockImplementation(mockFrom);
+
+        // Mock Image.prefetch
+        jest.spyOn(Image, 'prefetch').mockImplementation(() => Promise.resolve(true));
     });
 
     it('renders correctly', () => {
