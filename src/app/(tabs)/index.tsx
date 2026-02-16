@@ -297,65 +297,59 @@ const ExploreTab = () => {
                                     </HStack>
                                 </VStack>
 
-                                {
-                                    sheetIndex > 0 && (
-                                        <>
-                                            {/* Image Section */}
-                                            <Box className="relative">
-                                                <Image
-                                                    source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
-                                                    className="w-full h-56 rounded-[32px] bg-background-100"
-                                                    resizeMode="cover"
-                                                />
-                                                <Pressable
-                                                    className="absolute top-4 right-4 bg-black/40 p-2 rounded-full backdrop-blur-md"
-                                                    onPress={() => setShowImageCredits(true)}
-                                                >
-                                                    <Icon as={Info} size="sm" className="text-white" />
-                                                </Pressable>
-                                            </Box>
+                                {/* Image Section */}
+                                <Box className="relative">
+                                    <Image
+                                        source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
+                                        className="w-full h-56 rounded-[32px] bg-background-100"
+                                        resizeMode="cover"
+                                    />
+                                    <Pressable
+                                        className="absolute top-4 right-4 bg-black/40 p-2 rounded-full backdrop-blur-md"
+                                        onPress={() => setShowImageCredits(true)}
+                                    >
+                                        <Icon as={Info} size="sm" className="text-white" />
+                                    </Pressable>
+                                </Box>
 
-                                            {/* Description */}
-                                            <VStack space="xs">
-                                                <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
-                                                <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
-                                                    <Text size="sm" className="text-typography-600 leading-relaxed">
-                                                        {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
-                                                    </Text>
-                                                </Box>
-                                            </VStack>
+                                {/* Description */}
+                                <VStack space="xs">
+                                    <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
+                                    <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
+                                        <Text size="sm" className="text-typography-600 leading-relaxed">
+                                            {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
+                                        </Text>
+                                    </Box>
+                                </VStack>
 
-                                            {/* Actions */}
-                                            {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
-                                                <HStack space="md" className="pb-10">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
-                                                        onPress={() => {
-                                                            router.navigate({
-                                                                pathname: '/landmark/[id]/view',
-                                                                params: {
-                                                                    id: selectedLandmark.id.toString(),
-                                                                },
-                                                            });
-                                                        }}
-                                                    >
-                                                        <ButtonIcon as={Info} className="mr-2 text-typography-900" />
-                                                        <ButtonText className="font-bold text-typography-900">Details</ButtonText>
-                                                    </Button>
+                                {/* Actions */}
+                                {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
+                                    <HStack space="md" className="pb-10">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                            onPress={() => {
+                                                router.navigate({
+                                                    pathname: '/landmark/[id]/view',
+                                                    params: {
+                                                        id: selectedLandmark.id.toString(),
+                                                    },
+                                                });
+                                            }}
+                                        >
+                                            <ButtonIcon as={Info} className="mr-2 text-typography-900" />
+                                            <ButtonText className="font-bold text-typography-900">Details</ButtonText>
+                                        </Button>
 
-                                                    <Button
-                                                        className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                                        onPress={handleAddToItinerary}
-                                                    >
-                                                        <ButtonIcon as={MapPin} className="mr-2" />
-                                                        <ButtonText className="font-bold">Add to Itinerary</ButtonText>
-                                                    </Button>
-                                                </HStack>
-                                            )}
-                                        </>
-                                    )
-                                }
+                                        <Button
+                                            className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                            onPress={handleAddToItinerary}
+                                        >
+                                            <ButtonIcon as={MapPin} className="mr-2" />
+                                            <ButtonText className="font-bold">Add to Itinerary</ButtonText>
+                                        </Button>
+                                    </HStack>
+                                )}
                             </VStack>
                         ) : (
                             <Box className="flex-1 justify-center items-center p-10">

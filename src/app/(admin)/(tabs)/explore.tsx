@@ -118,56 +118,50 @@ const AdminExploreTab = () => {
                                 </HStack>
                             </VStack>
 
-                            {
-                                sheetIndex > 0 && (
-                                    <>
-                                        {/* Image Section */}
-                                        <Image
-                                            source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
-                                            className="w-full h-56 rounded-[32px] bg-background-100"
-                                            resizeMode="cover"
-                                        />
+                            {/* Image Section */}
+                            <Image
+                                source={{ uri: selectedLandmark.image_url || "https://via.placeholder.com/600x400" }}
+                                className="w-full h-56 rounded-[32px] bg-background-100"
+                                resizeMode="cover"
+                            />
 
-                                        {/* Description */}
-                                        <VStack space="xs">
-                                            <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
-                                            <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
-                                                <Text size="sm" className="text-typography-600 leading-relaxed">
-                                                    {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
-                                                </Text>
-                                            </Box>
-                                        </VStack>
+                            {/* Description */}
+                            <VStack space="xs">
+                                <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
+                                <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
+                                    <Text size="sm" className="text-typography-600 leading-relaxed">
+                                        {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
+                                    </Text>
+                                </Box>
+                            </VStack>
 
-                                        {/* Actions */}
-                                        <HStack space="md" className="pb-10">
-                                            <Button
-                                                className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                                onPress={() => {
-                                                    router.navigate({
-                                                        pathname: '/(admin)/landmark/[id]',
-                                                        params: {
-                                                            id: selectedLandmark.id.toString(),
-                                                            isPasalubong: ((selectedLandmark.type as string) === 'Pasalubong Center').toString(),
-                                                        },
+                            {/* Actions */}
+                            <HStack space="md" className="pb-10">
+                                <Button
+                                    className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                    onPress={() => {
+                                        router.navigate({
+                                            pathname: '/(admin)/landmark/[id]',
+                                            params: {
+                                                id: selectedLandmark.id.toString(),
+                                                isPasalubong: ((selectedLandmark.type as string) === 'Pasalubong Center').toString(),
+                                            },
 
-                                                    });
-                                                }}
-                                            >
-                                                <ButtonIcon as={Info} className="mr-2" />
-                                                <ButtonText className="font-bold">Full Details</ButtonText>
-                                            </Button>
+                                        });
+                                    }}
+                                >
+                                    <ButtonIcon as={Info} className="mr-2" />
+                                    <ButtonText className="font-bold">Full Details</ButtonText>
+                                </Button>
 
-                                            <Button
-                                                variant="outline"
-                                                className="rounded-2xl h-14 w-16 border-outline-200 bg-background-50"
-                                                onPress={handleLandmarkLocate}
-                                            >
-                                                <ButtonIcon as={MapPin} className="text-primary-600" />
-                                            </Button>
-                                        </HStack>
-                                    </>
-                                )
-                            }
+                                <Button
+                                    variant="outline"
+                                    className="rounded-2xl h-14 w-16 border-outline-200 bg-background-50"
+                                    onPress={handleLandmarkLocate}
+                                >
+                                    <ButtonIcon as={MapPin} className="text-primary-600" />
+                                </Button>
+                            </HStack>
                         </VStack>
                     ) : (
                         <Box className="flex-1 justify-center items-center p-10">
