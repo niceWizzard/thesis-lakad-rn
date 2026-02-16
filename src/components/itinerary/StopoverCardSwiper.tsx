@@ -221,9 +221,7 @@ const StopoverCardSwiper = ({
         <View className='flex-1 w-full h-full'>
             <View className='absolute top-0 left-0 w-full h-full bg-black/50' />
             <VStack className='flex-1 w-full h-full p-safe'>
-                <View className='w-full pt-4 pb-2 items-center'>
-                    <Text className='text-white font-bold'>Swipe left or right</Text>
-                </View>
+
 
                 <View className='flex-1 w-full h-full relative'>
                     {/* Background Layer (Next Card or End Card) */}
@@ -250,6 +248,10 @@ const StopoverCardSwiper = ({
                             onSwipeRightConfirmed={onSwipeRightAction}
                         />
                     </View>
+                </View>
+
+                <View className='w-full pt-4 pb-2 items-center'>
+                    <Text className='text-white font-bold'>Swipe left or right</Text>
                 </View>
 
                 {/* Buttons */}
