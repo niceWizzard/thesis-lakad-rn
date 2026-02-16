@@ -7,8 +7,8 @@ import { useToastNotification } from '@/src/hooks/useToastNotification'
 import { ItineraryWithStops } from '@/src/model/itinerary.types'
 import { supabase } from '@/src/utils/supabase'
 import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native'
-import React, { useState } from 'react'
-import { Pressable, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { BackHandler, View } from 'react-native'
 import StopOverCard from './StopOverCard'
 
 const StopoverCardSwiper = ({
@@ -35,6 +35,16 @@ const StopoverCardSwiper = ({
             setHaveReachedEnd(true)
         }
     }
+
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            onClose()
+            return true
+        })
+
+        return () => backHandler.remove()
+    }, [onClose])
+
 
     const currentStop = stops[currentIndex]
 
@@ -64,7 +74,7 @@ const StopoverCardSwiper = ({
 
     return (
         <View className='flex-1 w-full h-full'>
-            <Pressable onPress={onClose} className='absolute top-0 left-0 w-full h-full bg-black/50' />
+            <View className='absolute top-0 left-0 w-full h-full bg-black/50' />
             {/* Content */}
             <VStack className='flex-1 w-full h-full p-safe'>
                 {
