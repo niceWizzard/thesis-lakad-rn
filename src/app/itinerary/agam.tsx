@@ -251,7 +251,7 @@ const CreateWithAgamScreenContent = () => {
             });
 
             queryClient.invalidateQueries({ queryKey: ['itineraries'] });
-            router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
+            router.replace({ pathname: '/itinerary/[id]', params: { id: newId, autoOpenCardView: 'true', } });
         } catch (err: any) {
             console.log(err)
             showToast({
