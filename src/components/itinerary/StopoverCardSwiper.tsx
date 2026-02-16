@@ -167,11 +167,6 @@ const StopoverCardSwiper = ({
             const { error } = await supabase.from('stops').delete().eq('id', currentStop.id);
             if (error) throw error;
             await refetch();
-            showToast({
-                title: "Stop removed.",
-                description: "Stop removed successfully.",
-                action: 'success'
-            });
         } catch (err: any) {
             showToast({
                 title: "Error removing stop.",
