@@ -43,7 +43,7 @@ const StopOverCard = ({ stop }: {
                 </HStack>
 
                 <Text className='text-sm text-typography-600 mt-2' numberOfLines={5} ellipsizeMode='tail'>
-                    {landmark.description}
+                    {landmark.description || "No description available"}
                 </Text>
             </VStack>
         </View>
