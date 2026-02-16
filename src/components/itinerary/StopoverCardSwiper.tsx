@@ -1,0 +1,85 @@
+import { Button, ButtonIcon } from '@/components/ui/button'
+import { Center } from '@/components/ui/center'
+import { HStack } from '@/components/ui/hstack'
+import { Text } from '@/components/ui/text'
+import { VStack } from '@/components/ui/vstack'
+import { Landmark } from '@/src/model/landmark.types'
+import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native'
+import React, { useState } from 'react'
+import { Pressable, View } from 'react-native'
+import StopOverCard from './StopOverCard'
+
+const StopoverCardSwiper = ({
+    onClose,
+    landmarks: landmarks,
+}:
+    {
+        onClose: () => void,
+        landmarks: Landmark[]
+    }
+) => {
+
+    const [currentIndex, setCurrentIndex] = useState(0)
+    const [haveReachedEnd, setHaveReachedEnd] = useState(false)
+
+    const tryIncrementIndex = () => {
+        if (currentIndex < landmarks.length - 1) {
+            setCurrentIndex(prev => prev + 1)
+        } else {
+            setHaveReachedEnd(true)
+        }
+    }
+
+    const onSwipeLeft = () => {
+        tryIncrementIndex()
+    }
+
+    const onSwipeRight = () => {
+        tryIncrementIndex()
+    }
+
+    return (
+        <View className='flex-1 w-full h-full'>
+            <Pressable onPress={onClose} className='absolute top-0 left-0 w-full h-full bg-black/50' />
+            {/* Content */}
+            <VStack className='flex-1 w-full h-full p-safe'>
+                {
+                    haveReachedEnd ? (
+                        <Center className='flex-1 w-full h-full'>
+                            <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
+                                <Text>All stops swiped</Text>
+                            </VStack>
+                        </Center>
+                    ) : (
+                        <>
+                            <Center className='flex-1 w-full h-full'>
+                                <StopOverCard landmark={landmarks[currentIndex]} />
+                            </Center>
+                            <HStack className='p-4 gap-4 justify-between'>
+                                <Button onPress={onSwipeLeft}
+                                    action='negative'
+                                >
+                                    <ButtonIcon as={CircleX} />
+                                </Button>
+                                <Button onPress={onClose}
+                                    action='secondary'
+                                >
+                                    <ButtonIcon as={Minimize2} />
+                                </Button>
+                                <Button onPress={onSwipeRight}
+                                    action='primary'
+                                >
+                                    <ButtonIcon as={CircleCheck} />
+                                </Button>
+                            </HStack>
+                        </>
+                    )
+                }
+
+
+            </VStack>
+        </View>
+    )
+}
+
+export default StopoverCardSwiper

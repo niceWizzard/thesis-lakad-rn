@@ -8,7 +8,7 @@ import {
 } from '@rnmapbox/maps';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Edit } from 'lucide-react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 // UI Components
@@ -26,10 +26,12 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
 
 // Refactored Sub-components
+import { Portal } from '@/components/ui/portal';
 import { MapControls } from '@/src/components/itinerary/MapControls';
 import { NavigatingModeBottomSheet } from '@/src/components/itinerary/NavigatingModeBottomSheet';
 import { NavigatingModeMapView } from '@/src/components/itinerary/NavigatingModeMapView';
 import { ReroutingIndicator } from '@/src/components/itinerary/ReroutingIndicator';
+import StopoverCardSwiper from '@/src/components/itinerary/StopoverCardSwiper';
 import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 import LoadingModal from '@/src/components/LoadingModal';
@@ -39,6 +41,8 @@ export default function ItineraryView() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { showToast } = useToastNotification();
+    const [isCardViewOpened, setIsCardViewOpened] = useState(false)
+
 
     // 1. Data Hooks
     const {
@@ -154,6 +158,16 @@ export default function ItineraryView() {
                 }}
             />
 
+            <Portal isOpen={isCardViewOpened}>
+                <StopoverCardSwiper
+                    onClose={() => {
+                        setIsSheetOpen(true);
+                        setIsCardViewOpened(false);
+                    }}
+                    landmarks={itinerary.stops.map((stop) => stop.landmark)}
+                />
+            </Portal>
+
             <VStack className='flex-1'>
                 <MapView
                     style={{ flex: 1 }}
@@ -235,6 +249,10 @@ export default function ItineraryView() {
                             goNavigationMode={startNavigation}
                             pendingStops={pendingStops}
                             completedStops={completedStops}
+                            onCardViewOpen={() => {
+                                setIsSheetOpen(false);
+                                setIsCardViewOpened(true);
+                            }}
                         />
                         <NavigatingModeBottomSheet
                             navigationRoute={navigationRoute}

@@ -121,7 +121,8 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
           image_url,
           municipality,
           district,
-          creation_type
+          creation_type,
+          description
         )
       )
     `)
