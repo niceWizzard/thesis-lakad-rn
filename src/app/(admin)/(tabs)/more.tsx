@@ -3,7 +3,7 @@ import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { useRouter } from "expo-router";
 import React from 'react';
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, TouchableOpacity, View } from "react-native";
 
 import { Icon } from '@/components/ui/icon';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -19,6 +19,9 @@ import {
     RulerDimensionLine,
     Settings
 } from 'lucide-react-native';
+
+const coverImage = require('@/assets/images/lakad-cover.png');
+
 
 function MoreTab() {
     const router = useRouter();
@@ -95,6 +98,13 @@ function MoreTab() {
         >
             {/* 1. Profile Header Section */}
             <View className="items-center py-10 px-6 bg-background-50 border-b border-outline-50">
+                <View className="relative p-4 rounded-full border-4 border-background-0 shadow-soft-1 bg-background-0">
+                    <Image
+                        source={coverImage}
+                        className="w-24 h-24"
+                        resizeMode="cover"
+                    />
+                </View>
                 <Heading size="xl" className="mt-4 text-typography-900">Admin</Heading>
 
                 {session?.user?.email && (

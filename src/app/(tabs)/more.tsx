@@ -23,7 +23,6 @@ import {
     MapPin,
     Settings,
     Sliders,
-    User,
     UserCheck2
 } from 'lucide-react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
@@ -96,18 +95,15 @@ function MoreTabContent() {
                 name="profileHeader"
             >
                 <CopilotBox className="items-center pt-10 pb-4 mb-6 px-6 bg-background-50 border-b border-outline-50" collapsable={false}>
-                    <View className="relative">
+                    <View className="relative p-4 rounded-full border-4 border-background-0 shadow-soft-1 bg-background-0">
                         <Image
                             source={coverImage}
-                            className="w-24 h-24 rounded-full border-4 border-background-0 shadow-soft-1"
+                            className="w-24 h-24"
                             resizeMode="cover"
                         />
-                        <View className="absolute bottom-0 right-0 bg-primary-600 p-1.5 rounded-full border-2 border-background-0">
-                            <User size={14} color="white" />
-                        </View>
                     </View>
 
-                    <Heading size="xl" className="mt-4 text-typography-900">Lakad Explorer</Heading>
+                    <Heading size="xl" className="mt-4 text-typography-900">Lakad</Heading>
 
 
 
