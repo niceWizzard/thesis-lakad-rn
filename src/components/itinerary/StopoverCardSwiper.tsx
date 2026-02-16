@@ -8,7 +8,7 @@ import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { supabase } from '@/src/utils/supabase';
 import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native';
 import React, { ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { BackHandler, useWindowDimensions, View } from 'react-native';
+import { BackHandler, Image, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import StopOverCard from './StopOverCard';
@@ -156,6 +156,13 @@ const StopoverCardSwiper = ({
         });
         return () => backHandler.remove();
     }, [onClose]);
+
+    useEffect(() => {
+        stops.forEach(stop => {
+            if (!stop.landmark.image_url) return;
+            Image.prefetch(stop.landmark.image_url);
+        })
+    }, [stops]);
 
     const currentStop = stops[currentIndex];
 
