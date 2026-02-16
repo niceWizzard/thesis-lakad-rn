@@ -28,7 +28,7 @@ import * as z from 'zod';
 import { Accordion, AccordionContent, AccordionHeader, AccordionItem, AccordionTitleText, AccordionTrigger } from '@/components/ui/accordion';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
-import { FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlLabel, FormControlLabelText } from '@/components/ui/form-control';
+import { FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
@@ -479,6 +479,11 @@ const CreateWithAgamScreenContent = () => {
                                             </Input>
                                         )}
                                     />
+                                    <FormControlHelper>
+                                        <FormControlHelperText>
+                                            Set the maximum total distance you are willing to travel for this itinerary.
+                                        </FormControlHelperText>
+                                    </FormControlHelper>
                                     <FormControlError className="mt-1">
                                         <FormControlErrorIcon as={AlertCircle} size="sm" />
                                         <FormControlErrorText size="sm">{errors.maxDistance?.message}</FormControlErrorText>
@@ -513,6 +518,11 @@ const CreateWithAgamScreenContent = () => {
                                             </Input>
                                         )}
                                     />
+                                    <FormControlHelper>
+                                        <FormControlHelperText>
+                                            Set the maximum number of stopovers (landmarks) to include in your route.
+                                        </FormControlHelperText>
+                                    </FormControlHelper>
                                     <FormControlError className="mt-1">
                                         <FormControlErrorIcon as={AlertCircle} size="sm" />
                                         <FormControlErrorText size="sm">{errors.maxPoi?.message}</FormControlErrorText>
