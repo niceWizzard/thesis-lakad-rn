@@ -250,8 +250,11 @@ const StopoverCardSwiper = ({
                     </View>
                 </View>
 
-                <View className='w-full pt-4 pb-2 items-center'>
+                <View className='w-full pt-4 pb-2 items-center gap-1'>
                     <Text className='text-white font-bold'>Swipe left or right</Text>
+                    <Text className='text-white text-sm opacity-80'>
+                        {currentIndex + 1} / {stops.length}
+                    </Text>
                 </View>
 
                 {/* Buttons */}
