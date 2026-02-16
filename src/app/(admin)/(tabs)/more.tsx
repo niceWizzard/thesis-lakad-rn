@@ -144,16 +144,7 @@ function MoreTab() {
 
             {/* 3. Danger Zone / Footer */}
             <View className="px-4 mt-8 gap-2" >
-                <Button
-                    action="negative"
-                    variant="solid"
-                    size="lg"
-                    className="rounded-2xl  h-14"
-                    onPress={handleSignoutPress}
-                >
-                    <ButtonText className="font-bold">Sign Out</ButtonText>
-                    <ButtonIcon as={LogOut} size="md" className="ml-2" />
-                </Button>
+
                 <Button
                     action="secondary"
                     variant="solid"
@@ -163,6 +154,17 @@ function MoreTab() {
                 >
                     <ButtonText className="font-bold">Back to Regular Mode</ButtonText>
                     <ButtonIcon as={ArrowLeftRight} size="md" className="ml-2" />
+                </Button>
+
+                <Button
+                    action="negative"
+                    variant="solid"
+                    size="lg"
+                    className="rounded-2xl  h-14"
+                    onPress={handleSignoutPress}
+                >
+                    <ButtonText className="font-bold">Sign Out</ButtonText>
+                    <ButtonIcon as={LogOut} size="md" className="ml-2" />
                 </Button>
 
                 <View className="items-center mt-8">

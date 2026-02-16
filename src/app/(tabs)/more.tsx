@@ -15,6 +15,7 @@ import { supabase } from '@/src/utils/supabase';
 import { useIsFocused } from '@react-navigation/native';
 import {
     ArchiveRestore,
+    ArrowLeftRight,
     ChevronRight,
     Info,
     Key,
@@ -23,7 +24,7 @@ import {
     MapPin,
     Settings,
     Sliders,
-    UserCheck2
+    User
 } from 'lucide-react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
 
@@ -227,36 +228,9 @@ function MoreTabContent() {
                         </CopilotBox>
                     </CopilotStep>
 
-                    {isAdmin && (
-                        <>
-                            <CopilotStep
-                                text="Access administrative tools."
-                                order={6}
-                                name="adminMode"
-                            >
-                                <CopilotBox collapsable={false}>
-                                    <TouchableOpacity
-                                        onPress={() => router.replace("/(admin)/(tabs)/more")}
-                                        className="flex-row items-center justify-between p-5 active:bg-background-100"
-                                    >
-                                        <View className="flex-row items-center gap-4">
-                                            <View className="bg-background-100 p-2 rounded-xl">
-                                                <Icon as={UserCheck2} size='lg' />
-                                            </View>
-                                            <Text size="md" className="font-medium text-typography-800">
-                                                Admin Mode
-                                            </Text>
-                                        </View>
-                                        <Icon as={ChevronRight} />
-                                    </TouchableOpacity>
-                                </CopilotBox>
-                            </CopilotStep>
-                        </>
-                    )}
-
                     <CopilotStep
                         text="Explore all landmarks."
-                        order={7}
+                        order={6}
                         name="allLandmarks"
                     >
                         <CopilotBox collapsable={false}>
@@ -279,7 +253,7 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="View application information."
-                        order={8}
+                        order={7}
                         name="aboutLakad"
                     >
                         <CopilotBox collapsable={false}>
@@ -304,7 +278,31 @@ function MoreTabContent() {
 
             {/* 3. Danger Zone / Footer */}
 
-            <View className="px-4 mt-8">
+            <View className="px-4 mt-8 gap-3">
+
+                {isAdmin && (
+                    <>
+                        <CopilotStep
+                            text="Access administrative tools."
+                            order={8}
+                            name="adminMode"
+                        >
+                            <CopilotBox collapsable={false}>
+                                <Button
+                                    action="secondary"
+                                    variant="solid"
+                                    size="lg"
+                                    className="rounded-2xl h-14"
+                                    onPress={() => router.replace("/(admin)/(tabs)/more")}
+                                >
+                                    <ButtonIcon as={User} size="md" className="ml-2" />
+                                    <ButtonText className="font-bold">Switch as Admin</ButtonText>
+                                    <ButtonIcon as={ArrowLeftRight} size="md" className="ml-2" />
+                                </Button>
+                            </CopilotBox>
+                        </CopilotStep>
+                    </>
+                )}
                 <CopilotStep
                     text="Tap here to sign out of your account."
                     order={9}
@@ -323,6 +321,8 @@ function MoreTabContent() {
                         </Button>
                     </CopilotBox>
                 </CopilotStep>
+
+
 
                 <View className="items-center mt-8">
                     <Text size="xs" className="text-typography-400 font-medium">
