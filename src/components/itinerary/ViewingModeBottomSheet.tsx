@@ -5,6 +5,7 @@ import {
     Clock,
     Navigation,
     PlusCircle,
+    SquareStack
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -39,6 +40,7 @@ interface ViewingModeBottomSheetProps {
     locatePOI: (longitude: number, latitude: number) => void;
     goNavigationMode: () => void;
     canOptimize: boolean;
+    onCardViewOpen: (a: boolean) => void
 }
 
 export function ViewingModeBottomSheet({
@@ -51,11 +53,14 @@ export function ViewingModeBottomSheet({
     locatePOI,
     goNavigationMode,
     canOptimize,
+    onCardViewOpen,
 }: ViewingModeBottomSheetProps) {
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
     const [isUpdating, setIsUpdating] = useState(false);
     const queryClient = useQueryClient();
+
+
 
     // Auto-scroll to top when sheet opens
     useEffect(() => {
@@ -170,6 +175,14 @@ export function ViewingModeBottomSheet({
                     </Button>
                 </HStack>
                 <Divider />
+                <HStack className='justify-end px-4'
+                >
+                    <Button action='secondary' className='rounded-2xl shadow-md'
+                        onPress={() => onCardViewOpen(true)}
+                    >
+                        <ButtonIcon as={SquareStack} />
+                    </Button>
+                </HStack>
                 {itinerary.stops.map((item, currentIndex) => {
                     const isVisited = !!item.visited_at;
                     const displayNumber = currentIndex + 1;
