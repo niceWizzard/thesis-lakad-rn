@@ -89,7 +89,7 @@ const SwipeableCard = forwardRef(({ stop, onSwipeLeftConfirmed, onSwipeRightConf
 
     return (
         <GestureDetector gesture={panGesture}>
-            <Animated.View style={animatedStyle}>
+            <Animated.View style={[animatedStyle, { flex: 1, width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }]}>
                 <StopOverCard stop={stop} />
             </Animated.View>
         </GestureDetector>
@@ -193,6 +193,10 @@ const StopoverCardSwiper = ({
         <View className='flex-1 w-full h-full'>
             <View className='absolute top-0 left-0 w-full h-full bg-black/50' />
             <VStack className='flex-1 w-full h-full p-safe'>
+                <View className='w-full pt-4 pb-2 items-center'>
+                    <Text className='text-white font-bold'>Swipe left or right</Text>
+                </View>
+
                 <View className='flex-1 w-full h-full relative'>
                     {/* Background Layer (Next Card or End Card) */}
                     <View className='absolute w-full h-full'>
@@ -209,7 +213,7 @@ const StopoverCardSwiper = ({
 
                     {/* Foreground Layer (Current Card) */}
                     {/* We key this by stop ID to ensure fresh component & animation state on change */}
-                    <Center className='flex-1 w-full h-full'>
+                    <View className='flex-1 w-full h-full'>
                         <SwipeableCard
                             key={currentStop.id}
                             ref={cardRef}
@@ -217,7 +221,7 @@ const StopoverCardSwiper = ({
                             onSwipeLeftConfirmed={onSwipeLeftAction}
                             onSwipeRightConfirmed={onSwipeRightAction}
                         />
-                    </Center>
+                    </View>
                 </View>
 
                 {/* Buttons */}
