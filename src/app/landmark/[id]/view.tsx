@@ -169,10 +169,10 @@ export default function LandmarkViewerScreen() {
                 distance: 0,
                 poiIds: [landmark.id],
             });
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            setShowNoItineraryAlert(false); // Close the modal
+            await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
         } catch (e: any) {
-            setPendingAction(null); // Reset if failed
             showToast({
                 title: "Error",
                 description: e.message ?? "Something went wrong.",

@@ -83,6 +83,7 @@ const ExploreTab = () => {
                 poiIds: [selectedLandmark.id],
             });
             queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            setShowNoItineraryAlert(false); // Close the modal
             router.navigate({ pathname: '/itinerary/[id]', params: { id: newId } });
             setSelectedLandmark(null); // Close sheet
         } catch (e: any) {
