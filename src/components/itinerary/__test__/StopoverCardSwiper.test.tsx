@@ -199,7 +199,7 @@ describe('StopoverCardSwiper', () => {
         fireEvent.press(button);
 
         await waitFor(() => {
-            expect(screen.getByText('End of stops')).toBeTruthy();
+            expect(screen.getByText('All stops swiped')).toBeTruthy();
         });
     });
 });
