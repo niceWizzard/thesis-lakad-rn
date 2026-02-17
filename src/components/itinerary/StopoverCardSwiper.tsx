@@ -6,6 +6,7 @@ import { VStack } from '@/components/ui/vstack';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { supabase } from '@/src/utils/supabase';
+import { useFocusEffect } from 'expo-router';
 import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native';
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { BackHandler, useWindowDimensions, View } from 'react-native';
@@ -176,13 +177,13 @@ const StopoverCardSwiper = ({
         });
     }, [onClose, SCREEN_HEIGHT, backgroundOpacity, containerTranslateY]);
 
-    useEffect(() => {
+    useFocusEffect(useCallback(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
             handleClose();
             return true;
         });
         return () => backHandler.remove();
-    }, [handleClose]);
+    }, [handleClose]));
 
     useEffect(() => {
         if (haveReachedEnd) {
@@ -229,12 +230,6 @@ const StopoverCardSwiper = ({
     }));
 
     if (haveReachedEnd) {
-        // Return null or keeps the view until animation finishes. 
-        // Logic handled by handleClose in useEffect, but we should render something to allow animation to finish visually if needed.
-        // Actually, render allows the exit animation to complete because handleClose triggers before unmount.
-        // But if state updates to 'haveReachedEnd', we might switch render.
-        // Let's keep the main render, but maybe show an empty state or just rely on the exit animation starting immediately.
-        // Ideally, we start exit animation, THEN unmount.
         return null;
     }
 
