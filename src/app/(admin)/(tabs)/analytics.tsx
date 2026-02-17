@@ -97,6 +97,38 @@ const AnalyticsScreen = () => {
                     </Card>
                 </VStack>
 
+                {/* Least Popular Places */}
+                <VStack className="mb-8 gap-4">
+                    <Heading size="md" className="text-typography-900">Least Popular Places</Heading>
+                    <Card className="p-0 overflow-hidden bg-background-50 border border-outline-100 rounded-xl">
+                        {data?.lowestLandmarks.map((place, index) => (
+                            <TouchableOpacity
+                                key={place.id}
+                                activeOpacity={0.7}
+                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]', params: { id: place.id } })}
+                            >
+                                <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.lowestLandmarks.length - 1 ? 'border-b-0' : ''}`}>
+                                    <HStack className="items-center gap-3">
+                                        <View className="w-8 h-8 rounded-full bg-background-200 items-center justify-center">
+                                            <Text className="font-bold text-typography-500">{index + 1}</Text>
+                                        </View>
+                                        <Text className="font-medium text-typography-900">{place.name}</Text>
+                                    </HStack>
+                                    <HStack className="items-center gap-2">
+                                        <Text className="font-bold text-typography-700">{place.count} visits</Text>
+                                        <Icon as={ChevronRight} size="xs" className="text-typography-400" />
+                                    </HStack>
+                                </HStack>
+                            </TouchableOpacity>
+                        ))}
+                        {data?.lowestLandmarks.length === 0 && (
+                            <View className="p-4">
+                                <Text className="text-typography-500 italic">No data available yet.</Text>
+                            </View>
+                        )}
+                    </Card>
+                </VStack>
+
                 {/* Category Distribution */}
                 <VStack className="gap-4">
                     <Heading size="md" className="text-typography-900">Category Distribution</Heading>

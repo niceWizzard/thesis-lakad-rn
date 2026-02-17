@@ -7,6 +7,7 @@ export interface AnalyticsData {
     archivedLandmarks: number;
     totalDistance: number;
     topLandmarks: { id: string; name: string; count: number }[];
+    lowestLandmarks: { id: string; name: string; count: number }[];
     categoryDistribution: { type: string; count: number }[];
 }
 
@@ -67,7 +68,7 @@ export const useAnalytics = () => {
             // 4. Fetch Category Distribution
             const { data: landmarks } = await supabase
                 .from("landmark")
-                .select("type")
+                .select("id, name, type")
                 .eq("creation_type", "TOURIST_ATTRACTION");
 
             const categoryCounts: Record<string, number> = {};
@@ -80,6 +81,11 @@ export const useAnalytics = () => {
                 .map(([type, count]) => ({ type, count }))
                 .sort((a, b) => b.count - a.count);
 
+            const lowestLandmarks = (landmarks || [])
+                .map((l: any) => ({ id: l.id, name: l.name, count: landmarkCounts[l.id] || 0 }))
+                .sort((a: any, b: any) => a.count - b.count)
+                .slice(0, 5);
+
 
             return {
                 totalItineraries: itinerariesCount.count || 0,
@@ -87,6 +93,7 @@ export const useAnalytics = () => {
                 archivedLandmarks: archivedLandmarksCount.count || 0,
                 totalDistance,
                 topLandmarks,
+                lowestLandmarks,
                 categoryDistribution,
             };
         },
