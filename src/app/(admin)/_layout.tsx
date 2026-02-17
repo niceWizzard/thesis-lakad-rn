@@ -42,7 +42,7 @@ const AdminRootLayout = () => {
             />
 
             <Stack.Screen
-                name='landmark/[id]/index'
+                name='landmark/[id]/info'
                 options={{
                     headerTitle: "Landmark Management",
                 }}

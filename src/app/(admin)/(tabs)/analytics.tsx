@@ -92,7 +92,7 @@ const AnalyticsScreen = () => {
                             <TouchableOpacity
                                 key={place.id}
                                 activeOpacity={0.7}
-                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]', params: { id: place.id } })}
+                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]/info/analytics', params: { id: place.id } })}
                             >
                                 <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.topLandmarks.length - 1 ? 'border-b-0' : ''}`}>
                                     <HStack className="items-center gap-3">
@@ -135,7 +135,7 @@ const AnalyticsScreen = () => {
                             <TouchableOpacity
                                 key={place.id}
                                 activeOpacity={0.7}
-                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]', params: { id: place.id } })}
+                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]/info/analytics', params: { id: place.id } })}
                             >
                                 <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.lowestLandmarks.length - 1 ? 'border-b-0' : ''}`}>
                                     <HStack className="items-center gap-3">
