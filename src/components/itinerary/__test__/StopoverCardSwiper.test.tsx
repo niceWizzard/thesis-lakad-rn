@@ -98,9 +98,21 @@ jest.mock('react-native-gesture-handler', () => {
                 onEnd: jest.fn().mockReturnThis(),
                 onFinalize: jest.fn().mockReturnThis(),
             }),
+            Tap: () => ({
+                numberOfTaps: jest.fn().mockReturnThis(),
+                onEnd: jest.fn().mockReturnThis(),
+            }),
+            Simultaneous: () => ({
+                onEnd: jest.fn().mockReturnThis(),
+            }),
         },
     };
 });
+
+jest.mock('expo-router', () => ({
+    useFocusEffect: (cb: any) => jest.requireActual('react').useEffect(cb, [cb]),
+}));
+
 
 
 describe('StopoverCardSwiper', () => {
