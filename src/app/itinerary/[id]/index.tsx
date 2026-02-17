@@ -26,7 +26,6 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
 
 // Refactored Sub-components
-import { Portal } from '@/components/ui/portal';
 import { MapControls } from '@/src/components/itinerary/MapControls';
 import { NavigatingModeBottomSheet } from '@/src/components/itinerary/NavigatingModeBottomSheet';
 import { NavigatingModeMapView } from '@/src/components/itinerary/NavigatingModeMapView';
@@ -189,17 +188,19 @@ export default function ItineraryView() {
                 }}
             />
 
-            <Portal isOpen={isCardViewOpened}>
-                <StopoverCardSwiper
-                    onClose={closeCardView}
-                    stops={localStops}
-                    refetch={async () => {
-                        await refetch()
-                        await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
-                    }}
-                    showToast={showToast}
-                />
-            </Portal>
+            {isCardViewOpened && (
+                <Box className='absolute top-0 left-0 w-full h-full z-50'>
+                    <StopoverCardSwiper
+                        onClose={closeCardView}
+                        stops={localStops}
+                        refetch={async () => {
+                            await refetch()
+                            await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+                        }}
+                        showToast={showToast}
+                    />
+                </Box>
+            )}
 
             <VStack className='flex-1'>
                 <MapView
