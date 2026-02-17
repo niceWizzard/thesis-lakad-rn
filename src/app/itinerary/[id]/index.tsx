@@ -275,7 +275,6 @@ export default function ItineraryView() {
                             refetch={refetch}
                             showToast={showToast}
                             locatePOI={locatePOI}
-                            canOptimize={pendingStops.length > 1}
                             goNavigationMode={startNavigation}
                             pendingStops={pendingStops}
                             completedStops={completedStops}

@@ -39,7 +39,6 @@ interface ViewingModeBottomSheetProps {
     showToast: ReturnType<typeof useToastNotification>['showToast'];
     locatePOI: (longitude: number, latitude: number) => void;
     goNavigationMode: () => void;
-    canOptimize: boolean;
     onCardViewOpen: (a: boolean) => void
 }
 
@@ -52,7 +51,6 @@ export function ViewingModeBottomSheet({
     showToast,
     locatePOI,
     goNavigationMode,
-    canOptimize,
     onCardViewOpen,
 }: ViewingModeBottomSheetProps) {
     const scrollViewRef = useRef<ScrollView>(null);
