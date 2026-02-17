@@ -1,5 +1,5 @@
 import Mapbox from '@rnmapbox/maps';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import {
   Edit2,
   Eye,
@@ -38,7 +38,7 @@ import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function AdminLandmarkDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useGlobalSearchParams();
   const router = useRouter();
   const { showToast } = useToastNotification();
   const queryClient = useQueryClient();
@@ -53,6 +53,7 @@ export default function AdminLandmarkDetailScreen() {
   });
 
   const isArchived = landmark?.deleted_at !== null;
+
 
 
   // --- DELETE/RESTORE MUTATION ---
@@ -91,10 +92,6 @@ export default function AdminLandmarkDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{
-        headerTitle: isArchived ? "Archived Landmark" : "Landmark Management",
-      }} />
-
       <Box className="flex-1 bg-background-0">
 
         {/* DELETE CONFIRMATION */}

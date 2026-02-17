@@ -141,7 +141,7 @@ const AdminExploreTab = () => {
                                     className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
                                     onPress={() => {
                                         router.navigate({
-                                            pathname: '/(admin)/landmark/[id]',
+                                            pathname: '/(admin)/landmark/[id]/info/details',
                                             params: {
                                                 id: selectedLandmark.id.toString(),
                                                 isPasalubong: ((selectedLandmark.type as string) === 'Pasalubong Center').toString(),
