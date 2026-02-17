@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router'
-import { Ellipsis, MapPinned, Navigation } from 'lucide-react-native'
+import { BarChart, Ellipsis, MapPinned, Navigation } from 'lucide-react-native'
 import React from 'react'
 import { useColorScheme } from 'react-native'
 import { primaryColorDark, primaryColorLight, TabIcon } from '../../(tabs)/_layout'
@@ -19,6 +19,14 @@ const AdminTabsLayout = () => {
                     tabBarIcon: TabIcon(Navigation),
                     headerShown: false,
                     tabBarLabel: "Explore"
+                }}
+            />
+            <Tabs.Screen
+                name='analytics'
+                options={{
+                    tabBarIcon: TabIcon(BarChart),
+                    headerShown: false,
+                    tabBarLabel: "Analytics"
                 }}
             />
             <Tabs.Screen
