@@ -5,14 +5,18 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { useAnalytics } from '@/src/hooks/useAnalytics';
+import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useRouter } from 'expo-router';
 import { Archive, ChevronRight, MapPin, Navigation, TrendingUp } from 'lucide-react-native';
 import React from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { BarChart } from 'react-native-gifted-charts';
 
 const AnalyticsScreen = () => {
     const router = useRouter();
     const { data, isLoading, error } = useAnalytics();
+
+    const { primary, typography } = useThemeConfig()
 
     if (isLoading) {
         return (
@@ -132,27 +136,29 @@ const AnalyticsScreen = () => {
                 {/* Category Distribution */}
                 <VStack className="gap-4">
                     <Heading size="md" className="text-typography-900">Category Distribution</Heading>
-                    <Card className="p-4 bg-background-50 border border-outline-100 rounded-xl">
-                        {data?.categoryDistribution.map((category) => (
-                            <View key={category.type} className="mb-3">
-                                <HStack className="justify-between mb-1">
-                                    <Text className="text-sm font-medium text-typography-700 capitalize">
-                                        {category.type?.toLowerCase().replace('_', ' ')}
-                                    </Text>
-                                    <Text className="text-sm text-typography-500">{category.count}</Text>
-                                </HStack>
-                                {/* Simple Bar Chart */}
-                                <View className="h-2 w-full bg-background-200 rounded-full overflow-hidden">
-                                    <View
-                                        className="h-full bg-primary-500 rounded-full"
-                                        style={{
-                                            width: `${(category.count / (data.activeLandmarks || 1)) * 100}%`
-                                        }}
-                                    />
-                                </View>
-                            </View>
-                        ))}
-                        {data?.categoryDistribution.length === 0 && (
+                    <Card className="p-4 bg-background-50 border border-outline-100 rounded-xl items-center overflow-hidden">
+                        {data?.categoryDistribution && data.categoryDistribution.length > 0 ? (
+                            <BarChart
+                                data={data.categoryDistribution.map((item) => ({
+                                    value: item.count,
+                                    label: item.type?.toLowerCase().replace('_', ' '),
+                                    frontColor: primary['500'],
+                                }))}
+                                barWidth={32}
+                                noOfSections={4}
+                                barBorderRadius={4}
+                                frontColor={primary['500']}
+                                yAxisThickness={0}
+                                xAxisThickness={0}
+                                yAxisTextStyle={{ color: typography['500'] }}
+                                xAxisLabelTextStyle={{ color: typography['700'], fontSize: 10, textTransform: 'capitalize' }} // typography-700
+                                hideRules
+                                showYAxisIndices={false}
+                                width={280} // Slight adjustment to prevent clipping
+                                height={150}
+                                isAnimated
+                            />
+                        ) : (
                             <Text className="text-typography-500 italic">No data available yet.</Text>
                         )}
                     </Card>
