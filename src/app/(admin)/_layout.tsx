@@ -56,9 +56,9 @@ const AdminRootLayout = () => {
             />
 
             <Stack.Screen
-                name='landmark/archived'
+                name='landmark/archived-places'
                 options={{
-                    headerTitle: "Archived Landmarks"
+                    headerTitle: "Archived Places"
                 }}
             />
             <Stack.Screen

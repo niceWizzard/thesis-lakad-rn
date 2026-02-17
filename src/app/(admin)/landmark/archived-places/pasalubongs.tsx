@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
     ArrowDown,
     ArrowUp,
@@ -102,7 +102,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
     if (isLoading && landmarks.length === 0) {
         return (
             <Box className="flex-1 bg-background-0">
-                <Stack.Screen options={{ headerTitle: "Archived Commercials" }} />
+
                 <ScrollView contentContainerClassName="p-6 gap-6">
                     <Box className="h-12 w-full bg-background-100 rounded-2xl mb-2" />
                     {[1, 2, 3, 4].map((i) => <ItinerarySkeleton key={i} />)}
@@ -113,7 +113,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
 
     return (
         <Box className="flex-1 bg-background-0">
-            <Stack.Screen options={{ headerTitle: "Archived Pasalubong Centers" }} />
+
 
             <FlatList
                 data={processedLandmarks}

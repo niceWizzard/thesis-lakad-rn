@@ -37,15 +37,9 @@ function MoreTab() {
         },
         {
             id: '4',
-            title: 'Archived Landmarks',
+            title: 'Archived Places',
             icon: Archive,
-            onPress: () => router.navigate('/(admin)/landmark/archived'),
-        },
-        {
-            id: '6',
-            title: 'Archived Pasalubong Centers',
-            icon: Archive,
-            onPress: () => router.navigate('/(admin)/landmark/archived-pasalubong-centers'),
+            onPress: () => router.navigate('/(admin)/landmark/archived-places'),
         },
         {
             id: '5',
