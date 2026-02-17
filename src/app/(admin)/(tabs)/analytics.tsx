@@ -5,11 +5,13 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { useAnalytics } from '@/src/hooks/useAnalytics';
-import { Archive, MapPin, Navigation, TrendingUp } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Archive, ChevronRight, MapPin, Navigation, TrendingUp } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 
 const AnalyticsScreen = () => {
+    const router = useRouter();
     const { data, isLoading, error } = useAnalytics();
 
     if (isLoading) {
@@ -34,7 +36,7 @@ const AnalyticsScreen = () => {
                 <Heading size="2xl" className="text-typography-900 mb-6">Overview</Heading>
 
                 {/* Summary Cards */}
-                <View className="flex-row flex-wrap gap-3 mb-8">
+                <View className="flex-row flex-wrap gap-2 mb-8">
                     <SummaryCard
                         title="Total Itineraries"
                         value={data?.totalItineraries || 0}
@@ -46,12 +48,14 @@ const AnalyticsScreen = () => {
                         value={data?.activeLandmarks || 0}
                         icon={MapPin}
                         color="text-primary-500"
+                        onPress={() => router.push('/(admin)/(tabs)/places')}
                     />
                     <SummaryCard
                         title="Archived"
                         value={data?.archivedLandmarks || 0}
                         icon={Archive}
                         color="text-tertiary-500"
+                        onPress={() => router.push('/(admin)/landmark/archived-places')}
                     />
                     <SummaryCard
                         title="Km Planned"
@@ -66,15 +70,24 @@ const AnalyticsScreen = () => {
                     <Heading size="md" className="text-typography-900">Most Popular Places</Heading>
                     <Card className="p-0 overflow-hidden bg-background-50 border border-outline-100 rounded-xl">
                         {data?.topLandmarks.map((place, index) => (
-                            <HStack key={place.name} className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.topLandmarks.length - 1 ? 'border-b-0' : ''}`}>
-                                <HStack className="items-center gap-3">
-                                    <View className="w-8 h-8 rounded-full bg-background-200 items-center justify-center">
-                                        <Text className="font-bold text-typography-500">{index + 1}</Text>
-                                    </View>
-                                    <Text className="font-medium text-typography-900">{place.name}</Text>
+                            <TouchableOpacity
+                                key={place.id}
+                                activeOpacity={0.7}
+                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]', params: { id: place.id } })}
+                            >
+                                <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.topLandmarks.length - 1 ? 'border-b-0' : ''}`}>
+                                    <HStack className="items-center gap-3">
+                                        <View className="w-8 h-8 rounded-full bg-background-200 items-center justify-center">
+                                            <Text className="font-bold text-typography-500">{index + 1}</Text>
+                                        </View>
+                                        <Text className="font-medium text-typography-900">{place.name}</Text>
+                                    </HStack>
+                                    <HStack className="items-center gap-2">
+                                        <Text className="font-bold text-typography-700">{place.count} visits</Text>
+                                        <Icon as={ChevronRight} size="xs" className="text-typography-400" />
+                                    </HStack>
                                 </HStack>
-                                <Text className="font-bold text-typography-700">{place.count} visits</Text>
-                            </HStack>
+                            </TouchableOpacity>
                         ))}
                         {data?.topLandmarks.length === 0 && (
                             <View className="p-4">
@@ -118,14 +131,26 @@ const AnalyticsScreen = () => {
     )
 }
 
-const SummaryCard = ({ title, value, icon, color }: { title: string; value: number; icon: any; color: string }) => (
-    <Card className="w-[48%] mb-2 p-4 rounded-xl bg-background-50 border border-outline-100 shadow-sm">
-        <View className={`w-10 h-10 rounded-full items-center justify-center mb-3`}>
-            <Icon as={icon} size="xl" className={`rounded-full ${color}`} />
-        </View>
-        <Heading size="xl">{value}</Heading>
-        <Text className="text-xs font-medium text-typography-500 uppercase tracking-wider">{title}</Text>
-    </Card>
+const SummaryCard = ({ title, value, icon, color, onPress }: { title: string; value: number; icon: any; color: string; onPress?: () => void }) => (
+    <TouchableOpacity
+        onPress={onPress}
+        disabled={!onPress}
+        className="w-[47%] mb-3"
+        activeOpacity={0.7}
+    >
+        <Card className="p-4 rounded-xl bg-background-50 border border-outline-100 shadow-sm relative">
+            {onPress && (
+                <View className="absolute top-4 right-4">
+                    <Icon as={ChevronRight} size="xs" className="text-typography-400" />
+                </View>
+            )}
+            <View className={`w-12 h-12 rounded-full items-center justify-center mb-3 bg-background-100`}>
+                <Icon as={icon} size="xl" className={`rounded-full ${color}`} />
+            </View>
+            <Heading size="xl">{value}</Heading>
+            <Text className="text-xs font-medium text-typography-500 uppercase tracking-wider">{title}</Text>
+        </Card>
+    </TouchableOpacity>
 )
 
 export default AnalyticsScreen
