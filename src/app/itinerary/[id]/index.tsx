@@ -79,7 +79,7 @@ export default function ItineraryView() {
         setAvoidTolls,
         isVoiceEnabled,
         setIsVoiceEnabled,
-    } = useNavigationState(userLocation, !!autoOpenCardView);
+    } = useNavigationState(userLocation, !autoOpenCardView);
 
     // 4. Navigation Logic
     const {
@@ -132,10 +132,11 @@ export default function ItineraryView() {
     }
 
     useEffect(() => {
-        if (autoOpenCardView) {
+        if (autoOpenCardView && itinerary) {
             openCardView();
+            router.setParams({ autoOpenCardView: undefined });
         }
-    }, [autoOpenCardView, openCardView]);
+    }, [autoOpenCardView, itinerary, openCardView, router]);
 
 
     // Loading State
