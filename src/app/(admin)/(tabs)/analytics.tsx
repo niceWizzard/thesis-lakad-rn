@@ -42,13 +42,13 @@ const AnalyticsScreen = () => {
 
     return (
         <ScrollView className="flex-1 bg-background-0" contentContainerStyle={{ paddingBottom: 100 }}>
-            <View className="p-4 pt-10">
+            <View className="p-6 pt-10">
                 <HStack className="items-center gap-3 mb-6">
                     <Heading size="2xl" className="text-typography-900">Overview</Heading>
                 </HStack>
 
                 {/* Summary Cards */}
-                <View className="flex-row flex-wrap gap-2 mb-8">
+                <View className="flex-row flex-wrap gap-2 mb-8 justify-between">
                     <SummaryCard
                         title="Total Itineraries"
                         value={data?.totalItineraries || 0}
