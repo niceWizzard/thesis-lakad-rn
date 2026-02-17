@@ -34,12 +34,11 @@ import { VStack } from '@/components/ui/vstack';
 
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
-import { fetchPasalubongCenterById } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function AdminLandmarkDetailScreen() {
-  const { id, isPasalubong } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToastNotification();
   const queryClient = useQueryClient();
@@ -48,28 +47,19 @@ export default function AdminLandmarkDetailScreen() {
 
   // --- DATA FETCHING ---
   const { data: landmark, isLoading, error } = useQuery({
-    queryKey: ['landmark', id, isPasalubong],
-    queryFn: () => {
-      if (isPasalubong?.toString() === 'true') {
-        return fetchPasalubongCenterById(id as string);
-      }
-
-      return fetchLandmarkById(id as string);
-    },
+    queryKey: ['landmark', id],
+    queryFn: () => fetchLandmarkById(id as string),
     enabled: !!id,
   });
 
   const isArchived = landmark?.deleted_at !== null;
-  const isTouristy = landmark && (landmark.type as string) !== 'Pasalubong Center';
 
 
   // --- DELETE/RESTORE MUTATION ---
   const toggleArchiveMutation = useMutation({
     mutationFn: async (shouldRestore: boolean = false) => {
-      const table = isTouristy ? 'landmark' : 'pasalubong_centers';
-
       const { error } = await supabase
-        .from(table)
+        .from('landmark')
         .update({
           deleted_at: shouldRestore ? null : new Date().toISOString(),
         })
@@ -77,14 +67,8 @@ export default function AdminLandmarkDetailScreen() {
       if (error) throw error;
 
       await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-      if (isTouristy) {
-        await queryClient.invalidateQueries({ queryKey: ['landmarks'] })
-        await queryClient.invalidateQueries({ queryKey: ['archived-landmarks'] })
-      }
-      else {
-        await queryClient.invalidateQueries({ queryKey: ['pasalubong-centers'], });
-        await queryClient.invalidateQueries({ queryKey: ['archived-pasalubong-centers'] })
-      }
+      await queryClient.invalidateQueries({ queryKey: ['landmarks'] })
+      await queryClient.invalidateQueries({ queryKey: ['archived-landmarks'] })
     },
     onSuccess: (_, isRestoring) => {
       showToast({
@@ -327,10 +311,9 @@ export default function AdminLandmarkDetailScreen() {
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
               onPress={() => !isArchived && router.navigate({
-                pathname: isPasalubong ? `/(admin)/landmark/[id]/edit-pasalubong` : `/(admin)/landmark/[id]/edit`,
+                pathname: `/(admin)/landmark/[id]/edit`,
                 params: {
                   id: landmark.id.toString(),
-                  isPasalubong: (!!isPasalubong).toString(),
                 }
               })}
               disabled={isArchived}

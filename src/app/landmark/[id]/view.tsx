@@ -36,11 +36,13 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
+import { fetchPasalubongCenterById } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function LandmarkViewerScreen() {
-    const { id, previewMode, itineraryId, currentCount } = useLocalSearchParams();
+    const searchParams = useLocalSearchParams();
+    const { id, previewMode, itineraryId, currentCount } = searchParams;
     const currentCountNum = Number(currentCount || 0);
     const router = useRouter();
     const [showImageCredits, setShowImageCredits] = useState(false);
@@ -61,9 +63,16 @@ export default function LandmarkViewerScreen() {
     } | null>(null);
 
 
+    const isPasalubong = searchParams.isPasalubong === 'true';
+
     const { data: landmark, isError, error, isLoading } = useQuery({
-        queryKey: ['landmark', id],
-        queryFn: () => fetchLandmarkById(Number.parseInt(id!.toString())),
+        queryKey: [isPasalubong ? 'pasalubong' : 'landmark', id],
+        queryFn: () => {
+            if (isPasalubong) {
+                return fetchPasalubongCenterById(id!.toString());
+            }
+            return fetchLandmarkById(Number.parseInt(id!.toString()));
+        },
         enabled: !!id,
     })
 
