@@ -299,6 +299,7 @@ export default function ItineraryView() {
                             currentStepRemainingDistance={currentStepRemainingDistance}
                             isVoiceEnabled={isVoiceEnabled}
                             setVoiceEnabled={setIsVoiceEnabled}
+                            pendingStops={pendingStops}
                         />
                     </BottomSheetScrollView>
                 </CustomBottomSheet>

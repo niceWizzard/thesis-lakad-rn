@@ -1,8 +1,8 @@
 import {
+    ArrowRight,
     Bike,
     Car,
     CheckCircle,
-    Clock,
     Copyright,
     Footprints,
     Navigation2,
@@ -52,6 +52,7 @@ interface NavigatingModeBottomSheetProps {
     currentStepRemainingDistance: number;
     isVoiceEnabled: boolean;
     setVoiceEnabled: (enabled: boolean) => void;
+    pendingStops: StopWithLandmark[];
 }
 
 export function NavigatingModeBottomSheet({
@@ -68,6 +69,7 @@ export function NavigatingModeBottomSheet({
     currentStepRemainingDistance,
     isVoiceEnabled,
     setVoiceEnabled,
+    pendingStops,
 }: NavigatingModeBottomSheetProps) {
     const [showActionsheet, setShowActionsheet] = useState(false);
 
@@ -81,6 +83,33 @@ export function NavigatingModeBottomSheet({
     const totalDuration = navigationRoute[0]?.duration || 0;
     const eta = getETATime(totalDuration);
     const duration = formatDuration(totalDuration);
+
+    // Current Stop Visit details
+    const visitDurationMinutes = nextUnvisitedStop?.visit_duration || 60; // Default 60 mins if not set
+    const visitDurationSeconds = visitDurationMinutes * 60;
+    const arrivalTime = new Date().getTime() + (totalDuration * 1000);
+    const departureTime = new Date(arrivalTime + (visitDurationSeconds * 1000));
+
+    const subsequentStop = pendingStops?.length > 1 ? pendingStops[1] : null;
+
+    // Approximate travel to next stop (30km/h avg speed assumption as placeholder)
+    // We don't have the exact distance to the *next* stop without a route, 
+    // but we can estimate or just show "Departure + X min travel"
+    // For now, let's just show the Name and "Next Up"
+
+    // Better approximation: Use straight line distance or just placeholder
+    // Let's assume a generic 15 mins travel time if we can't calculate
+    const estimatedNextArrival = subsequentStop ?
+        new Date(departureTime.getTime() + (15 * 60 * 1000)) : null;
+
+    const formatTime = (date: Date) => {
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const displayMinutes = minutes.toString().padStart(2, '0');
+        return `${displayHours}:${displayMinutes} ${ampm}`;
+    };
 
     return (
         <VStack className='h-full bg-background-0'>
@@ -229,7 +258,7 @@ export function NavigatingModeBottomSheet({
                 <HStack className="p-4 bg-primary-50 rounded-2xl border border-primary-200" space="md">
                     <VStack className="flex-1">
                         <Text size="xs" className="text-primary-600 font-semibold uppercase tracking-wide">
-                            Estimated Arrival
+                            Arrival
                         </Text>
                         <Text size="xl" className="font-bold text-primary-700">
                             {eta}
@@ -238,12 +267,11 @@ export function NavigatingModeBottomSheet({
                     <Divider orientation="vertical" className="h-auto" />
                     <VStack className="flex-1 items-end">
                         <Text size="xs" className="text-primary-600 font-semibold uppercase tracking-wide">
-                            Duration
+                            Departure
                         </Text>
                         <HStack space="xs" className="items-center">
-                            <Icon as={Clock} size="sm" className="text-primary-700" />
                             <Text size="xl" className="font-bold text-primary-700">
-                                {duration}
+                                {formatTime(departureTime)}
                             </Text>
                         </HStack>
                     </VStack>
@@ -276,6 +304,9 @@ export function NavigatingModeBottomSheet({
                         <Text size="sm" className="text-typography-500 font-medium">
                             Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
                         </Text>
+                        <Text size="xs" className="text-typography-400">
+                            ({formatDuration(visitDurationSeconds)} visit)
+                        </Text>
                     </HStack>
 
                     <Button size='sm' onPress={onArrive}>
@@ -283,6 +314,31 @@ export function NavigatingModeBottomSheet({
                         <ButtonIcon as={CheckCircle} />
                     </Button>
                 </VStack>
+
+                {/* Sneak Peek - Next Up */}
+                {subsequentStop && (
+                    <Box className="bg-background-50 p-3 rounded-2xl border border-outline-100 mt-2">
+                        <HStack space="md" className="items-center">
+                            <Box className="bg-background-200 p-2 rounded-xl">
+                                <Icon as={ArrowRight} size="sm" className="text-typography-500" />
+                            </Box>
+                            <VStack className="flex-1">
+                                <Text size="xs" className="text-typography-400 uppercase font-bold tracking-wide">
+                                    Next Up
+                                </Text>
+                                <Text size="sm" className="font-bold text-typography-900" numberOfLines={1}>
+                                    {subsequentStop.landmark.name}
+                                </Text>
+                            </VStack>
+                            <VStack className="items-end">
+                                <Text size="xs" className="text-typography-400">Est. Arr</Text>
+                                <Text size="sm" className="font-bold text-typography-700">
+                                    {estimatedNextArrival ? formatTime(estimatedNextArrival) : '--:--'}
+                                </Text>
+                            </VStack>
+                        </HStack>
+                    </Box>
+                )}
             </VStack>
 
             <Divider className="mx-4" />
