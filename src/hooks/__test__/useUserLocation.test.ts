@@ -7,6 +7,7 @@ jest.mock('expo-location', () => ({
     requestForegroundPermissionsAsync: jest.fn(),
     getCurrentPositionAsync: jest.fn(),
     watchPositionAsync: jest.fn(),
+    watchHeadingAsync: jest.fn(),
     Accuracy: {
         Highest: 6,
     },
@@ -24,11 +25,12 @@ describe('useUserLocation', () => {
         });
 
         const { result } = renderHook(() => useUserLocation());
-        expect(result.current).toBeNull();
+        expect(result.current.userLocation).toBeNull();
+        expect(result.current.heading).toBeNull();
 
-        // Wait for the effect's async update to happen to prevent "not wrapped in act" warning
+        // Wait for the effect's async update to happen
         await waitFor(() => {
-            expect(result.current).not.toBeNull();
+            expect(result.current.userLocation).not.toBeNull();
         });
     });
 
@@ -40,11 +42,14 @@ describe('useUserLocation', () => {
         (Location.watchPositionAsync as jest.Mock).mockImplementation(() => {
             return Promise.resolve({ remove: jest.fn() });
         });
+        (Location.watchHeadingAsync as jest.Mock).mockImplementation(() => {
+            return Promise.resolve({ remove: jest.fn() });
+        });
 
         const { result } = renderHook(() => useUserLocation());
 
         await waitFor(() => {
-            expect(result.current).toEqual([20, 10]); // longitude, latitude
+            expect(result.current.userLocation).toEqual([20, 10]); // longitude, latitude
         });
     });
 
@@ -53,17 +58,11 @@ describe('useUserLocation', () => {
 
         const { result } = renderHook(() => useUserLocation());
 
-        // Should remain null
-        // We wait a bit to ensure async code runs (if any) but expect no change
-        // waitFor will timeout if we expect something that never happens, but here we expect it NOT to change from null.
-        // But renderHook waits for effects.
-
-        // Let's settle for checking that location methods weren't called beyond permission
         await waitFor(() => {
             expect(Location.requestForegroundPermissionsAsync).toHaveBeenCalled();
         });
         expect(Location.getCurrentPositionAsync).not.toHaveBeenCalled();
-        expect(result.current).toBeNull();
+        expect(result.current.userLocation).toBeNull();
     });
 
     it('subscribes to updates', async () => {
@@ -77,11 +76,17 @@ describe('useUserLocation', () => {
             callback({ coords: { latitude: 11, longitude: 21 } });
             return { remove: jest.fn() };
         });
+        (Location.watchHeadingAsync as jest.Mock).mockImplementation(async (callback) => {
+            callback({ trueHeading: 90 });
+            return { remove: jest.fn() };
+        });
+
 
         const { result } = renderHook(() => useUserLocation());
 
         await waitFor(() => {
-            expect(result.current).toEqual([21, 11]);
+            expect(result.current.userLocation).toEqual([21, 11]);
+            expect(result.current.heading).toBe(90);
         });
     });
 
@@ -91,10 +96,16 @@ describe('useUserLocation', () => {
             coords: { latitude: 10, longitude: 20 },
         });
 
-        const removeMock = jest.fn();
+        const removeMockLocation = jest.fn();
+        const removeMockHeading = jest.fn();
+
         (Location.watchPositionAsync as jest.Mock).mockResolvedValue({
-            remove: removeMock
+            remove: removeMockLocation
         });
+        (Location.watchHeadingAsync as jest.Mock).mockResolvedValue({
+            remove: removeMockHeading
+        });
+
 
         const { unmount } = renderHook(() => useUserLocation());
 
@@ -105,6 +116,7 @@ describe('useUserLocation', () => {
 
         unmount();
 
-        expect(removeMock).toHaveBeenCalled();
+        expect(removeMockLocation).toHaveBeenCalled();
+        expect(removeMockHeading).toHaveBeenCalled();
     });
 });

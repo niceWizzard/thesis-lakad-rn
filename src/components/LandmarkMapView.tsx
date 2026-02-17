@@ -37,7 +37,7 @@ const LandmarkMapView = ({
     }
 } & Pick<ComponentProps<typeof CustomMapView>, 'children' | 'mapViewProps' | 'overlays' | 'cameraRef'>) => {
     const camera = cameraRef;
-    const userLocation = useUserLocation();
+    const { userLocation } = useUserLocation();
     const [searchString, setSearchString] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [mapStyleUrl, setMapStyleUrl] = useState(StyleURL.Street)

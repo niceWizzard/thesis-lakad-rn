@@ -61,7 +61,7 @@ export default function ItineraryView() {
     } = useItineraryData(id as string);
 
     // 2. Location
-    const userLocation = useUserLocation();
+    const { userLocation, heading } = useUserLocation();
 
     // 3. Navigation State (Mode, Camera, Sheet)
     const {
@@ -112,12 +112,11 @@ export default function ItineraryView() {
         if (mode === Mode.Navigating && userLocation && cameraRef.current) {
             cameraRef.current.setCamera({
                 centerCoordinate: userLocation,
-                zoomLevel: 18,
-                pitch: 55,
                 animationDuration: 300,
+                heading: heading ?? undefined,
             });
         }
-    }, [userLocation, mode, cameraRef]);
+    }, [userLocation, mode, cameraRef, heading]);
 
     const openCardView = useCallback(() => {
         if (!itinerary) return;
@@ -154,7 +153,8 @@ export default function ItineraryView() {
             cameraRef.current.setCamera({
                 centerCoordinate: userLocation,
                 zoomLevel: 18,
-                animationDuration: 400
+                animationDuration: 400,
+                heading: heading ?? undefined,
             });
         } else {
             showToast({
@@ -233,7 +233,11 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
-                    <LocationPuck pulsing={{ isEnabled: true, color: '#007AFF' }} />
+                    <LocationPuck
+                        pulsing={{ isEnabled: true, color: '#007AFF' }}
+                        puckBearingEnabled
+                        puckBearing="heading"
+                    />
 
                     <NavigatingModeMapView
                         show={mode === Mode.Navigating}
