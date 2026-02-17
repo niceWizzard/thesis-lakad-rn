@@ -68,7 +68,7 @@ export default function AdminLandmarkEditScreen() {
                 }
             }
 
-            const { error } = await supabase.from('landmark').update({
+            const { error } = await supabase.from('pasalubong_centers').update({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),
@@ -83,12 +83,12 @@ export default function AdminLandmarkEditScreen() {
 
             if (error) throw error;
 
-            await queryClient.refetchQueries({ queryKey: ['commercial-landmarks'], });
-            await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
+            await queryClient.invalidateQueries({ queryKey: ['pasalubong-centers'], });
+            await queryClient.invalidateQueries({ queryKey: ['pasalubong-center', id] });
         },
         onSuccess: async () => {
             showToast({
-                title: "Commercial Updated!",
+                title: "Pasalubong Center Updated!",
             })
             setDisregardDiscardDialog(true);
             setTimeout(() => {

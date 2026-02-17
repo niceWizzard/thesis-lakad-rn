@@ -69,16 +69,9 @@ const AdminRootLayout = () => {
             />
 
             <Stack.Screen
-                name='landmark/create-pasalubong'
+                name='pasalubong'
                 options={{
-                    headerTitle: ''
-                }}
-            />
-
-            <Stack.Screen
-                name='landmark/[id]/edit-pasalubong'
-                options={{
-                    headerTitle: ''
+                    headerShown: false,
                 }}
             />
 
