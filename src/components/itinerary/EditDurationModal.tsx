@@ -41,17 +41,17 @@ export function EditDurationModal({
             <ModalBackdrop />
             <ModalContent>
                 <ModalHeader>
-                    <Heading size="md" className="text-typography-900">
+                    <Heading size="lg" className="text-typography-900">
                         Edit Visit Duration
                     </Heading>
                 </ModalHeader>
                 <ModalBody>
                     <VStack space="md">
-                        <Text size="sm" className="text-typography-500">
+                        <Text size="md" className="text-typography-500">
                             Set the expected duration for your visit to <Text className="font-bold">{stopName}</Text>.
                         </Text>
                         <VStack space="xs">
-                            <Text size="xs" className="text-typography-500 font-medium">
+                            <Text size="sm" className="text-typography-500 font-medium">
                                 Duration (minutes)
                             </Text>
                             <Input>

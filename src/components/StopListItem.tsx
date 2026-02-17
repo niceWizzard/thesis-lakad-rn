@@ -63,9 +63,9 @@ const StopListItem = ({
                         </Text>
                     </HStack>
 
-                    <HStack space="sm" className="items-center">
+                    <HStack space="xs" className="items-center">
                         <Text
-                            size="xs"
+                            size="sm"
                             className="text-typography-400"
                             numberOfLines={1}
                             ellipsizeMode="tail"
@@ -75,9 +75,9 @@ const StopListItem = ({
                         {formattedDuration && (
                             <>
                                 <Box className="w-1 h-1 rounded-full bg-outline-300" />
-                                <HStack space="xs" className="items-center">
-                                    <Icon as={Clock} size="2xs" className="text-typography-400" />
-                                    <Text size="xs" className="text-typography-400">
+                                <HStack space="sm" className="items-center">
+                                    <Icon as={Clock} size="xs" className="text-typography-400" />
+                                    <Text size="sm" className="text-typography-400">
                                         {formattedDuration}
                                     </Text>
                                 </HStack>
