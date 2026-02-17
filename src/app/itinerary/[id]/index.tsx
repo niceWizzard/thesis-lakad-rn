@@ -36,6 +36,7 @@ import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBo
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 import LoadingModal from '@/src/components/LoadingModal';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
+import { StopWithLandmark } from '@/src/model/stops.types';
 import { useQueryClient } from '@tanstack/react-query';
 
 
@@ -164,9 +165,11 @@ export default function ItineraryView() {
         }
     };
 
-
-
-
+    const onStopPress = (stop: StopWithLandmark) => {
+        setLocalStops([stop])
+        setIsSheetOpen(false)
+        setIsCardViewOpened(true)
+    }
 
     return (
         <>
@@ -240,6 +243,7 @@ export default function ItineraryView() {
                     <ViewingModeMapView
                         stops={itinerary.stops}
                         show={mode === Mode.Viewing}
+                        onStopPress={onStopPress}
                     />
 
                     {/* Pasalubongs Centers along the route */}
@@ -279,6 +283,7 @@ export default function ItineraryView() {
                             pendingStops={pendingStops}
                             completedStops={completedStops}
                             onCardViewOpen={openCardView}
+                            onStopPress={onStopPress}
                         />
                         <NavigatingModeBottomSheet
                             navigationRoute={navigationRoute}

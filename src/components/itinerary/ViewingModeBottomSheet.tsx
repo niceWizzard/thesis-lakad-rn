@@ -39,7 +39,8 @@ interface ViewingModeBottomSheetProps {
     showToast: ReturnType<typeof useToastNotification>['showToast'];
     locatePOI: (longitude: number, latitude: number) => void;
     goNavigationMode: () => void;
-    onCardViewOpen: (a: boolean) => void
+    onCardViewOpen: (a: boolean) => void,
+    onStopPress: (stop: StopWithLandmark) => void,
 }
 
 export function ViewingModeBottomSheet({
@@ -52,6 +53,7 @@ export function ViewingModeBottomSheet({
     locatePOI,
     goNavigationMode,
     onCardViewOpen,
+    onStopPress,
 }: ViewingModeBottomSheetProps) {
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
@@ -199,6 +201,7 @@ export function ViewingModeBottomSheet({
                                 onVisitToggle={() => handleVisitedPress(item)}
                                 onDelete={() => handleRemoveStop(item.id)}
                                 onLocate={() => locatePOI(item.landmark.longitude, item.landmark.latitude)}
+                                onPress={() => onStopPress(item)}
                             />
                         </View>
                     );

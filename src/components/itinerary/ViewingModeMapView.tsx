@@ -5,9 +5,10 @@ import React from 'react';
 interface ViewingModeMapViewProps {
     show: boolean;
     stops: StopWithLandmark[];
+    onStopPress: (stop: StopWithLandmark) => void;
 }
 
-export function ViewingModeMapView({ show, stops }: ViewingModeMapViewProps) {
+export function ViewingModeMapView({ show, stops, onStopPress }: ViewingModeMapViewProps) {
     if (!show) return null;
 
     return (
@@ -17,6 +18,7 @@ export function ViewingModeMapView({ show, stops }: ViewingModeMapViewProps) {
                     landmark={stop.landmark}
                     key={stop.id}
                     allowOverlap
+                    handleMarkerPress={() => onStopPress(stop)}
                 />
             ))}
         </>
