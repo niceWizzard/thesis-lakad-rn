@@ -7,6 +7,9 @@ const LandmarkLayout = () => {
             <Stack.Screen options={{ headerTitle: "View Landmarks" }}
                 name='all'
             />
+            <Stack.Screen options={{ headerShown: false }}
+                name='[id]/view'
+            />
         </Stack>
     )
 }
