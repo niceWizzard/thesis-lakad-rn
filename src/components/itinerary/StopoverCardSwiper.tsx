@@ -7,10 +7,15 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { supabase } from '@/src/utils/supabase';
 import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native';
-import React, { ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { BackHandler, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, {
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming
+} from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import StopOverCard from './StopOverCard';
 
@@ -138,9 +143,20 @@ const StopoverCardSwiper = ({
     refetch: () => Promise<any>,
     showToast: ReturnType<typeof useToastNotification>['showToast'],
 }) => {
+    const { height: SCREEN_HEIGHT } = useWindowDimensions();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [haveReachedEnd, setHaveReachedEnd] = useState(false);
     const cardRef = useRef<SwipeableCardRef>(null);
+
+    // Animation values
+    const containerTranslateY = useSharedValue(SCREEN_HEIGHT);
+    const backgroundOpacity = useSharedValue(0);
+
+    useEffect(() => {
+        // Animate in
+        containerTranslateY.value = withTiming(0, { duration: 300 });
+        backgroundOpacity.value = withTiming(1, { duration: 300 });
+    }, [SCREEN_HEIGHT, backgroundOpacity, containerTranslateY]);
 
     const tryIncrementIndex = () => {
         if (currentIndex < stops.length - 1) {
@@ -150,27 +166,31 @@ const StopoverCardSwiper = ({
         }
     };
 
+    const handleClose = useCallback(() => {
+        // Animate out
+        backgroundOpacity.value = withTiming(0, { duration: 300 });
+        containerTranslateY.value = withTiming(SCREEN_HEIGHT, { duration: 300 }, (finished) => {
+            if (finished) {
+                runOnJS(onClose)();
+            }
+        });
+    }, [onClose, SCREEN_HEIGHT, backgroundOpacity, containerTranslateY]);
+
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-            onClose();
+            handleClose();
             return true;
         });
         return () => backHandler.remove();
-    }, [onClose]);
+    }, [handleClose]);
 
     useEffect(() => {
-        let timeout: ReturnType<typeof setTimeout>;
         if (haveReachedEnd) {
-            timeout = setTimeout(() => {
-                onClose();
-            }, 200);
+            handleClose();
         }
-
-        return () => clearTimeout(timeout);
-    }, [haveReachedEnd, onClose]);
+    }, [haveReachedEnd, handleClose]);
 
     const currentStop = stops[currentIndex];
-
 
     const onSwipeLeftAction = async () => {
         tryIncrementIndex();
@@ -192,7 +212,6 @@ const StopoverCardSwiper = ({
         tryIncrementIndex();
     };
 
-
     const handleLeftButtonPress = () => {
         cardRef.current?.swipeLeft();
     };
@@ -201,87 +220,91 @@ const StopoverCardSwiper = ({
         cardRef.current?.swipeRight();
     };
 
+    const containerStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: containerTranslateY.value }]
+    }));
+
+    const backgroundStyle = useAnimatedStyle(() => ({
+        opacity: backgroundOpacity.value
+    }));
 
     if (haveReachedEnd) {
-        return (
-            <View className='flex-1 w-full h-full'>
-                <View className='absolute top-0 left-0 w-full h-full bg-black/50' />
-                <VStack className='flex-1 w-full h-full p-safe'>
-                    <Center className='flex-1 w-full h-full'>
-                        <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
-                            <Text>All stops swiped</Text>
-                        </VStack>
-                    </Center>
-                    <HStack className='p-4 gap-4 justify-center'>
-                        <Button onPress={onClose}
-                            action='secondary'
-                        >
-                            <ButtonIcon as={Minimize2} />
-                        </Button>
-                    </HStack>
-                </VStack>
-            </View>
-        );
+        // Return null or keeps the view until animation finishes. 
+        // Logic handled by handleClose in useEffect, but we should render something to allow animation to finish visually if needed.
+        // Actually, render allows the exit animation to complete because handleClose triggers before unmount.
+        // But if state updates to 'haveReachedEnd', we might switch render.
+        // Let's keep the main render, but maybe show an empty state or just rely on the exit animation starting immediately.
+        // Ideally, we start exit animation, THEN unmount.
+        return null;
     }
 
     return (
         <View className='flex-1 w-full h-full'>
-            <View className='absolute top-0 left-0 w-full h-full bg-black/50' />
+            <Animated.View style={[{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)' }, backgroundStyle]} />
+
             <VStack className='flex-1 w-full h-full p-safe'>
+                <Animated.View style={[{ flex: 1, width: '100%', height: '100%' }, containerStyle]}>
 
+                    <View className='flex-1 w-full h-full relative'>
+                        {/* Background Layer (Next Card) */}
+                        <View
+                            className='absolute w-full h-full'
+                        >
+                            <Center className='flex-1 w-full h-full'>
+                                {currentIndex < stops.length - 1 ? (
+                                    <StopOverCard stop={stops[currentIndex + 1]} />
+                                ) : (
+                                    <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
+                                        <Text>All stops swiped</Text>
+                                    </VStack>
+                                )}
+                            </Center>
+                        </View>
 
-                <View className='flex-1 w-full h-full relative'>
-                    {/* Background Layer (Next Card or End Card) */}
-                    <View className='absolute w-full h-full'>
-                        <Center className='flex-1 w-full h-full'>
-                            {currentIndex < stops.length - 1 ? (
-                                <StopOverCard stop={stops[currentIndex + 1]} />
-                            ) : (
-                                <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
-                                    <Text>All stops swiped</Text>
-                                </VStack>
-                            )}
-                        </Center>
+                        {/* Foreground Layer (Current Card) */}
+                        <View
+                            className='flex-1 w-full h-full'
+                        >
+                            <SwipeableCard
+                                key={currentStop.id}
+                                ref={cardRef}
+                                stop={currentStop}
+                                onSwipeLeftConfirmed={onSwipeLeftAction}
+                                onSwipeRightConfirmed={onSwipeRightAction}
+                            />
+                        </View>
                     </View>
 
-                    {/* Foreground Layer (Current Card) */}
-                    {/* We key this by stop ID to ensure fresh component & animation state on change */}
-                    <View className='flex-1 w-full h-full'>
-                        <SwipeableCard
-                            key={currentStop.id}
-                            ref={cardRef}
-                            stop={currentStop}
-                            onSwipeLeftConfirmed={onSwipeLeftAction}
-                            onSwipeRightConfirmed={onSwipeRightAction}
-                        />
+                    <View
+                        className='w-full pt-4 pb-2 items-center gap-1'
+                    >
+                        <Text className='text-white font-bold'>Swipe left or right</Text>
+                        <Text className='text-white text-sm opacity-80'>
+                            {currentIndex + 1} / {stops.length}
+                        </Text>
                     </View>
-                </View>
 
-                <View className='w-full pt-4 pb-2 items-center gap-1'>
-                    <Text className='text-white font-bold'>Swipe left or right</Text>
-                    <Text className='text-white text-sm opacity-80'>
-                        {currentIndex + 1} / {stops.length}
-                    </Text>
-                </View>
+                    <View>
+                        <HStack className='p-4 gap-4 justify-between'>
+                            <Button onPress={handleLeftButtonPress}
+                                action='negative'
+                            >
+                                <ButtonIcon as={CircleX} />
+                            </Button>
+                            <Button onPress={handleClose}
+                                action='secondary'
+                            >
+                                <ButtonIcon as={Minimize2} />
+                            </Button>
+                            <Button onPress={handleRightButtonPress}
+                                action='primary'
+                            >
+                                <ButtonIcon as={CircleCheck} />
+                            </Button>
+                        </HStack>
+                    </View>
 
-                {/* Buttons */}
-                <HStack className='p-4 gap-4 justify-between'>
-                    <Button onPress={handleLeftButtonPress}
-                        action='negative'
-                    >
-                        <ButtonIcon as={CircleX} />
-                    </Button>
-                    <Button onPress={onClose}
-                        action='secondary'
-                    >
-                        <ButtonIcon as={Minimize2} />
-                    </Button>
-                    <Button onPress={handleRightButtonPress}
-                        action='primary'
-                    >
-                        <ButtonIcon as={CircleCheck} />
-                    </Button>
-                </HStack>
+                </Animated.View>
             </VStack>
         </View>
     );
