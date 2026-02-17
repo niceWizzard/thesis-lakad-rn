@@ -95,7 +95,7 @@ const AnalyticsScreen = () => {
                                 onPress={() => router.push({ pathname: '/(admin)/landmark/[id]/info/analytics', params: { id: place.id } })}
                             >
                                 <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.topLandmarks.length - 1 ? 'border-b-0' : ''}`}>
-                                    <HStack className="items-center gap-3">
+                                    <HStack className="items-center gap-3 flex-1 mr-4">
                                         <View
                                             className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-primary-100' : index === 1 ? 'bg-info-100' : index === 2 ? 'bg-tertiary-100' : 'bg-background-200'
                                                 }`}
@@ -107,7 +107,7 @@ const AnalyticsScreen = () => {
                                                 {index + 1}
                                             </Text>
                                         </View>
-                                        <Text>{place.name}</Text>
+                                        <Text numberOfLines={1} ellipsizeMode="tail" className="flex-1">{place.name}</Text>
                                     </HStack>
                                     <HStack className="items-center gap-2">
                                         <Text className="font-bold text-typography-700">{place.count} visits</Text>
@@ -138,11 +138,11 @@ const AnalyticsScreen = () => {
                                 onPress={() => router.push({ pathname: '/(admin)/landmark/[id]/info/analytics', params: { id: place.id } })}
                             >
                                 <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.lowestLandmarks.length - 1 ? 'border-b-0' : ''}`}>
-                                    <HStack className="items-center gap-3">
+                                    <HStack className="items-center gap-3 flex-1 mr-4">
                                         <View className="w-8 h-8 rounded-full bg-background-200 items-center justify-center">
                                             <Text className="font-bold text-typography-500">{index + 1}</Text>
                                         </View>
-                                        <Text>{place.name}</Text>
+                                        <Text numberOfLines={1} ellipsizeMode="tail" className="flex-1">{place.name}</Text>
                                     </HStack>
                                     <HStack className="items-center gap-2">
                                         <Text className="font-bold text-typography-700">{place.count} visits</Text>
