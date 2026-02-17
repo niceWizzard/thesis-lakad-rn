@@ -6,7 +6,7 @@ export interface AnalyticsData {
     activeLandmarks: number;
     archivedLandmarks: number;
     totalDistance: number;
-    topLandmarks: { name: string; count: number }[];
+    topLandmarks: { id: string; name: string; count: number }[];
     categoryDistribution: { type: string; count: number }[];
 }
 
@@ -59,7 +59,7 @@ export const useAnalytics = () => {
             });
 
             const topLandmarks = Object.entries(landmarkCounts)
-                .map(([id, count]) => ({ name: landmarkNames[id], count }))
+                .map(([id, count]) => ({ id, name: landmarkNames[id], count }))
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
 
