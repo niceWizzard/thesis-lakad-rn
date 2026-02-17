@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import {
     ChevronRight,
     Filter,
@@ -105,7 +105,7 @@ export default function AdminLandmarksScreen() {
     if (isLoading && landmarks.length === 0) {
         return (
             <Box className="flex-1 bg-background-0">
-                <Stack.Screen options={{ headerTitle: "Manage Content" }} />
+
                 <ScrollView contentContainerClassName="p-6 gap-6">
                     <Box className="h-12 w-full bg-background-100 rounded-2xl mb-2" />
                     {[1, 2, 3, 4].map((i) => <ItinerarySkeleton key={i} />)}
@@ -116,7 +116,7 @@ export default function AdminLandmarksScreen() {
 
     return (
         <Box className="flex-1 bg-background-0">
-            <Stack.Screen options={{ headerTitle: "Admin Panel" }} />
+
 
             <FlatList
                 data={processedLandmarks}
