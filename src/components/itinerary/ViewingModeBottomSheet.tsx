@@ -7,7 +7,7 @@ import {
     PlusCircle,
     SquareStack
 } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
@@ -15,8 +15,10 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { Stop, StopWithLandmark } from '@/src/model/stops.types';
 import { formatDistance } from '@/src/utils/format/distance';
+import { formatDuration } from '@/src/utils/format/time';
 import { supabase } from '@/src/utils/supabase';
 import { toggleStopStatus } from '@/src/utils/toggleStopStatus';
+import { updateStopDuration } from '@/src/utils/updateStop';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
@@ -28,6 +30,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
+import { EditDurationModal } from './EditDurationModal';
 
 interface ViewingModeBottomSheetProps {
     itinerary: ItineraryWithStops;
@@ -58,9 +61,8 @@ export function ViewingModeBottomSheet({
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
     const [isUpdating, setIsUpdating] = useState(false);
+    const [editingStop, setEditingStop] = useState<StopWithLandmark | null>(null);
     const queryClient = useQueryClient();
-
-
 
     // Auto-scroll to top when sheet opens
     useEffect(() => {
@@ -79,6 +81,20 @@ export function ViewingModeBottomSheet({
             return () => clearTimeout(timer);
         }
     }, [mode, isSheetOpen, itinerary]);
+
+    // Calculate total duration
+    const totalDuration = useMemo(() => {
+        if (!itinerary) return 0;
+
+        // Calculate travel time: distance (meters) / speed (meters/minute)
+        // Assuming 30 km/h = 500 meters/minute
+        const travelTimeMinutes = itinerary.distance / 500;
+
+        // Calculate total visit duration
+        const visitDuration = itinerary.stops.reduce((acc, stop) => acc + (stop.visit_duration || 0), 0);
+
+        return Math.round(travelTimeMinutes + visitDuration);
+    }, [itinerary]);
 
     const handleAddPoi = async () => {
         router.navigate({
@@ -129,6 +145,32 @@ export function ViewingModeBottomSheet({
         }
     };
 
+    const handleEditDuration = async (duration: number) => {
+        if (!editingStop) return;
+
+        setIsUpdating(true);
+        try {
+            await updateStopDuration(editingStop.id, duration);
+            await refetch();
+            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            showToast({
+                title: "Duration updated",
+                description: `Visit duration for ${editingStop.landmark.name} updated.`,
+                action: 'success'
+            });
+        } catch (e: any) {
+            console.error("Error updating duration:", e.message);
+            showToast({
+                title: "Update failed",
+                description: e.message ?? "Could not update duration.",
+                action: 'error'
+            });
+        } finally {
+            setIsUpdating(false);
+            setEditingStop(null);
+        }
+    };
+
     if (mode !== Mode.Viewing) return null;
 
     return (
@@ -137,6 +179,15 @@ export function ViewingModeBottomSheet({
                 isShown={isUpdating}
                 loadingText={"Updating itinerary"}
             />
+
+            <EditDurationModal
+                isOpen={!!editingStop}
+                onClose={() => setEditingStop(null)}
+                onSave={handleEditDuration}
+                initialDuration={editingStop?.visit_duration}
+                stopName={editingStop?.landmark.name || ''}
+            />
+
             <VStack space='lg' className='pb-6 h-full flex-1'>
                 {/* Drag Indicator */}
                 <Box className='w-full items-center pt-2 pb-1'>
@@ -149,7 +200,7 @@ export function ViewingModeBottomSheet({
                         <HStack space='sm' className='items-center'>
                             <Icon as={Clock} size='xs' className='text-typography-400' />
                             <Text size='sm' className='text-typography-500'>
-                                {itinerary.stops.length} Stops • {itinerary.stops.filter(s => !s.visited_at).length} Remaining  • {formatDistance(itinerary.distance)}
+                                {itinerary.stops.length} Stops • {formatDistance(itinerary.distance)} • {formatDuration(totalDuration)}
                             </Text>
                         </HStack>
                     </VStack>
@@ -202,6 +253,8 @@ export function ViewingModeBottomSheet({
                                 onDelete={() => handleRemoveStop(item.id)}
                                 onLocate={() => locatePOI(item.landmark.longitude, item.landmark.latitude)}
                                 onPress={() => onStopPress(item)}
+                                visitDuration={item.visit_duration}
+                                onEditDuration={() => setEditingStop(item)}
                             />
                         </View>
                     );
@@ -215,3 +268,4 @@ export function ViewingModeBottomSheet({
         </>
     );
 }
+

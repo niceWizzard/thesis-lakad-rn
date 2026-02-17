@@ -55,6 +55,7 @@ export async function fetchArchivedItineraries(userId: string) {
           id,
           visited_at,
           visit_order,
+          visit_duration,
           itinerary_id,
           landmark_id,
           landmark (
@@ -110,6 +111,7 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
         id,
         visited_at,
         visit_order,
+        visit_duration,
         itinerary_id,
         landmark_id,
         landmark (

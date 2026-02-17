@@ -5,10 +5,11 @@ import { Icon } from '@/components/ui/icon';
 import { Menu, MenuItem, MenuItemLabel } from '@/components/ui/menu';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import { Check, EllipsisVertical, MapPin, Trash } from 'lucide-react-native';
+import { Check, Clock, EllipsisVertical, MapPin, Trash } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { Landmark } from '../model/landmark.types';
+import { formatDuration } from '../utils/format/time';
 
 const StopListItem = ({
     isVisited,
@@ -18,6 +19,8 @@ const StopListItem = ({
     displayNumber,
     onLocate,
     onPress,
+    visitDuration,
+    onEditDuration,
 }: {
     isVisited: boolean,
     landmark: Landmark,
@@ -26,11 +29,13 @@ const StopListItem = ({
     displayNumber: number,
     onLocate: () => void,
     onPress: () => void,
+    visitDuration?: number,
+    onEditDuration?: () => void,
 }) => {
     const [isOpen, setIsOpen] = useState(false)
 
     const isPersonal = landmark.creation_type === "PERSONAL";
-
+    const formattedDuration = visitDuration ? formatDuration(visitDuration) : null;
 
     return (
         <Pressable onPress={onPress}
@@ -48,21 +53,37 @@ const StopListItem = ({
                 </Box>
 
                 <VStack className='flex-1 '>
-                    <Text
-                        className={`font-semibold ${isVisited ? 'text-typography-300 line-through' : 'text-typography-900'}`}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {landmark.name}
-                    </Text>
-                    <Text
-                        size="xs"
-                        className="text-typography-400"
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {isPersonal ? "Custom" : landmark.municipality}
-                    </Text>
+                    <HStack space="xs" className="items-center">
+                        <Text
+                            className={`font-semibold ${isVisited ? 'text-typography-300 line-through' : 'text-typography-900'}`}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
+                            {landmark.name}
+                        </Text>
+                    </HStack>
+
+                    <HStack space="sm" className="items-center">
+                        <Text
+                            size="xs"
+                            className="text-typography-400"
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
+                            {isPersonal ? "Custom" : landmark.municipality}
+                        </Text>
+                        {formattedDuration && (
+                            <>
+                                <Box className="w-1 h-1 rounded-full bg-outline-300" />
+                                <HStack space="xs" className="items-center">
+                                    <Icon as={Clock} size="2xs" className="text-typography-400" />
+                                    <Text size="xs" className="text-typography-400">
+                                        {formattedDuration}
+                                    </Text>
+                                </HStack>
+                            </>
+                        )}
+                    </HStack>
                 </VStack>
             </HStack>
 
@@ -103,6 +124,17 @@ const StopListItem = ({
                     <Icon as={Check} size="sm" className="mr-2" />
                     <MenuItemLabel size="sm">Mark as {isVisited ? 'Unvisited' : 'Visited'}</MenuItemLabel>
                 </MenuItem>
+
+                {onEditDuration && (
+                    <MenuItem
+                        key="edit_duration" textValue="Edit Visit Duration"
+                        onPress={onEditDuration}
+                    >
+                        <Icon as={Clock} size="sm" className="mr-2" />
+                        <MenuItemLabel size="sm">Edit Visit Duration</MenuItemLabel>
+                    </MenuItem>
+                )}
+
                 <MenuItem
                     key="locate" textValue="Locate stop"
                     onPress={onLocate}

@@ -215,6 +215,7 @@ export type Database = {
           id: number
           itinerary_id: number
           landmark_id: number
+          visit_duration: number
           visit_order: number
           visited_at: string | null
         }
@@ -223,6 +224,7 @@ export type Database = {
           id?: number
           itinerary_id: number
           landmark_id: number
+          visit_duration?: number
           visit_order?: number
           visited_at?: string | null
         }
@@ -231,6 +233,7 @@ export type Database = {
           id?: number
           itinerary_id?: number
           landmark_id?: number
+          visit_duration?: number
           visit_order?: number
           visited_at?: string | null
         }
