@@ -158,6 +158,17 @@ const StopoverCardSwiper = ({
         return () => backHandler.remove();
     }, [onClose]);
 
+    useEffect(() => {
+        let timeout: ReturnType<typeof setTimeout>;
+        if (haveReachedEnd) {
+            timeout = setTimeout(() => {
+                onClose();
+            }, 200);
+        }
+
+        return () => clearTimeout(timeout);
+    }, [haveReachedEnd, onClose]);
+
     const currentStop = stops[currentIndex];
 
 
@@ -198,7 +209,7 @@ const StopoverCardSwiper = ({
                 <VStack className='flex-1 w-full h-full p-safe'>
                     <Center className='flex-1 w-full h-full'>
                         <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
-                            <Text>End of stops</Text>
+                            <Text>All stops swiped</Text>
                         </VStack>
                     </Center>
                     <HStack className='p-4 gap-4 justify-center'>
