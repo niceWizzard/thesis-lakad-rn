@@ -257,7 +257,7 @@ const StopoverCardSwiper = ({
                         <View className='flex-1 w-full justify-center items-center relative pb-24'>
                             {/* Background Layer (Next Card) */}
                             <View
-                                className='absolute w-full h-full justify-center items-center'
+                                className='absolute w-full h-full justify-center items-center pb-24'
                             >
                                 <Center className='flex-1 w-full h-full'>
                                     {currentIndex < stops.length - 1 ? (
