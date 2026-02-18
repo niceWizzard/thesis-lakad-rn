@@ -1,5 +1,4 @@
 import { Button, ButtonIcon } from '@/components/ui/button';
-import { Center } from '@/components/ui/center';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
@@ -116,7 +115,7 @@ const SwipeableCard = forwardRef(({ stop, onSwipeLeftConfirmed, onSwipeRightConf
 
     return (
         <GestureDetector gesture={composedGesture}>
-            <Animated.View style={[animatedStyle, { flex: 1, width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }]}>
+            <Animated.View style={[animatedStyle, { flex: 1, width: '100%', height: '100%', justifyContent: 'flex-end', alignItems: 'center' }]}>
                 <View className='relative'>
                     <StopOverCard stop={stop} />
 
@@ -254,25 +253,27 @@ const StopoverCardSwiper = ({
 
                 <VStack className='flex-1 w-full h-full'>
                     <Animated.View style={[{ flex: 1, width: '100%', height: '100%' }, containerStyle]}>
-                        <View className='flex-1 w-full justify-center items-center relative pb-24'>
+                        <View className='flex-1 w-full justify-end items-end relative '>
                             {/* Background Layer (Next Card) */}
                             <View
-                                className='absolute w-full h-full justify-center items-center pb-24'
+                                className='absolute w-full h-full justify-end items-center '
                             >
-                                <Center className='flex-1 w-full h-full'>
+                                <View className='flex-1 w-full h-full justify-end items-center'>
                                     {currentIndex < stops.length - 1 ? (
                                         <StopOverCard stop={stops[currentIndex + 1]} />
                                     ) : (
-                                        <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
-                                            <Text>All stops swiped</Text>
-                                        </VStack>
+                                        <View className='flex-1 justify-center items-center'>
+                                            <VStack className='p-4 size-64 rounded-lg bg-background-0 justify-center items-center' >
+                                                <Text>All stops swiped</Text>
+                                            </VStack>
+                                        </View>
                                     )}
-                                </Center>
+                                </View>
                             </View>
 
                             {/* Foreground Layer (Current Card) */}
                             <View
-                                className='flex-1 w-full h-full justify-center items-center'
+                                className='flex-1 w-full h-full justify-end items-center'
                             >
                                 <SwipeableCard
                                     key={currentStop.id}
@@ -285,7 +286,7 @@ const StopoverCardSwiper = ({
                             </View>
                         </View>
 
-                        <View className='absolute bottom-0 w-full pb-8'>
+                        <View className='w-full pb-8'>
                             <View pointerEvents='none' className='w-full pt-4 pb-2 items-center gap-1'>
                                 <Text className='text-white font-bold'>Swipe left or right</Text>
                                 <Text className='text-white text-sm opacity-80'>
