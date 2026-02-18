@@ -21,7 +21,7 @@ const StopOverCard = ({ stop }: {
     return (
         <View
             style={{ width: cardWidth, height: cardHeight }}
-            className='rounded-2xl bg-background-0 overflow-hidden shadow-sm'
+            className='rounded-3xl bg-background-0 overflow-hidden shadow-sm'
         >
             {
                 landmark.image_url ? (
