@@ -13,6 +13,7 @@ import { useAuthStore } from '@/src/stores/useAuth';
 import { mmkvStorage } from '@/src/utils/mmkv';
 import { supabase } from '@/src/utils/supabase';
 import { useIsFocused } from '@react-navigation/native';
+import * as Application from 'expo-application';
 import {
     ArchiveRestore,
     ArrowLeftRight,
@@ -326,7 +327,7 @@ function MoreTabContent() {
 
                 <View className="items-center mt-8">
                     <Text size="xs" className="text-typography-400 font-medium">
-                        LAKAD APP • VERSION 1.0.0
+                        LAKAD APP • VERSION {Application.nativeApplicationVersion}
                     </Text>
                     <Text size="xs" className="text-typography-300 mt-1 italic">
                         Made for smart travelers
