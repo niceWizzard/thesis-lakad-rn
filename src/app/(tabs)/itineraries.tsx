@@ -178,7 +178,7 @@ export default function ItinerariesScreen() {
                             >
                                 <HStack className="justify-between items-start mb-4">
                                     <VStack className="flex-1 pr-4">
-                                        <Text size="xs" className="uppercase font-bold text-typography-500 tracking-wider mb-1">
+                                        <Text size="sm" className="uppercase font-bold text-typography-500 tracking-wider mb-1">
                                             {formatDate(itinerary.created_at)}
                                         </Text>
                                         <Heading size="lg" className="text-typography-900 leading-tight mb-2">
@@ -186,15 +186,15 @@ export default function ItinerariesScreen() {
                                         </Heading>
                                         <HStack className="items-center gap-3">
                                             <HStack className="items-center gap-1.5">
-                                                <Icon as={MapPin} size="xs" className="text-primary-600" />
-                                                <Text size="xs" className="font-bold text-typography-600">
+                                                <Icon as={MapPin} size="sm" />
+                                                <Text size="sm" className="font-bold text-typography-600">
                                                     {itinerary.stops?.length || 0} Stops
                                                 </Text>
                                             </HStack>
                                             <Box className="w-1 h-1 rounded-full bg-typography-300" />
                                             <HStack className="items-center gap-1.5">
-                                                <Icon as={Ruler} size="xs" className="text-primary-600" />
-                                                <Text size="xs" className="font-bold text-typography-600">
+                                                <Icon as={Ruler} size="sm" />
+                                                <Text size="sm" className="font-bold text-typography-600">
                                                     {formatDistance(itinerary.distance)}
                                                 </Text>
                                             </HStack>
@@ -211,35 +211,20 @@ export default function ItinerariesScreen() {
                                         <Icon as={EllipsisVertical} className="text-typography-400 mt-1" />
                                     </Pressable>
                                 </HStack>
-
-                                {/* Stops Preview */}
-                                {itinerary.stops && itinerary.stops.length > 0 && (
-                                    <VStack className="mb-6 gap-2 bg-background-100/50 p-3 rounded-xl">
-                                        {itinerary.stops.slice(0, 3).map((stop, index) => (
-                                            <HStack key={stop.id} className="items-center gap-2">
-                                                <Box className="w-1.5 h-1.5 rounded-full bg-primary-400" />
-                                                <Text size="sm" className="text-typography-600 flex-1" numberOfLines={1}>
-                                                    {stop.landmark.name}
-                                                </Text>
+                                {
+                                    progress > 0 && (
+                                        <VStack className="gap-2 mb-6">
+                                            <HStack className="justify-between items-end">
+                                                <Text size="sm" className="text-typography-500 font-medium">Progress</Text>
+                                                <Text size="sm" className="text-typography-900 font-bold">{Math.round(progress)}%</Text>
                                             </HStack>
-                                        ))}
-                                        {itinerary.stops.length > 3 && (
-                                            <Text size="xs" className="text-typography-400 pl-3.5 pt-1">
-                                                +{itinerary.stops.length - 3} more stops
-                                            </Text>
-                                        )}
-                                    </VStack>
-                                )}
 
-                                <VStack className="gap-2 mb-6">
-                                    <HStack className="justify-between items-end">
-                                        <Text size="sm" className="text-typography-500 font-medium">Progress</Text>
-                                        <Text size="sm" className="text-typography-900 font-bold">{Math.round(progress)}%</Text>
-                                    </HStack>
-                                    <Progress value={progress} className="h-2 bg-background-100 rounded-full">
-                                        <ProgressFilledTrack className={isComplete ? "bg-success-500" : "bg-primary-600"} />
-                                    </Progress>
-                                </VStack>
+                                            <Progress value={progress} className="w-full h-2" >
+                                                <ProgressFilledTrack className="h-2 " />
+                                            </Progress>
+                                        </VStack>
+                                    )
+                                }
 
                                 <Button
                                     size="lg"
