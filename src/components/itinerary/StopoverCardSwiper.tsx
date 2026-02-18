@@ -7,7 +7,7 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { supabase } from '@/src/utils/supabase';
 import { useFocusEffect } from 'expo-router';
-import { CircleCheck, CircleX, Minimize2 } from 'lucide-react-native';
+import { ArrowDown, ThumbsDown, ThumbsUp } from 'lucide-react-native';
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { BackHandler, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -296,21 +296,28 @@ const StopoverCardSwiper = ({
                         </View>
 
                         <View>
-                            <HStack className='p-4 gap-4 justify-between'>
+                            <HStack className='p-4 gap-4 justify-center'>
                                 <Button onPress={handleLeftButtonPress}
+                                    size='xl'
                                     action='negative'
+                                    className='rounded-2xl'
                                 >
-                                    <ButtonIcon as={CircleX} />
+                                    <ButtonIcon as={ThumbsDown} />
                                 </Button>
                                 <Button onPress={handleClose}
+                                    size='xl'
                                     action='secondary'
+                                    className='rounded-2xl'
+
                                 >
-                                    <ButtonIcon as={Minimize2} />
+                                    <ButtonIcon as={ArrowDown} />
                                 </Button>
                                 <Button onPress={handleRightButtonPress}
+                                    size='xl'
                                     action='primary'
+                                    className='rounded-2xl'
                                 >
-                                    <ButtonIcon as={CircleCheck} />
+                                    <ButtonIcon as={ThumbsUp} />
                                 </Button>
                             </HStack>
                         </View>
