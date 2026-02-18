@@ -1,28 +1,28 @@
 import * as Haptics from 'expo-haptics';
 import { Stack, useRouter } from 'expo-router';
-import { ArrowUpDown, ClipboardList, EllipsisVertical, Eye, MapPin, Play, Ruler, Search, X } from 'lucide-react-native';
+import { ArrowUpDown, ClipboardList, Search, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, View } from 'react-native';
+import { FlatList, RefreshControl } from 'react-native';
 
 import { Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper, ActionsheetItem, ActionsheetItemText } from '@/components/ui/actionsheet';
+import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
-import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import { Pressable } from 'react-native-gesture-handler';
 
 import ExpandableFab from '@/src/components/ExpandableFAB';
+import { ItineraryItem } from '@/src/components/ItineraryItem';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
-import { formatDate } from '@/src/utils/format/date';
-import { formatDistance } from '@/src/utils/format/distance';
+import { supabase } from '@/src/utils/supabase';
 import { useQuery } from '@tanstack/react-query';
 
 export default function ItinerariesScreen() {
@@ -33,6 +33,10 @@ export default function ItinerariesScreen() {
     const [showActionsheet, setShowActionsheet] = useState(false);
     const [sortOption, setSortOption] = useState<'date' | 'name' | 'stops'>('date');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+    const { showToast } = useToastNotification();
+    const [showAlertDialog, setShowAlertDialog] = useState(false);
+    const [itineraryToDelete, setItineraryToDelete] = useState<number | null>(null);
 
     const {
         data: itineraries = [],
@@ -75,16 +79,46 @@ export default function ItinerariesScreen() {
         setShowActionsheet(false);
     };
 
-    const calculateProgress = (itinerary: ItineraryWithStops) => {
-        if (!itinerary.stops?.length) return 0;
-        const completed = itinerary.stops.filter(stop => !!stop.visited_at).length;
-        return (completed / itinerary.stops.length) * 100;
-    };
+
 
     const handlePress = (id: number) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         router.navigate({ pathname: '/itinerary/[id]', params: { id } });
     };
+
+    const confirmDelete = async () => {
+        if (!itineraryToDelete) return;
+
+        try {
+            const { error } = await supabase
+                .from('itinerary')
+                .update({ deleted_at: new Date().toISOString() })
+                .eq('id', itineraryToDelete);
+
+            if (error) throw error;
+
+            showToast({
+                title: "Itinerary moved to trash",
+                description: "You can restore it from Archived Itineraries.",
+            })
+
+            await refetch();
+        } catch (error) {
+            console.error('Error deleting itinerary:', error);
+            showToast({
+                title: "Error deleting itinerary",
+                description: "Please try again. " + (error as Error).message,
+            })
+        } finally {
+            setShowAlertDialog(false);
+            setItineraryToDelete(null);
+        }
+    }
+
+    const deleteItinerary = (id: number) => {
+        setItineraryToDelete(id);
+        setShowAlertDialog(true);
+    }
 
     // --- 1. LOADING STATE ---
     if (isLoading && itineraries.length === 0) {
@@ -165,81 +199,21 @@ export default function ItinerariesScreen() {
                         <Text className="text-typography-400 italic">No trips match your search.</Text>
                     </VStack>
                 }
-                renderItem={({ item: itinerary }) => {
-                    const progress = calculateProgress(itinerary);
-                    const isComplete = progress === 100;
-
-                    return (
-                        <Pressable
-                            onPress={() => handlePress(itinerary.id)}
-                        >
-                            <View
-                                className="p-5 rounded-3xl bg-background-100 border border-outline-200 shadow-md"
-                            >
-                                <HStack className="justify-between items-start mb-4">
-                                    <VStack className="flex-1 pr-4">
-                                        <Text size="sm" className="uppercase font-bold text-typography-500 tracking-wider mb-1">
-                                            {formatDate(itinerary.created_at)}
-                                        </Text>
-                                        <Heading size="lg" className="text-typography-900 leading-tight mb-2">
-                                            {itinerary.name}
-                                        </Heading>
-                                        <HStack className="items-center gap-3">
-                                            <HStack className="items-center gap-1.5">
-                                                <Icon as={MapPin} size="sm" />
-                                                <Text size="sm" className="font-bold text-typography-600">
-                                                    {itinerary.stops?.length || 0} Stops
-                                                </Text>
-                                            </HStack>
-                                            <Box className="w-1 h-1 rounded-full bg-typography-300" />
-                                            <HStack className="items-center gap-1.5">
-                                                <Icon as={Ruler} size="sm" />
-                                                <Text size="sm" className="font-bold text-typography-600">
-                                                    {formatDistance(itinerary.distance)}
-                                                </Text>
-                                            </HStack>
-                                        </HStack>
-                                    </VStack>
-                                    <Pressable hitSlop={32}
-                                        onPress={() => {
-                                            router.navigate({
-                                                pathname: '/itinerary/[id]/info',
-                                                params: { id: itinerary.id },
-                                            })
-                                        }}
-                                    >
-                                        <Icon as={EllipsisVertical} className="text-typography-400 mt-1" />
-                                    </Pressable>
-                                </HStack>
-                                {
-                                    progress > 0 && (
-                                        <VStack className="gap-2 mb-6">
-                                            <HStack className="justify-between items-end">
-                                                <Text size="sm" className="text-typography-500 font-medium">Progress</Text>
-                                                <Text size="sm" className="text-typography-900 font-bold">{Math.round(progress)}%</Text>
-                                            </HStack>
-
-                                            <Progress value={progress} className="w-full h-2" >
-                                                <ProgressFilledTrack className="h-2 " />
-                                            </Progress>
-                                        </VStack>
-                                    )
-                                }
-
-                                <Button
-                                    size="lg"
-                                    onPress={() => handlePress(itinerary.id)}
-                                    className={`rounded-2xl shadow-soft-2 ${isComplete ? 'bg-success-600' : 'bg-primary-600'}`}
-                                >
-                                    <ButtonIcon as={progress === 0 ? Play : (isComplete ? Eye : Play)} className="mr-2" />
-                                    <ButtonText className="font-bold">
-                                        {progress === 0 ? 'Start' : (isComplete ? 'View' : 'Continue')}
-                                    </ButtonText>
-                                </Button>
-                            </View>
-                        </Pressable>
-                    );
-                }}
+                renderItem={({ item: itinerary }) => (
+                    <ItineraryItem
+                        itinerary={itinerary}
+                        onPress={handlePress}
+                        onInfoPress={(id) => {
+                            router.navigate({
+                                pathname: '/itinerary/[id]/info',
+                                params: { id },
+                            });
+                        }}
+                        onDeletePress={(id) => {
+                            deleteItinerary(id);
+                        }}
+                    />
+                )}
             />
 
             <ExpandableFab />
@@ -286,6 +260,48 @@ export default function ItinerariesScreen() {
                     </ActionsheetItem>
                 </ActionsheetContent>
             </Actionsheet>
+
+            <AlertDialog
+                isOpen={showAlertDialog}
+                onClose={() => {
+                    setShowAlertDialog(false);
+                    setItineraryToDelete(null);
+                }}
+            >
+                <AlertDialogBackdrop />
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <Heading size="md" className="text-typography-950">
+                            Delete Itinerary
+                        </Heading>
+                    </AlertDialogHeader>
+                    <AlertDialogBody className="mt-3 mb-4">
+                        <Text size="sm">
+                            Are you sure you want to move this itinerary to trash?
+                        </Text>
+                    </AlertDialogBody>
+                    <AlertDialogFooter className="">
+                        <Button
+                            variant="outline"
+                            action="secondary"
+                            onPress={() => {
+                                setShowAlertDialog(false);
+                                setItineraryToDelete(null);
+                            }}
+                            size="sm"
+                        >
+                            <ButtonText>Cancel</ButtonText>
+                        </Button>
+                        <Button
+                            size="sm"
+                            action="negative"
+                            onPress={confirmDelete}
+                        >
+                            <ButtonText>Delete</ButtonText>
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Box>
     );
 }
