@@ -15,7 +15,7 @@ const StopOverCard = ({ stop }: {
 }) => {
     const landmark = stop.landmark
     return (
-        <View className='w-96 h-[400px] rounded-lg bg-background-0 overflow-hidden'>
+        <View className='w-96 h-[550px] rounded-2xl bg-background-0 overflow-hidden shadow-sm'>
             {
                 landmark.image_url ? (
                     <Image
@@ -31,18 +31,18 @@ const StopOverCard = ({ stop }: {
             <VStack
                 className='p-4 gap-2 h-full'
             >
-                <Heading size='md' numberOfLines={1}>{landmark.name}</Heading>
+                <Heading size='lg' >{landmark.name}</Heading>
 
                 <HStack className='items-center gap-2'>
-                    <Badge size='sm' variant='solid' action='info'>
+                    <Badge size='lg' variant='solid' action='info'>
                         <BadgeText>{landmark.type}</BadgeText>
                     </Badge>
-                    <Text size='xs' className='text-typography-500'>
-                        {landmark.district}, {landmark.municipality}
+                    <Text size='md' className='text-typography-500'>
+                        District {landmark.district} - {landmark.municipality}
                     </Text>
                 </HStack>
 
-                <Text className='text-sm text-typography-600 mt-2' numberOfLines={5} ellipsizeMode='tail'>
+                <Text className='mt-2' size='md'>
                     {landmark.description || "No description available"}
                 </Text>
             </VStack>
