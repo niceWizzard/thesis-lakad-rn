@@ -20,10 +20,10 @@ const StopOverCard = ({ stop }: {
                 landmark.image_url ? (
                     <Image
                         source={{ uri: landmark.image_url }}
-                        className='w-full h-48'
+                        className='w-full h-64'
                     />
                 ) : (
-                    <Center className='w-full h-48 bg-white'>
+                    <Center className='w-full h-64 bg-white'>
                         <ImageOff size={48} color='#d1d5db' />
                     </Center>
                 )
