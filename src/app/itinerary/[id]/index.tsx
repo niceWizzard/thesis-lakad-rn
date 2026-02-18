@@ -1,6 +1,7 @@
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import {
     Camera,
+    Images,
     LineLayer,
     LocationPuck,
     MapView,
@@ -37,6 +38,9 @@ import LoadingModal from '@/src/components/LoadingModal';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { StopWithLandmark } from '@/src/model/stops.types';
 import { useQueryClient } from '@tanstack/react-query';
+
+
+const headingArrow = require('@/assets/images/arrow.png');
 
 
 export default function ItineraryView() {
@@ -112,10 +116,9 @@ export default function ItineraryView() {
             cameraRef.current.setCamera({
                 centerCoordinate: userLocation,
                 animationDuration: 300,
-                heading: heading ?? undefined,
             });
         }
-    }, [userLocation, mode, cameraRef, heading]);
+    }, [userLocation, mode, cameraRef]);
 
     const openCardView = useCallback(() => {
         if (!itinerary) return;
@@ -234,10 +237,18 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
+                    <Images
+                        images={{ headingArrow }}
+
+                    />
                     <LocationPuck
-                        pulsing={{ isEnabled: true, color: '#007AFF' }}
+                        puckBearing={'heading'}
+                        bearingImage={'headingArrow'}
                         puckBearingEnabled
-                        puckBearing="heading"
+                        pulsing={{
+                            isEnabled: true,
+                            color: '#007AFF'
+                        }}
                     />
 
                     <NavigatingModeMapView
