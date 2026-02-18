@@ -297,7 +297,7 @@ const StopoverCardSwiper = ({
                                 <Button onPress={handleLeftButtonPress}
                                     size='xl'
                                     action='negative'
-                                    className='rounded-2xl !bg-error-600'
+                                    className='rounded-2xl bg-error-600'
                                 >
                                     <ButtonIcon as={ThumbsDown} />
                                 </Button>
