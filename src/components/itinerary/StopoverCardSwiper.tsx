@@ -122,15 +122,15 @@ const SwipeableCard = forwardRef(({ stop, onSwipeLeftConfirmed, onSwipeRightConf
 
                     {/* Keep Hint (Swipe Right) */}
                     <Animated.View style={[leftHintStyle, { position: 'absolute', top: 40, left: 40, transform: [{ rotate: '-30deg' }] }]}>
-                        <View className='border-4 border-green-500 rounded-lg p-2 bg-white/80'>
-                            <Text className='text-green-500 font-bold text-4xl uppercase tracking-widest'>Keep</Text>
+                        <View className='border-4 border-success-500 rounded-lg p-2 bg-white/80'>
+                            <Text className='text-success-500 font-bold text-4xl uppercase tracking-widest'>Keep</Text>
                         </View>
                     </Animated.View>
 
                     {/* Remove Hint (Swipe Left) */}
                     <Animated.View style={[rightHintStyle, { position: 'absolute', top: 40, right: 40, transform: [{ rotate: '30deg' }] }]}>
-                        <View className='border-4 border-red-500 rounded-lg p-2 bg-white/80'>
-                            <Text className='text-red-500 font-bold text-4xl uppercase tracking-widest'>Remove</Text>
+                        <View className='border-4 border-error-500 rounded-lg p-2 bg-white/80'>
+                            <Text className='text-error-500 font-bold text-4xl uppercase tracking-widest'>Remove</Text>
                         </View>
                     </Animated.View>
                 </View>
@@ -252,13 +252,12 @@ const StopoverCardSwiper = ({
             <View className='flex-1 w-full h-full'>
                 <Animated.View style={[{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)' }, backgroundStyle]} />
 
-                <VStack className='flex-1 w-full h-full p-safe'>
+                <VStack className='flex-1 w-full h-full'>
                     <Animated.View style={[{ flex: 1, width: '100%', height: '100%' }, containerStyle]}>
-
-                        <View className='flex-1 w-full h-full relative'>
+                        <View className='flex-1 w-full justify-center items-center relative pb-24'>
                             {/* Background Layer (Next Card) */}
                             <View
-                                className='absolute w-full h-full'
+                                className='absolute w-full h-full justify-center items-center'
                             >
                                 <Center className='flex-1 w-full h-full'>
                                     {currentIndex < stops.length - 1 ? (
@@ -273,7 +272,7 @@ const StopoverCardSwiper = ({
 
                             {/* Foreground Layer (Current Card) */}
                             <View
-                                className='flex-1 w-full h-full'
+                                className='flex-1 w-full h-full justify-center items-center'
                             >
                                 <SwipeableCard
                                     key={currentStop.id}
@@ -286,16 +285,13 @@ const StopoverCardSwiper = ({
                             </View>
                         </View>
 
-                        <View
-                            className='w-full pt-4 pb-2 items-center gap-1'
-                        >
-                            <Text className='text-white font-bold'>Swipe left or right</Text>
-                            <Text className='text-white text-sm opacity-80'>
-                                {currentIndex + 1} / {stops.length}
-                            </Text>
-                        </View>
-
-                        <View>
+                        <View className='absolute bottom-0 w-full pb-8'>
+                            <View pointerEvents='none' className='w-full pt-4 pb-2 items-center gap-1'>
+                                <Text className='text-white font-bold'>Swipe left or right</Text>
+                                <Text className='text-white text-sm opacity-80'>
+                                    {currentIndex + 1} / {stops.length}
+                                </Text>
+                            </View>
                             <HStack className='p-4 gap-4 justify-center'>
                                 <Button onPress={handleLeftButtonPress}
                                     size='xl'
@@ -308,7 +304,6 @@ const StopoverCardSwiper = ({
                                     size='xl'
                                     action='secondary'
                                     className='rounded-2xl'
-
                                 >
                                     <ButtonIcon as={ArrowDown} />
                                 </Button>

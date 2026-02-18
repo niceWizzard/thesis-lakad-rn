@@ -7,29 +7,36 @@ import { VStack } from '@/components/ui/vstack'
 import { ItineraryWithStops } from '@/src/model/itinerary.types'
 import { ImageOff } from 'lucide-react-native'
 import React from 'react'
-import { Image, View } from 'react-native'
+import { Image, View, useWindowDimensions } from 'react-native'
 
 const StopOverCard = ({ stop }: {
     stop: ItineraryWithStops['stops'][number],
 
 }) => {
+    const { width, height } = useWindowDimensions();
+    const cardWidth = Math.min(width * 0.90, 400);
+    const cardHeight = Math.min(height * 0.65, 600);
+
     const landmark = stop.landmark
     return (
-        <View className='w-96 h-[550px] rounded-2xl bg-background-0 overflow-hidden shadow-sm'>
+        <View
+            style={{ width: cardWidth, height: cardHeight }}
+            className='rounded-2xl bg-background-0 overflow-hidden shadow-sm'
+        >
             {
                 landmark.image_url ? (
                     <Image
                         source={{ uri: landmark.image_url }}
-                        className='w-full h-64'
+                        className='w-full h-[45%]'
                     />
                 ) : (
-                    <Center className='w-full h-64 bg-white'>
+                    <Center className='w-full h-[45%] bg-white'>
                         <ImageOff size={48} color='#d1d5db' />
                     </Center>
                 )
             }
             <VStack
-                className='p-4 gap-2 h-full'
+                className='p-4 gap-2 flex-1'
             >
                 <Heading size='lg' >{landmark.name}</Heading>
 
@@ -42,7 +49,7 @@ const StopOverCard = ({ stop }: {
                     </Text>
                 </HStack>
 
-                <Text className='mt-2' size='md'>
+                <Text className='mt-2' size='md' numberOfLines={3} ellipsizeMode='tail'>
                     {landmark.description || "No description available"}
                 </Text>
             </VStack>
