@@ -89,6 +89,7 @@ export async function restoreItinerary(itineraryId: number) {
   if (error) throw error
 }
 
+
 export async function permanentlyDeleteItinerary(itineraryId: number) {
   const { error } = await supabase
     .from('itinerary')
@@ -97,6 +98,17 @@ export async function permanentlyDeleteItinerary(itineraryId: number) {
 
   if (error) throw error
 }
+
+export async function deleteAllArchivedItineraries(userId: string) {
+  const { error } = await supabase
+    .from('itinerary')
+    .delete()
+    .eq('user_id', userId)
+    .not('deleted_at', 'is', null)
+
+  if (error) throw error
+}
+
 
 export async function fetchItineraryById(userId: string, itineraryId: number) {
   const { data, error } = await supabase
