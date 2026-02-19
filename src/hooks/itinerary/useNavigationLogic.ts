@@ -335,7 +335,7 @@ export const useNavigationLogic = ({
             const poiCoords: [number, number] = [poi.longitude, poi.latitude];
 
             // Quick check: Is the POI within 100m of the USER currently?
-            const distToUser = getHaversineDistance(userLocation!, poiCoords);
+            const distToUser = getHaversineDistance(userLocation ?? [120.8092, 14.8605], poiCoords);
             if (distToUser <= 100) return true;
 
             // Deep check: Is the POI within 100m of ANY segment of the path?
