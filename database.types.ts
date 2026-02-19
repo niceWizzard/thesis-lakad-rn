@@ -131,6 +131,82 @@ export type Database = {
         }
         Relationships: []
       }
+      landmark_opening_hours: {
+        Row: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          id: number
+          is_closed: boolean
+          landmark_id: number
+          opens_at: string | null
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string
+          day_of_week?: number
+          id?: number
+          is_closed?: boolean
+          landmark_id: number
+          opens_at?: string | null
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string
+          day_of_week?: number
+          id?: number
+          is_closed?: boolean
+          landmark_id?: number
+          opens_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landmark_opening_hours_landmark_id_fkey"
+            columns: ["landmark_id"]
+            isOneToOne: false
+            referencedRelation: "landmark"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      landmark_reviews: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          landmark_id: number | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: number
+          landmark_id?: number | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: number
+          landmark_id?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landmark_reviews_landmark_id_fkey"
+            columns: ["landmark_id"]
+            isOneToOne: false
+            referencedRelation: "landmark"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pasalubong_centers: {
         Row: {
           created_at: string
