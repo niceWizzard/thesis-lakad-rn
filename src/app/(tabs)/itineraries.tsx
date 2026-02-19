@@ -7,7 +7,7 @@ import { FlatList, RefreshControl } from 'react-native';
 import { Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper, ActionsheetItem, ActionsheetItemText } from '@/components/ui/actionsheet';
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Box } from '@/components/ui/box';
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
+import { Button, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
@@ -37,6 +37,7 @@ export default function ItinerariesScreen() {
     const { showToast } = useToastNotification();
     const [showAlertDialog, setShowAlertDialog] = useState(false);
     const [itineraryToDelete, setItineraryToDelete] = useState<number | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const {
         data: itineraries = [],
@@ -88,6 +89,7 @@ export default function ItinerariesScreen() {
 
     const confirmDelete = async () => {
         if (!itineraryToDelete) return;
+        setIsDeleting(true);
 
         try {
             const { error } = await supabase
@@ -110,6 +112,7 @@ export default function ItinerariesScreen() {
                 description: "Please try again. " + (error as Error).message,
             })
         } finally {
+            setIsDeleting(false);
             setShowAlertDialog(false);
             setItineraryToDelete(null);
         }
@@ -289,6 +292,7 @@ export default function ItinerariesScreen() {
                                 setItineraryToDelete(null);
                             }}
                             size="sm"
+                            isDisabled={isDeleting}
                         >
                             <ButtonText>Cancel</ButtonText>
                         </Button>
@@ -296,8 +300,10 @@ export default function ItinerariesScreen() {
                             size="sm"
                             action="negative"
                             onPress={confirmDelete}
+                            isDisabled={isDeleting}
                         >
-                            <ButtonText>Delete</ButtonText>
+                            {isDeleting && <ButtonSpinner color='#fff' className='mr-2' />}
+                            <ButtonText>{isDeleting ? "Deleting..." : "Delete"}</ButtonText>
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
