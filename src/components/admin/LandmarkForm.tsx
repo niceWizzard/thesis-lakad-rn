@@ -25,9 +25,11 @@ import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
+import { parseTime } from '@/src/utils/dateUtils';
 import { useNavigation, useRouter } from 'expo-router';
 import * as z from 'zod';
 import { LocationDialogSelection } from '../LocationDialogSelection';
+import { OpeningHoursInput } from './OpeningHoursInput';
 
 type FormData = z.infer<typeof createAndEditLandmarkSchema>;
 
@@ -68,12 +70,29 @@ export function LandmarkForm({
             gmaps_rating: initialData.gmaps_rating.toString(),
             description: initialData.description || '',
             externalImageUrl: '',
+            opening_hours: (initialData.landmark_opening_hours && initialData.landmark_opening_hours.length > 0) ? initialData.landmark_opening_hours.map(h => ({
+                day_of_week: h.day_of_week,
+                opens_at: parseTime(h.opens_at),
+                closes_at: parseTime(h.closes_at),
+                is_closed: h.is_closed
+            })) : [0, 1, 2, 3, 4, 5, 6].map(day => ({
+                day_of_week: day,
+                opens_at: new Date(new Date().setHours(8, 0, 0, 0)),
+                closes_at: new Date(new Date().setHours(17, 0, 0, 0)),
+                is_closed: false
+            }))
         } : {
             name: '',
             type: undefined,
             district: undefined,
             municipality: undefined,
             description: '', latitude: '', longitude: '', gmaps_rating: '0', externalImageUrl: '',
+            opening_hours: [0, 1, 2, 3, 4, 5, 6].map(day => ({
+                day_of_week: day,
+                opens_at: new Date(new Date().setHours(8, 0, 0, 0)),
+                closes_at: new Date(new Date().setHours(17, 0, 0, 0)),
+                is_closed: false
+            }))
         }
     });
 
@@ -347,6 +366,8 @@ export function LandmarkForm({
                                 )} />
                                 <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.description?.message}</FormControlErrorText></FormControlError>
                             </FormControl>
+
+                            <OpeningHoursInput control={control} name="opening_hours" />
 
                             <HStack space="md">
                                 <Box className="flex-1">

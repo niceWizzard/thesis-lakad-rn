@@ -1,3 +1,4 @@
+import { formatTime } from '@/src/utils/dateUtils';
 import { decode } from 'base64-arraybuffer';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -67,6 +68,23 @@ export default function AdminLandmarkCreateScreen() {
                 image_url: publicUrl,
                 created_at: new Date().toISOString(),
             })
+
+            // Insert Opening Hours
+            if (formData.opening_hours) {
+                const hoursToInsert = formData.opening_hours.map(h => ({
+                    landmark_id: id,
+                    day_of_week: h.day_of_week,
+                    opens_at: formatTime(h.opens_at) || null,
+                    closes_at: formatTime(h.closes_at) || null,
+                    is_closed: h.is_closed
+                }));
+
+                const { error: hoursError } = await supabase
+                    .from('landmark_opening_hours')
+                    .insert(hoursToInsert);
+
+                if (hoursError) throw hoursError;
+            }
 
             // Create distance matrix for new landmark
 

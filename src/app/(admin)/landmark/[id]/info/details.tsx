@@ -33,6 +33,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { formatTimeDisplay } from '@/src/utils/dateUtils';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -279,6 +280,37 @@ export default function AdminLandmarkDetailScreen() {
               <Heading size="sm" className="ml-1">Historical Description</Heading>
               <Box className="bg-background-50 p-5 rounded-3xl border border-outline-100">
                 <Text size="sm" className="leading-relaxed text-typography-700">{landmark.description}</Text>
+              </Box>
+            </VStack>
+
+            {/* 6. OPENING HOURS */}
+            <VStack className="gap-3">
+              <Heading size="sm" className="ml-1">Opening Hours</Heading>
+              <Box className="bg-background-50 p-5 rounded-3xl border border-outline-100 gap-3">
+                {landmark.landmark_opening_hours && landmark.landmark_opening_hours.length > 0 ? (
+                  [0, 1, 2, 3, 4, 5, 6].map((dayCode) => {
+                    const schedule = landmark.landmark_opening_hours.find(h => h.day_of_week === dayCode);
+                    const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayCode];
+                    const isToday = new Date().getDay() === dayCode;
+
+                    return (
+                      <HStack key={dayCode} className="justify-between items-center">
+                        <Text size="sm" className={`font-medium ${isToday ? 'text-primary-600 font-bold' : 'text-typography-600'}`}>
+                          {dayName}
+                        </Text>
+                        <Text size="sm" className={`${isToday ? 'text-primary-600 font-bold' : 'text-typography-900'}`}>
+                          {schedule?.is_closed
+                            ? 'Closed'
+                            : schedule?.opens_at && schedule?.closes_at
+                              ? `${formatTimeDisplay(schedule.opens_at)} - ${formatTimeDisplay(schedule.closes_at)}`
+                              : 'Closed'}
+                        </Text>
+                      </HStack>
+                    );
+                  })
+                ) : (
+                  <Text size="sm" className="text-typography-500 italic">No opening hours available.</Text>
+                )}
               </Box>
             </VStack>
 

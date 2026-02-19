@@ -32,6 +32,7 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Landmark } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
+import { formatTime, getOpeningStatus } from '@/src/utils/landmark/getOpeningStatus';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -140,6 +141,7 @@ const ExploreTab = () => {
     const handleBackdropPress = () => {
         setSelectedLandmark(null)
     }
+
 
 
 
@@ -314,43 +316,96 @@ const ExploreTab = () => {
                                 </Box>
 
                                 {/* Description */}
-                                <VStack space="xs">
+                                <VStack space="xs" className='gap-3'>
                                     <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
                                     <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
                                         <Text size="sm" className="text-typography-600 leading-relaxed">
                                             {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
                                         </Text>
                                     </Box>
+
+                                    {/* Opening Hours */}
+                                    {(selectedLandmark.type as string) !== 'Pasalubong Center' && selectedLandmark.landmark_opening_hours && selectedLandmark.landmark_opening_hours.length > 0 && (
+                                        <VStack space="xs">
+                                            <HStack className="justify-between items-center">
+                                                <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">Opening Hours</Text>
+                                                {(() => {
+                                                    const status = getOpeningStatus(selectedLandmark.landmark_opening_hours!);
+                                                    const colorMap = {
+                                                        'success': 'bg-success-100 text-success-700 border-success-200',
+                                                        'error': 'bg-error-100 text-error-700 border-error-200',
+                                                        'warning': 'bg-warning-100 text-warning-700 border-warning-200',
+                                                        'info': 'bg-info-100 text-info-700 border-info-200'
+                                                    };
+                                                    return (
+                                                        <Box className={`px-2 py-0.5 rounded-lg border ${colorMap[status.color] || 'bg-background-100 text-typography-500'}`}>
+                                                            <Text size="xs" className={`font-bold ${colorMap[status.color].split(' ')[1]}`}>
+                                                                {status.status}
+                                                            </Text>
+                                                        </Box>
+                                                    );
+                                                })()}
+                                            </HStack>
+
+                                            <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
+                                                <VStack space="sm" className='gap-2'>
+                                                    {selectedLandmark.landmark_opening_hours
+                                                        .sort((a, b) => {
+                                                            const dayA = a.day_of_week === 0 ? 7 : a.day_of_week;
+                                                            const dayB = b.day_of_week === 0 ? 7 : b.day_of_week;
+                                                            return dayA - dayB;
+                                                        })
+                                                        .map((hour) => {
+                                                            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                                            // Highlight today
+                                                            const isToday = hour.day_of_week === new Date().getDay();
+
+                                                            return (
+                                                                <HStack key={`${hour.landmark_id}-${hour.day_of_week}`} className="justify-between items-center">
+                                                                    <Text size="sm" className={`font-medium w-24 ${isToday ? "text-primary-600 font-bold" : "text-typography-600"}`}>
+                                                                        {days[hour.day_of_week]} {isToday && "(Today)"}
+                                                                    </Text>
+                                                                    <Text size="sm" className={hour.is_closed ? "text-error-600 font-medium" : "text-typography-900"}>
+                                                                        {hour.is_closed ? 'Closed' : `${formatTime(hour.opens_at)} - ${formatTime(hour.closes_at)}`}
+                                                                    </Text>
+                                                                </HStack>
+                                                            );
+                                                        })}
+                                                </VStack>
+                                            </Box>
+                                        </VStack>
+                                    )}
+
+
+                                    {/* Actions */}
+                                    {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
+                                        <HStack space="md" className="pb-10">
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                                onPress={() => {
+                                                    router.navigate({
+                                                        pathname: '/landmark/[id]/view',
+                                                        params: {
+                                                            id: selectedLandmark.id.toString(),
+                                                        },
+                                                    });
+                                                }}
+                                            >
+                                                <ButtonIcon as={Info} className="mr-2 text-typography-900" />
+                                                <ButtonText className="font-bold text-typography-900">Details</ButtonText>
+                                            </Button>
+
+                                            <Button
+                                                className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                                onPress={handleAddToItinerary}
+                                            >
+                                                <ButtonIcon as={MapPin} className="mr-2" />
+                                                <ButtonText className="font-bold">Add to Itinerary</ButtonText>
+                                            </Button>
+                                        </HStack>
+                                    )}
                                 </VStack>
-
-                                {/* Actions */}
-                                {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
-                                    <HStack space="md" className="pb-10">
-                                        <Button
-                                            variant="outline"
-                                            className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
-                                            onPress={() => {
-                                                router.navigate({
-                                                    pathname: '/landmark/[id]/view',
-                                                    params: {
-                                                        id: selectedLandmark.id.toString(),
-                                                    },
-                                                });
-                                            }}
-                                        >
-                                            <ButtonIcon as={Info} className="mr-2 text-typography-900" />
-                                            <ButtonText className="font-bold text-typography-900">Details</ButtonText>
-                                        </Button>
-
-                                        <Button
-                                            className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                            onPress={handleAddToItinerary}
-                                        >
-                                            <ButtonIcon as={MapPin} className="mr-2" />
-                                            <ButtonText className="font-bold">Add to Itinerary</ButtonText>
-                                        </Button>
-                                    </HStack>
-                                )}
                             </VStack>
                         ) : (
                             <Box className="flex-1 justify-center items-center p-10">

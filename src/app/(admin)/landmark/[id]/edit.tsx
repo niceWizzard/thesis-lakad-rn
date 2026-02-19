@@ -1,3 +1,4 @@
+import { formatTime } from '@/src/utils/dateUtils';
 import { decode } from 'base64-arraybuffer';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -83,6 +84,27 @@ export default function AdminLandmarkEditScreen() {
                 updated_at: new Date().toISOString(),
             }).eq('id', id as any);
             if (error) throw error;
+
+            // Update Opening Hours
+            if (formData.opening_hours) {
+                const landmarkId = Number(id);
+                if (isNaN(landmarkId)) throw new Error("Invalid Landmark ID");
+
+                // Upsert new hours
+                const hoursToUpsert = formData.opening_hours.map(h => ({
+                    landmark_id: landmarkId,
+                    day_of_week: h.day_of_week,
+                    opens_at: formatTime(h.opens_at) || null,
+                    closes_at: formatTime(h.closes_at) || null,
+                    is_closed: h.is_closed
+                }));
+
+                const { error: upsertError } = await supabase
+                    .from('landmark_opening_hours')
+                    .upsert(hoursToUpsert, { onConflict: 'landmark_id, day_of_week' });
+
+                if (upsertError) throw upsertError;
+            }
 
             const hasLocationChanged = formData.latitude !== landmark?.latitude.toString() || formData.longitude !== landmark?.longitude.toString();
             if (hasLocationChanged) {

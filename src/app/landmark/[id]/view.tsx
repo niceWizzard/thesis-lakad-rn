@@ -37,6 +37,7 @@ import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
 import { fetchPasalubongCenterById } from '@/src/utils/landmark/fetchPasalubongCenters';
+import { formatTime } from '@/src/utils/landmark/getOpeningStatus';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -406,6 +407,41 @@ export default function LandmarkViewerScreen() {
 
                     <Divider className="my-2" />
 
+                    <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
+                        <Heading size="sm">Opening Hours</Heading>
+                        <VStack space="sm" className='gap-2'>
+                            {
+                                landmark.landmark_opening_hours?.length ? (
+                                    landmark.landmark_opening_hours
+                                        .sort((a, b) => {
+                                            const dayA = a.day_of_week === 0 ? 7 : a.day_of_week;
+                                            const dayB = b.day_of_week === 0 ? 7 : b.day_of_week;
+                                            return dayA - dayB;
+                                        })
+                                        .map((hour) => {
+                                            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                            // Highlight today
+                                            const isToday = hour.day_of_week === new Date().getDay();
+
+                                            return (
+                                                <HStack key={`${hour.landmark_id}-${hour.day_of_week}`} className="justify-between items-center">
+                                                    <Text size="sm" className={`font-medium w-24 ${isToday ? "text-primary-600 font-bold" : "text-typography-600"}`}>
+                                                        {days[hour.day_of_week]} {isToday && "(Today)"}
+                                                    </Text>
+                                                    <Text size="sm" className={hour.is_closed ? "text-error-600 font-medium" : "text-typography-900"}>
+                                                        {hour.is_closed ? 'Closed' : `${formatTime(hour.opens_at!)} - ${formatTime(hour.closes_at!)}`}
+                                                    </Text>
+                                                </HStack>
+                                            );
+                                        })
+                                ) : (
+                                    <Text>No opening hours available. </Text>
+                                )
+                            }
+                        </VStack>
+                    </Box>
+
+
                     {/* Location Details */}
                     <VStack className="gap-3">
                         <Heading size="md">Exact Location</Heading>
@@ -420,8 +456,8 @@ export default function LandmarkViewerScreen() {
                             </HStack>
                         </Box>
                     </VStack>
-                </VStack>
-            </ScrollView>
+                </VStack >
+            </ScrollView >
 
             {/* Sticky Bottom Action */}
             {
@@ -450,6 +486,6 @@ export default function LandmarkViewerScreen() {
                 onClose={() => setShowImageCredits(false)}
                 credits={landmark.image_credits}
             />
-        </Box>
+        </Box >
     );
 }

@@ -14,15 +14,13 @@ import { fetchPasalubongCenters } from "./fetchPasalubongCenters";
 export const fetchCombinedLandmarks = async (): Promise<Landmark[]> => {
     const { data: touristLandmarks, error: touristError } = await supabase
         .from('landmark')
-        .select('*')
+        .select('*, landmark_opening_hours(*)')
         .eq('creation_type', "TOURIST_ATTRACTION")
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
-
     if (touristError) {
         throw touristError;
     }
-
     const pasalubongCenters = await fetchPasalubongCenters();
 
     // Combine and sort

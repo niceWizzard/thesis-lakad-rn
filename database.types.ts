@@ -136,7 +136,6 @@ export type Database = {
           closes_at: string | null
           created_at: string
           day_of_week: number
-          id: number
           is_closed: boolean
           landmark_id: number
           opens_at: string | null
@@ -145,7 +144,6 @@ export type Database = {
           closes_at?: string | null
           created_at?: string
           day_of_week?: number
-          id?: number
           is_closed?: boolean
           landmark_id: number
           opens_at?: string | null
@@ -154,7 +152,6 @@ export type Database = {
           closes_at?: string | null
           created_at?: string
           day_of_week?: number
-          id?: number
           is_closed?: boolean
           landmark_id?: number
           opens_at?: string | null

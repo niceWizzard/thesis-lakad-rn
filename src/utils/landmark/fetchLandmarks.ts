@@ -68,7 +68,7 @@ export const fetchLandmarkById = async (id: number | string) => {
 
     let { data, error } = await supabase
         .from('landmark')
-        .select('*')
+        .select('*, landmark_opening_hours(*)')
         .eq('id', parsedId)
         .order('created_at', { ascending: false })
         .maybeSingle();

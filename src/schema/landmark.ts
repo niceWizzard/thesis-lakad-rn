@@ -36,7 +36,13 @@ export const createAndEditLandmarkSchema = z.object({
         }, "Rating must be between 0 and 5"),
     externalImageUrl: z.url({ message: "Please enter a valid URL (include http://)" })
         .optional()
-        .or(z.literal(''))
+        .or(z.literal('')),
+    opening_hours: z.array(z.object({
+        day_of_week: z.number().min(0).max(6), // 0=Sunday, 6=Saturday
+        opens_at: z.date().optional(),
+        closes_at: z.date().optional(),
+        is_closed: z.boolean(),
+    })).optional(),
 }).superRefine((data, ctx) => {
     const validMunicipalities = DISTRICT_TO_MUNICIPALITY_MAP[data.district as LandmarkDistrict] as readonly string[];
     if (!validMunicipalities.includes(data.municipality)) {
