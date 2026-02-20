@@ -96,6 +96,5 @@ fun simulatedAnnealingImproved(
         }
         t *= coolingRate
     }
-    val unloopedCost = bestCost - getCost(bestTour.last(), bestTour.first())
-    return Pair(unloopedCost, bestTour)
+    return Pair(bestCost, bestTour)
 }

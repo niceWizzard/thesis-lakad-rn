@@ -21,16 +21,18 @@ import { VStack } from '@/components/ui/vstack';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
-import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { useUserLocation } from '@/src/hooks/useUserLocation';
 import { Landmark } from '@/src/model/landmark.types';
 import { StopWithLandmark } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
+import { calculateDistanceMatrix } from '@/src/utils/distance/calculateDistanceMatrix';
 import { calculateRouteDistanceFromMatrix } from '@/src/utils/distance/calculateRouteDistanceFromMatrix';
 import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { formatDistance } from '@/src/utils/format/distance';
+import { optimizeItinerary } from '@/src/utils/itinerary/optimizeItinerary';
 import { supabase } from '@/src/utils/supabase';
 import { Pressable } from 'react-native-gesture-handler';
 
@@ -48,6 +50,7 @@ const ReorderScreen = () => {
     const { session } = useAuthStore();
     const userId = session?.user.id;
     const { showToast } = useToastNotification();
+    const { userLocation } = useUserLocation();
 
     const [queryProgress] = useState(0)
 
@@ -59,15 +62,43 @@ const ReorderScreen = () => {
         queryFn: () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
     });
 
+    // Calculate distance to the very next stop visually
+    const [distanceToNextStop, setDistanceToNextStop] = useState(0);
+
+    const firstPendingStopId = itinerary?.stops.find(stop => !stop.visited_at)?.landmark_id;
+
+    React.useEffect(() => {
+        let mounted = true;
+
+        async function fetchFirstStopDistance() {
+            const firstStop = itinerary?.stops.find(stop => !stop.visited_at);
+            if (userLocation && firstStop?.landmark) {
+                try {
+                    const matrix = await calculateDistanceMatrix({
+                        waypointsWithIds: [
+                            { id: 'user', coords: userLocation },
+                            { id: firstStop.landmark_id.toString(), coords: [firstStop.landmark.longitude, firstStop.landmark.latitude] }
+                        ]
+                    });
+                    const dist = matrix['user']?.[firstStop.landmark_id.toString()] ?? 0;
+                    if (mounted) setDistanceToNextStop(dist);
+                } catch (e) {
+                    console.warn(e);
+                }
+            }
+        }
+        fetchFirstStopDistance();
+
+        return () => { mounted = false };
+    }, [userLocation, firstPendingStopId, itinerary?.stops]);
+
 
     const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<StopWithLandmark>) => {
         if (!itinerary || from === to) return;
 
         setLoadingModalMode(LoadingMode.Updating);
         try {
-            const completed = itinerary.stops.filter(s => !!s.visited_at);
-            // Construct the full new list: Completed stays first, then reordered pending
-            const fullNewList = [...completed, ...reorderedPending];
+            const fullNewList = [...reorderedPending];
 
             const updates = fullNewList.map((item, index) => ({
                 id: item.id,
@@ -161,30 +192,60 @@ const ReorderScreen = () => {
 
             // 3. Get the optimized order (returns array of IDs)
             setLoadingModalMode(LoadingMode.Optimizing)
-            let optimizedIds: string[] = [];
-            let distance = 0;
-            let bestDistance = Number.MAX_VALUE;
-            for (let i = 0; i < 15; i++) {
-                const {
-                    itinerary: optimizedItinerary,
-                    distance: calculatedDistance,
-                } = await AlgorithmModule.calculateOptimizedItinerary(distanceMatrix);
-                bestDistance = Math.min(bestDistance, calculatedDistance);
-                // prevents false improvement due to rounding errors
-                if (calculatedDistance < itinerary.distance - 0.1) {
-                    optimizedIds = optimizedItinerary;
-                    distance = calculatedDistance;
-                    break;
-                }
-                if (i === 14) {
-                    showToast({
-                        title: "Already optimized",
-                        description: "The itinerary is already optimized and could not be optimized further.",
-                        action: "info"
-                    })
-                    return;
+            let { distance, optimizedIds, failed } = await optimizeItinerary({
+                distanceMap: distanceMatrix,
+                itineraryDistance: itinerary.distance,
+            })
+
+            if (failed) {
+                showToast({
+                    title: "Already optimized",
+                    description: "The itinerary is already optimized and could not be optimized further.",
+                    action: "info"
+                })
+                return;
+            }
+
+
+            let userDistanceMatrix: Record<string, Record<string, number>> = {};
+            if (userLocation) {
+                const waypoints = [
+                    { id: 'user', coords: userLocation },
+                    ...onGoingStops.map(s => ({
+                        id: s.landmark_id.toString(),
+                        coords: [s.landmark.longitude, s.landmark.latitude] as [number, number]
+                    }))
+                ];
+                try {
+                    userDistanceMatrix = await calculateDistanceMatrix({ waypointsWithIds: waypoints });
+                } catch (e) {
+                    console.warn("Failed to calculate user distance matrix:", e);
                 }
             }
+            // Align the best route to start with the closest stop to the user
+            if (userLocation && userDistanceMatrix['user'] && optimizedIds.length > 0) {
+                let closestLandmarkId = optimizedIds[0];
+                let minDistanceToUser = Number.MAX_VALUE;
+
+                for (const idStr of optimizedIds) {
+                    const stopDist = userDistanceMatrix['user'][idStr];
+                    if (stopDist !== undefined && stopDist < minDistanceToUser) {
+                        minDistanceToUser = stopDist;
+                        closestLandmarkId = idStr;
+                    }
+                }
+
+                const closestIndex = optimizedIds.indexOf(closestLandmarkId);
+                if (closestIndex !== -1) {
+                    optimizedIds = [
+                        ...optimizedIds.slice(closestIndex),
+                        ...optimizedIds.slice(0, closestIndex)
+                    ];
+                }
+            }
+
+            // Calculate sequence path distance to be consistent with drag-and-drop
+            distance = await calculateRouteDistanceFromMatrix(optimizedIds.map(Number));
 
             /** * 4. Calculate the starting Index.
              * If 3 stops were already visited (indices 0, 1, 2), 
@@ -255,6 +316,8 @@ const ReorderScreen = () => {
     const pendingStops = itinerary.stops.filter(stop => !stop.visited_at);
     const completedStops = itinerary.stops.filter(stop => !!stop.visited_at);
 
+    const totalDistanceWithUser = itinerary.distance + distanceToNextStop;
+
     return (
         <>
             <Stack.Screen options={{ title: "Reorder Stops" }} />
@@ -277,9 +340,16 @@ const ReorderScreen = () => {
                                     {itinerary.stops.length} Stops • {pendingStops.length} Pending
                                 </Text>
                             </HStack>
-                            <Text className='text-typography-400 text-center'>
-                                {formatDistance(itinerary.distance)}
-                            </Text>
+                            <VStack space='xs' className='items-center'>
+                                <Text className='text-typography-400 text-center'>
+                                    Loop Distance: {formatDistance(itinerary.distance)}
+                                </Text>
+                                {distanceToNextStop > 0 && (
+                                    <Text size='xs' className='text-typography-500 text-center italic'>
+                                        Est. Route + First Stop: {formatDistance(totalDistanceWithUser)}
+                                    </Text>
+                                )}
+                            </VStack>
                         </VStack>
                         {completedStops.length > 0 && (
                             <>
