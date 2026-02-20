@@ -275,6 +275,15 @@ export const useNavigationLogic = ({
             return;
         }
 
+        if (!userLocation) {
+            showToast({
+                title: "Location not found",
+                description: "Please enable location services and try again.",
+                action: "error"
+            });
+            return;
+        }
+
         const startLocation = userLocation || [120.8092, 14.8605];
 
         try {
