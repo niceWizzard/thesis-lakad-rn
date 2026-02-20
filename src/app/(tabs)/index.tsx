@@ -379,31 +379,71 @@ const ExploreTab = () => {
 
                                     {/* Actions */}
                                     {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
-                                        <HStack space="md" className="pb-10">
-                                            <Button
-                                                variant="outline"
-                                                className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
-                                                onPress={() => {
-                                                    router.navigate({
-                                                        pathname: '/landmark/[id]/view',
-                                                        params: {
-                                                            id: selectedLandmark.id.toString(),
-                                                        },
-                                                    });
-                                                }}
-                                            >
-                                                <ButtonIcon as={Info} className="mr-2 text-typography-900" />
-                                                <ButtonText className="font-bold text-typography-900">Details</ButtonText>
-                                            </Button>
+                                        <VStack className="pb-10 gap-6">
+                                            <HStack space="md">
+                                                <Button
+                                                    variant="outline"
+                                                    className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                                    onPress={() => {
+                                                        router.navigate({
+                                                            pathname: '/landmark/[id]/view',
+                                                            params: {
+                                                                id: selectedLandmark.id.toString(),
+                                                            },
+                                                        });
+                                                    }}
+                                                >
+                                                    <ButtonIcon as={Info} className="mr-2 text-typography-900" />
+                                                    <ButtonText className="font-bold text-typography-900">Details</ButtonText>
+                                                </Button>
 
-                                            <Button
-                                                className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                                onPress={handleAddToItinerary}
-                                            >
-                                                <ButtonIcon as={MapPin} className="mr-2" />
-                                                <ButtonText className="font-bold">Add to Itinerary</ButtonText>
-                                            </Button>
-                                        </HStack>
+                                                <Button
+                                                    className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                                    onPress={handleAddToItinerary}
+                                                >
+                                                    <ButtonIcon as={MapPin} className="mr-2" />
+                                                    <ButtonText className="font-bold">Add to Itinerary</ButtonText>
+                                                </Button>
+                                            </HStack>
+
+                                            {/* Make a Review Section */}
+                                            <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                                <HStack className="justify-between items-center mb-1">
+                                                    <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">Make a Review</Text>
+                                                </HStack>
+
+                                                <HStack className="justify-between items-center">
+                                                    {/* 5 Stars Button */}
+                                                    <Pressable
+                                                        className="flex-row gap-1 py-1 px-1 rounded-xl"
+                                                        onPress={() => {
+                                                            router.navigate({
+                                                                pathname: '/landmark/[id]/review',
+                                                                params: { id: selectedLandmark.id.toString() }
+                                                            });
+                                                        }}
+                                                    >
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <Icon key={star} as={Star} size="lg" className="text-outline-300" />
+                                                        ))}
+                                                    </Pressable>
+
+                                                    {/* Add Review Button */}
+                                                    <Button
+                                                        variant="link"
+                                                        className="h-10"
+                                                        onPress={() => {
+                                                            router.navigate({
+                                                                pathname: '/landmark/[id]/review',
+                                                                params: { id: selectedLandmark.id.toString() }
+                                                            });
+                                                        }}
+                                                    >
+                                                        <ButtonText className="text-primary-600 font-bold">Write a review</ButtonText>
+                                                    </Button>
+                                                </HStack>
+                                            </VStack>
+                                        </VStack>
                                     )}
                                 </VStack>
                             </VStack>

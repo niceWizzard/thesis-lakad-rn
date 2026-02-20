@@ -171,8 +171,9 @@ export type Database = {
           content: string
           created_at: string
           id: number
+          images: string[]
           landmark_id: number | null
-          title: string
+          rating: number | null
           updated_at: string
           user_id: string | null
         }
@@ -180,8 +181,9 @@ export type Database = {
           content: string
           created_at?: string
           id?: number
+          images: string[]
           landmark_id?: number | null
-          title: string
+          rating?: number | null
           updated_at?: string
           user_id?: string | null
         }
@@ -189,8 +191,9 @@ export type Database = {
           content?: string
           created_at?: string
           id?: number
+          images?: string[]
           landmark_id?: number | null
-          title?: string
+          rating?: number | null
           updated_at?: string
           user_id?: string | null
         }
@@ -342,6 +345,30 @@ export type Database = {
             Args: { p_landmark_list: Json; p_name: string; p_user_id: string }
             Returns: number
           }
+      submit_landmark_review: {
+        Args: {
+          content_input: string
+          images_input: string[]
+          landmark_id_input: number
+          rating_input: number
+        }
+        Returns: {
+          content: string
+          created_at: string
+          id: number
+          images: string[]
+          landmark_id: number | null
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "landmark_reviews"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       district: "1" | "2" | "3" | "4" | "5" | "6" | "Lone"
