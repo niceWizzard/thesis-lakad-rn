@@ -27,6 +27,7 @@ interface UseNavigationLogicProps {
     navigationProfile: 'driving' | 'walking' | 'cycling';
     avoidTolls: boolean;
     isVoiceEnabled: boolean;
+    restartLocationUpdates: () => Promise<[number, number] | null>;
 }
 
 /**
@@ -48,6 +49,7 @@ export const useNavigationLogic = ({
     navigationProfile,
     avoidTolls,
     isVoiceEnabled,
+    restartLocationUpdates,
 }: UseNavigationLogicProps) => {
 
     const isProcessingArrival = useRef(false);
@@ -275,20 +277,26 @@ export const useNavigationLogic = ({
             return;
         }
 
-        if (!userLocation) {
-            showToast({
-                title: "Location not found",
-                description: "Please enable location services and try again.",
-                action: "error"
-            });
-            return;
-        }
-
-        const startLocation = userLocation || [120.8092, 14.8605];
-
         try {
             setIsStartingNavigation(true);
             setIsCalculatingRoute(true);
+            let currentUserLocation = userLocation;
+            if (!currentUserLocation) {
+                const updatedLocation = await restartLocationUpdates();
+                if (!updatedLocation) {
+                    showToast({
+                        title: "Location not found",
+                        description: "Please enable location services and try again.",
+                        action: "error"
+                    });
+                    return;
+                }
+                currentUserLocation = updatedLocation;
+            }
+
+            const startLocation = currentUserLocation;
+
+
             // Initialize/Result last reroute location so we don't immediately trigger a reroute if snapped
             lastRerouteLocation.current = startLocation;
 
@@ -314,20 +322,18 @@ export const useNavigationLogic = ({
                 heading: data.routes[0].legs[0].steps[0].maneuver.bearing_after,
                 animationDuration: 1500,
             });
-
-            // Keep loading overlay for smooth transition
-            setTimeout(() => {
-                setIsStartingNavigation(false);
-            }, 150);
-
         } catch (error: any) {
-            setIsCalculatingRoute(false);
-            setIsStartingNavigation(false);
+
             showToast({
                 title: "Error starting navigation",
                 description: error.message,
                 action: "error"
             });
+        } finally {
+            setIsCalculatingRoute(false);
+            setTimeout(() => {
+                setIsStartingNavigation(false);
+            }, 100);
         }
     };
 

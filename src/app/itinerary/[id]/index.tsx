@@ -64,7 +64,7 @@ export default function ItineraryView() {
     } = useItineraryData(id as string);
 
     // 2. Location
-    const { userLocation, heading } = useUserLocation();
+    const { userLocation, heading, restartLocationUpdates } = useUserLocation();
 
     // 3. Navigation State (Mode, Camera, Sheet)
     const {
@@ -108,6 +108,7 @@ export default function ItineraryView() {
         navigationProfile,
         avoidTolls,
         isVoiceEnabled,
+        restartLocationUpdates
     });
 
     // Auto-center camera on user location during navigation
