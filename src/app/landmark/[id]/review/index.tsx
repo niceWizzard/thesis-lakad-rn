@@ -279,10 +279,14 @@ export default function ReviewScreen() {
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+                keyboardVerticalOffset={100}
             >
-                <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}>
-                    <VStack space="xl" className="p-6">
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1, paddingBottom: 64 }}
+                    keyboardShouldPersistTaps='always'
+                    keyboardDismissMode='on-drag'
+                >
+                    <VStack space="xl" className="p-6" style={{ flexGrow: 1 }}>
                         <FormControl isInvalid={!!errors.rating}>
                             <Box className="p-6 rounded-xl border border-outline-100 items-center">
                                 <Heading size="lg" className="mb-2 text-typography-900">How was your visit?</Heading>
@@ -312,31 +316,6 @@ export default function ReviewScreen() {
                                     <FormControlErrorText>{errors.rating?.message}</FormControlErrorText>
                                 </FormControlError>
                             </Box>
-                        </FormControl>
-
-                        <FormControl isInvalid={!!errors.reviewText}>
-                            <VStack space="md">
-                                <FormControlLabel>
-                                    <FormControlLabelText className="font-bold text-typography-900 ml-1">Share your thoughts</FormControlLabelText>
-                                </FormControlLabel>
-                                <Controller
-                                    control={control}
-                                    name="reviewText"
-                                    render={({ field: { onChange, onBlur, value } }) => (
-                                        <Textarea className="h-40 rounded-xl border-outline-200">
-                                            <TextareaInput
-                                                placeholder="Tell others what you liked or how your experience could have been better..."
-                                                placeholderTextColor="#a3a3a3"
-                                                value={value}
-                                                onChangeText={onChange}
-                                                onBlur={onBlur}
-                                                textAlignVertical="top"
-                                                className="p-5 text-typography-900"
-                                            />
-                                        </Textarea>
-                                    )}
-                                />
-                            </VStack>
                         </FormControl>
 
                         <FormControl isInvalid={!!errors.images}>
@@ -379,6 +358,34 @@ export default function ReviewScreen() {
                                 </FormControlError>
                             </VStack>
                         </FormControl>
+
+                        <FormControl isInvalid={!!errors.reviewText} style={{ flexGrow: 1 }}>
+                            <VStack space="md" style={{ flexGrow: 1 }}>
+                                <FormControlLabel>
+                                    <FormControlLabelText className="font-bold text-typography-900 ml-1">Share your thoughts</FormControlLabelText>
+                                </FormControlLabel>
+                                <Controller
+                                    control={control}
+                                    name="reviewText"
+                                    render={({ field: { onChange, onBlur, value } }) => (
+                                        <Textarea className="min-h-[160px] rounded-xl border-outline-200" style={{ flexGrow: 1 }}>
+                                            <TextareaInput
+                                                placeholder="Tell others what you liked or how your experience could have been better..."
+                                                placeholderTextColor="#a3a3a3"
+                                                value={value}
+                                                onChangeText={onChange}
+                                                onBlur={onBlur}
+                                                textAlignVertical="top"
+                                                className="p-5 text-typography-900"
+                                                style={{ flexGrow: 1 }}
+                                            />
+                                        </Textarea>
+                                    )}
+                                />
+                            </VStack>
+                        </FormControl>
+
+
                     </VStack>
                 </ScrollView>
                 <Divider />
