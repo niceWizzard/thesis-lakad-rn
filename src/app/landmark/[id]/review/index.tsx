@@ -67,7 +67,7 @@ export default function ReviewScreen() {
             reviewText: existingReview.content || '',
             images: existingReview.images,
         } : {
-            rating: 1,
+            rating: 0,
             reviewText: '',
             images: [],
         },
