@@ -47,7 +47,7 @@ const ExploreTab = () => {
     const [sheetIndex, setSheetIndex] = useState(0)
 
     // Define snap points: 0 is closed, 1 is the 40% mark
-    const snapPoints = useMemo(() => ["20%", "80%",], []);
+    const snapPoints = useMemo(() => ["30%", "80%",], []);
 
     const { landmarks } = useQueryCombinedLandmarks()
 
