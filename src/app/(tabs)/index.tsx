@@ -549,11 +549,6 @@ const ExploreTab = () => {
                                                             <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
                                                                 Recent Reviews
                                                             </Text>
-                                                            <Badge variant="outline" action="muted" className="rounded-full px-2 py-0 border-outline-200 bg-background-0">
-                                                                <BadgeText className="text-[10px] text-typography-500 font-medium">
-                                                                    {selectedLandmark.review_count} {selectedLandmark.review_count === 1 ? 'Review' : 'Reviews'}
-                                                                </BadgeText>
-                                                            </Badge>
                                                         </HStack>
                                                         <VStack space="md" className="gap-4">
                                                             {recentReviews.map((review, index) => (
@@ -642,7 +637,7 @@ const ExploreTab = () => {
                                                             }}
                                                         >
                                                             <ButtonText className="text-primary-600 font-bold">
-                                                                See all reviews
+                                                                See all reviews ({selectedLandmark.review_count})
                                                             </ButtonText>
                                                         </Button>
                                                     </VStack>
