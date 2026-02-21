@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Camera, Star, Trash2, X } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Image, Platform, Pressable, ScrollView } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -35,11 +35,13 @@ type ReviewFormData = z.infer<typeof reviewFormSchema>;
 
 export default function ReviewScreen() {
     const { id } = useLocalSearchParams();
+    const navigation = useNavigation();
     const { showToast } = useToastNotification();
     const { session } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
+    const [showDiscardAlert, setShowDiscardAlert] = useState(false);
     const queryClient = useQueryClient();
 
     const { data: existingReview, isLoading: isLoadingReview, error: reviewError } = useQuery({
@@ -59,7 +61,8 @@ export default function ReviewScreen() {
         handleSubmit,
         setValue,
         watch,
-        formState: { errors, isValid },
+        reset,
+        formState: { errors, isValid, isDirty },
     } = useForm<ReviewFormData>({
         resolver: zodResolver(reviewFormSchema),
         values: existingReview ? {
@@ -73,6 +76,15 @@ export default function ReviewScreen() {
         },
         mode: 'onChange',
     });
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+            if (!isDirty || isSubmitting || isDeleting) return;
+            e.preventDefault();
+            setShowDiscardAlert(true);
+        });
+        return unsubscribe;
+    }, [navigation, isDirty, isSubmitting, isDeleting]);
 
     const selectedImages = watch('images') || [];
 
@@ -138,6 +150,7 @@ export default function ReviewScreen() {
                 action: "success",
             });
 
+            reset();
             router.back();
         } catch (error) {
             console.error('Error deleting review:', error);
@@ -231,6 +244,8 @@ export default function ReviewScreen() {
             await queryClient.invalidateQueries({ queryKey: ['landmark_review', id] });
             await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
             await queryClient.invalidateQueries({ queryKey: ['landmarks'] });
+
+            reset();
             setIsSubmitting(false);
 
             router.back();
@@ -438,6 +453,44 @@ export default function ReviewScreen() {
                             }}
                         >
                             <ButtonText>Delete</ButtonText>
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                isOpen={showDiscardAlert}
+                onClose={() => setShowDiscardAlert(false)}
+            >
+                <AlertDialogBackdrop />
+                <AlertDialogContent className='rounded-2xl'>
+                    <AlertDialogHeader>
+                        <Heading size="lg" className="text-typography-950 font-semibold">Discard Changes</Heading>
+                    </AlertDialogHeader>
+                    <AlertDialogBody className="mt-3 mb-4">
+                        <Text size="md">
+                            Are you sure you want to discard your changes?
+                        </Text>
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <Button
+                            variant="outline"
+                            action="secondary"
+                            onPress={() => setShowDiscardAlert(false)}
+                            size="md"
+                        >
+                            <ButtonText>Cancel</ButtonText>
+                        </Button>
+                        <Button
+                            size="md"
+                            action="negative"
+                            onPress={() => {
+                                setShowDiscardAlert(false);
+                                reset();
+                                router.back();
+                            }}
+                        >
+                            <ButtonText>Discard</ButtonText>
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
