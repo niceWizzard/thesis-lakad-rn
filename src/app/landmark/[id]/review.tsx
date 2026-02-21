@@ -151,7 +151,6 @@ export default function ReviewScreen() {
                     })
                     .filter((path: string | null) => path && !uploadedImages.includes(path)) as string[];
 
-                console.log(removedImagesPaths)
 
                 if (removedImagesPaths.length > 0) {
                     const { error: removeError } = await supabase.storage.from('images').remove(removedImagesPaths);
@@ -311,11 +310,11 @@ export default function ReviewScreen() {
                                         {selectedImages.length < 3 && (
                                             <Pressable
                                                 onPress={handlePickImages}
-                                                className="size-32 rounded-xl border-2 border-dashed border-outline-200 items-center justify-center bg-background-0 active:bg-background-50"
+                                                className="size-32 rounded-xl border-2 border-dashed border-outline-200 items-center justify-center bg-background-50 active:bg-background-100"
                                             >
                                                 <VStack className="items-center" space="xs">
-                                                    <Camera size={24} className="text-typography-400" />
-                                                    <Text size="xs" className="text-typography-400 font-medium">Add</Text>
+                                                    <Icon as={Camera} size='xl' className="text-typography-400" />
+                                                    <Text size="sm" className="text-typography-400 font-medium">Add</Text>
                                                 </VStack>
                                             </Pressable>
                                         )}
