@@ -404,7 +404,6 @@ export default function LandmarkViewerScreen() {
                                 <Text size="md" className="font-bold text-typography-900">Lakad Rating</Text>
                                 <Text size="sm" className="text-typography-500">Based on user reviews</Text>
                             </VStack>
-
                             <VStack className="items-end">
                                 <HStack space="xs" className="mb-1">
                                     {[1, 2, 3, 4, 5].map((star) => {
@@ -443,57 +442,6 @@ export default function LandmarkViewerScreen() {
                                 </HStack>
                                 <Text size="sm" className="font-bold text-primary-600">
                                     {landmark.average_rating ? landmark.average_rating.toFixed(1) + " / 5.0" : "New"}
-                                </Text>
-                            </VStack>
-                        </HStack>
-
-                        <Divider className="my-1 border-outline-100" />
-
-                        {/* GMaps Rating Row */}
-                        <HStack className="justify-between items-center">
-                            <VStack>
-                                <Text size="md" className="font-bold text-typography-900">Google Maps</Text>
-                                <Text size="sm" className="text-typography-500">Global rating</Text>
-                            </VStack>
-
-                            <VStack className="items-end">
-                                <HStack space="xs" className="mb-1">
-                                    {[1, 2, 3, 4, 5].map((star) => {
-                                        const avg = landmark.gmaps_rating || 0;
-                                        const isFilled = star <= avg;
-                                        const isHalf = !isFilled && star - 0.5 <= avg;
-
-                                        if (isHalf) {
-                                            return (
-                                                <Box key={star} className="relative w-4 h-4 justify-center items-center">
-                                                    <Star
-                                                        size={16}
-                                                        color="#f59e0b"
-                                                        fill="transparent"
-                                                    />
-                                                    <Box className="absolute top-0 left-0 bottom-0 right-0 justify-center items-center">
-                                                        <StarHalf
-                                                            size={16}
-                                                            color="#f59e0b"
-                                                            fill="#f59e0b"
-                                                        />
-                                                    </Box>
-                                                </Box>
-                                            );
-                                        }
-
-                                        return (
-                                            <Star
-                                                key={star}
-                                                size={16}
-                                                color={isFilled ? "#f59e0b" : "#e5e5e5"}
-                                                fill={isFilled ? "#f59e0b" : "transparent"}
-                                            />
-                                        );
-                                    })}
-                                </HStack>
-                                <Text size="sm" className="font-bold text-warning-600">
-                                    {landmark.gmaps_rating ? landmark.gmaps_rating.toFixed(1) + " / 5.0" : "N/A"}
                                 </Text>
                             </VStack>
                         </HStack>

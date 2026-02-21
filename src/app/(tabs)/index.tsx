@@ -334,12 +334,6 @@ const ExploreTab = () => {
                                                 </Text>
                                             </HStack>
                                         </VStack>
-                                        <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
-                                            <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
-                                            <Text size="sm" className="font-bold text-warning-700">
-                                                {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
-                                            </Text>
-                                        </HStack>
                                         <HStack className="items-center px-3 py-1.5 rounded-2xl border border-primary-100">
                                             <Icon as={Star} size="xs" className="text-primary-600 mr-1" fill="#059669" />
                                             <Text size="sm" className="font-bold text-primary-700">
