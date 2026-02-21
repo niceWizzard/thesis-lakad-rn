@@ -61,6 +61,7 @@ describe('useNavigationLogic', () => {
     const mockCamera = {
         setCamera: jest.fn(),
     };
+    const mockRestartLocationUpdates = jest.fn();
 
     const defaultProps = {
         mode: Mode.Viewing,
@@ -78,6 +79,7 @@ describe('useNavigationLogic', () => {
         navigationProfile: 'driving' as const,
         avoidTolls: false,
         isVoiceEnabled: true,
+        restartLocationUpdates: mockRestartLocationUpdates,
 
     } as Parameters<typeof useNavigationLogic>[0];
 

@@ -4,11 +4,11 @@ import { MarkerView } from '@rnmapbox/maps'
 import React from 'react'
 import { Image } from 'react-native'
 import { Pressable } from 'react-native-gesture-handler'
-import { LandmarkWithStats } from '../model/landmark.types'
+import { Landmark } from '../model/landmark.types'
 
 const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allowOverlap }: {
-    landmark: LandmarkWithStats,
-    handleMarkerPress?: (landmark: LandmarkWithStats) => void,
+    landmark: Landmark,
+    handleMarkerPress?: () => void,
     isSelected?: boolean,
     allowOverlap?: boolean,
 }) => {
@@ -21,7 +21,7 @@ const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allow
             allowOverlap={allowOverlap}
             isSelected={isSelected}
         >
-            <Pressable onPress={() => handleMarkerPress?.(landmark)}
+            <Pressable onPress={() => handleMarkerPress?.()}
                 style={{ alignItems: 'center' }}
             >
                 {/* Avatar Container */}

@@ -8,19 +8,19 @@ import { VStack } from '@/components/ui/vstack';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
-import { Landmark } from '@/src/model/landmark.types';
+import { LandmarkWithStats } from '@/src/model/landmark.types';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useQueryCombinedLandmarks } from '@/src/hooks/useQueryCombinedLandmarks';
+import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 
 const AdminExploreTab = () => {
-    const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
+    const [selectedLandmark, setSelectedLandmark] = useState<LandmarkWithStats | null>(null);
     const router = useRouter();
     const camera = useRef<Camera | null>(null)
     const sheetRef = useRef<BottomSheet>(null);
@@ -28,7 +28,7 @@ const AdminExploreTab = () => {
     const [sheetIndex, setSheetIndex] = useState(0)
 
 
-    const { landmarks } = useQueryCombinedLandmarks();
+    const { landmarks } = useQueryLandmarks();
 
     useEffect(() => {
         if (selectedLandmark) {

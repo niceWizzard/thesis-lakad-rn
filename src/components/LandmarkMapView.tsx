@@ -56,7 +56,7 @@ const LandmarkMapView = ({
         });
     };
 
-    const handleMarkerPress = (landmark: LandmarkWithStats) => {
+    const onMarkerPress = (landmark: LandmarkWithStats) => {
         setSelectedLandmark(landmark);
         centerMap([landmark.longitude, landmark.latitude]);
     };
@@ -139,7 +139,7 @@ const LandmarkMapView = ({
                         searchString={searchString}
                         onResultPress={(id) => {
                             const landmark = landmarks.find(l => l.id === id);
-                            if (landmark) handleMarkerPress(landmark);
+                            if (landmark) onMarkerPress(landmark);
                             setSearchString('');
                         }}
                         visible={showResults}
@@ -166,7 +166,7 @@ const LandmarkMapView = ({
                         landmark={v}
                         key={v.id}
                         isSelected={selectedLandmark?.id === v.id}
-                        handleMarkerPress={handleMarkerPress}
+                        handleMarkerPress={() => onMarkerPress(v)}
                     />
                 ))
             }
