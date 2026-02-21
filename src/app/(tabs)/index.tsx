@@ -613,6 +613,21 @@ const ExploreTab = () => {
                                                             </VStack>
                                                         ))}
                                                     </VStack>
+
+                                                    <Button
+                                                        variant="link"
+                                                        className="h-10 mt-2"
+                                                        onPress={() => {
+                                                            router.navigate({
+                                                                pathname: '/landmark/[id]/review/all',
+                                                                params: { id: selectedLandmark.id.toString() }
+                                                            });
+                                                        }}
+                                                    >
+                                                        <ButtonText className="text-primary-600 font-bold">
+                                                            See all reviews
+                                                        </ButtonText>
+                                                    </Button>
                                                 </VStack>
                                             )}
                                         </VStack>

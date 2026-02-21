@@ -345,6 +345,25 @@ export type Database = {
             Args: { p_landmark_list: Json; p_name: string; p_user_id: string }
             Returns: number
           }
+      get_filterable_reviews: {
+        Args: {
+          landmark_id_input: number
+          page_number?: number
+          page_size?: number
+          rating_filter?: number
+          sort_column?: string
+          sort_descending?: boolean
+        }
+        Returns: {
+          author_name: string
+          content: string
+          created_at: string
+          id: number
+          images: string[]
+          rating: number
+          user_id: string
+        }[]
+      }
       get_landmarks_with_stats: {
         Args: { target_id?: number }
         Returns: {
