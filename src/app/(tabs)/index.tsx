@@ -3,7 +3,7 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 // UI Components
 import { Badge, BadgeText } from '@/components/ui/badge';
@@ -96,7 +96,17 @@ const ExploreTab = () => {
                 .eq('user_id', userId)
                 .maybeSingle();
 
-            return data || null;
+            if (!data) return null;
+
+            const publicUrls = (data.images || []).map((img: string) => {
+                if (img.includes('supabase.co')) return img;
+                return supabase.storage.from('images').getPublicUrl(img).data.publicUrl;
+            });
+
+            return {
+                ...data,
+                images: publicUrls,
+            };
         },
         enabled: !!userId && !!selectedLandmark?.id,
     });
@@ -448,6 +458,26 @@ const ExploreTab = () => {
                                                         {isLoadingReview ? "Loading..." : existingReview ? "Your Review" : "Make a Review"}
                                                     </Text>
                                                 </HStack>
+
+                                                {existingReview && existingReview.content ? (
+                                                    <Text size="sm" className="text-typography-600 mb-2" numberOfLines={3} ellipsizeMode="tail">
+                                                        {existingReview.content.length > 150 ? `${existingReview.content.substring(0, 150)}...` : existingReview.content}
+                                                    </Text>
+                                                ) : null}
+
+                                                {existingReview?.images && existingReview.images.length > 0 && (
+                                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
+                                                        <HStack space="md">
+                                                            {existingReview.images.map((uri: string, index: number) => (
+                                                                <Image
+                                                                    key={index}
+                                                                    source={{ uri }}
+                                                                    className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
+                                                                />
+                                                            ))}
+                                                        </HStack>
+                                                    </ScrollView>
+                                                )}
 
                                                 <HStack className="justify-between items-center">
                                                     {/* 5 Stars Button */}

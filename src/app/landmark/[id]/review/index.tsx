@@ -20,6 +20,7 @@ import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { VStack } from '@/components/ui/vstack';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
+import { fetchReviewById } from '@/src/utils/review/fetchReview';
 import { supabase } from '@/src/utils/supabase';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,27 +47,12 @@ export default function ReviewScreen() {
         queryFn: async () => {
             if (!session?.user?.id) return null;
 
-            const { data } = await supabase
-                .from('landmark_reviews')
-                .select('*')
-                .eq('landmark_id', Number(id))
-                .eq('user_id', session.user.id)
-                .single();
-
-            if (!data) return null;
-
-            const publicUrls = (data.images || []).map(img => {
-                if (img.includes('supabase.co')) return img;
-                return supabase.storage.from('images').getPublicUrl(img).data.publicUrl;
-            });
-
-            return {
-                ...data,
-                images: publicUrls,
-            };
+            const review = await fetchReviewById(id.toString(), session.user.id);
+            return review;
         },
         enabled: !!session?.user?.id && !!id,
     });
+
 
     const {
         control,
