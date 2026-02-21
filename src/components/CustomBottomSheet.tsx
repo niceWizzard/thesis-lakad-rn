@@ -73,6 +73,8 @@ const CustomBottomSheet = ({
             }}
             backgroundStyle={{
                 backgroundColor: bgColor,
+                borderTopLeftRadius: 36,
+                borderTopRightRadius: 36,
             }}
             handleIndicatorStyle={{
                 opacity: 0,
