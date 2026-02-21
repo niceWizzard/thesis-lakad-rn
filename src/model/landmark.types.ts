@@ -5,6 +5,12 @@ export type Landmark = Database['public']['Tables']['landmark']['Row'] & {
     landmark_opening_hours?: OpeningHours[]
 }
 
+export type LandmarkWithStats = Landmark & {
+    review_count: number
+    average_rating: number
+    opening_hours: OpeningHours[]
+}
+
 export type LandmarkType = Landmark['type']
 export type LandmarkDistrict = Landmark['district']
 export type LandmarkMunicipality = Landmark['municipality']

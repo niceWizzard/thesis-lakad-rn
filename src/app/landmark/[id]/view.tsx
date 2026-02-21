@@ -3,10 +3,10 @@ import {
     AlertCircle,
     ArrowLeft,
     Info,
-    LocateIcon,
     MapPin,
     Share2,
     Star,
+    StarHalf
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Share, TouchableOpacity, View } from 'react-native';
@@ -32,13 +32,14 @@ import {
 import { Center } from '@/components/ui/center';
 import ImageCreditModal from '@/src/components/ImageCreditModal';
 import LandmarkSkeleton from '@/src/components/LandmarkSkeleton';
+import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
-import { fetchPasalubongCenterById } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { formatTime } from '@/src/utils/landmark/getOpeningStatus';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function LandmarkViewerScreen() {
@@ -54,6 +55,7 @@ export default function LandmarkViewerScreen() {
     const { session } = useAuthStore()
     const userId = session?.user.id;
     const [showNoItineraryAlert, setShowNoItineraryAlert] = useState(false);
+    const { primary } = useThemeConfig()
 
     const [pendingAction, setPendingAction] = useState<'create' | 'add' | null>(null);
 
@@ -64,14 +66,9 @@ export default function LandmarkViewerScreen() {
     } | null>(null);
 
 
-    const isPasalubong = searchParams.isPasalubong === 'true';
-
     const { data: landmark, isError, error, isLoading } = useQuery({
-        queryKey: [isPasalubong ? 'pasalubong' : 'landmark', id],
+        queryKey: ['landmark', id],
         queryFn: () => {
-            if (isPasalubong) {
-                return fetchPasalubongCenterById(id!.toString());
-            }
             return fetchLandmarkById(Number.parseInt(id!.toString()));
         },
         enabled: !!id,
@@ -110,6 +107,26 @@ export default function LandmarkViewerScreen() {
         queryKey: ['itineraries', userId!],
         queryFn: async () => fetchItinerariesOfUser(userId!),
         enabled: !!userId && showNoItineraryAlert,
+    });
+
+    const { data: existingReview } = useQuery({
+        queryKey: ['landmark_review', id],
+        queryFn: async () => {
+            if (!userId || !id) return null;
+            const { data, error } = await supabase
+                .from('landmark_reviews')
+                .select('*')
+                .eq('landmark_id', Number(id))
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Error fetching review:", error);
+                return null;
+            }
+            return data;
+        },
+        enabled: !!userId && !!id,
     });
 
     if (isLoading) {
@@ -374,25 +391,113 @@ export default function LandmarkViewerScreen() {
                         <HStack className="items-center gap-1">
                             <Icon as={MapPin} size="xs" className="text-typography-400" />
                             <Text size="sm" className="text-typography-500 font-medium">
-                                Bulacan, Philippines
+                                District {landmark.district} • {landmark.municipality}, Bulacan
                             </Text>
                         </HStack>
                     </VStack>
 
-                    {/* Quick Stats Grid */}
-                    <HStack className="justify-between bg-background-50 p-4 rounded-3xl border border-outline-50">
-                        <VStack className="items-center flex-1">
-                            <Icon as={Star} className="text-warning-500 mb-1" size="sm" />
-                            <Text size="xs" className="font-bold">{landmark.gmaps_rating}/5</Text>
-                            <Text size="xs" className="text-typography-400">Gmaps Rating</Text>
-                        </VStack>
-                        <Divider orientation='vertical' />
-                        <VStack className="items-center flex-1">
-                            <Icon as={LocateIcon} className="text-warning-500 mb-1" size="sm" />
-                            <Text size="xs" className="font-bold">District {landmark.district}  {landmark.municipality}</Text>
-                            <Text size="xs" className="text-typography-400">District / Municipality</Text>
-                        </VStack>
-                    </HStack>
+                    {/* Ratings Section */}
+                    <VStack className="bg-background-50 p-4 rounded-3xl border border-outline-50 gap-4">
+                        {/* Lakad Rating Row */}
+                        <HStack className="justify-between items-center">
+                            <VStack>
+                                <Text size="md" className="font-bold text-typography-900">Lakad Rating</Text>
+                                <Text size="sm" className="text-typography-500">Based on user reviews</Text>
+                            </VStack>
+
+                            <VStack className="items-end">
+                                <HStack space="xs" className="mb-1">
+                                    {[1, 2, 3, 4, 5].map((star) => {
+                                        const avg = landmark.average_rating || 0;
+                                        const isFilled = star <= avg;
+                                        const isHalf = !isFilled && star - 0.5 <= avg;
+
+                                        if (isHalf) {
+                                            return (
+                                                <Box key={star} className="relative w-4 h-4 justify-center items-center">
+                                                    <Star
+                                                        size={16}
+                                                        color={primary['200']}
+                                                        fill="transparent"
+                                                    />
+                                                    <Box className="absolute top-0 left-0 bottom-0 right-0 justify-center items-center">
+                                                        <StarHalf
+                                                            size={16}
+                                                            color={primary['500']}
+                                                            fill={primary['500']}
+                                                        />
+                                                    </Box>
+                                                </Box>
+                                            );
+                                        }
+
+                                        return (
+                                            <Star
+                                                key={star}
+                                                size={16}
+                                                color={isFilled ? primary['500'] : primary['200']}
+                                                fill={isFilled ? primary['500'] : "transparent"}
+                                            />
+                                        );
+                                    })}
+                                </HStack>
+                                <Text size="sm" className="font-bold text-primary-600">
+                                    {landmark.average_rating ? landmark.average_rating.toFixed(1) + " / 5.0" : "New"}
+                                </Text>
+                            </VStack>
+                        </HStack>
+
+                        <Divider className="my-1 border-outline-100" />
+
+                        {/* GMaps Rating Row */}
+                        <HStack className="justify-between items-center">
+                            <VStack>
+                                <Text size="md" className="font-bold text-typography-900">Google Maps</Text>
+                                <Text size="sm" className="text-typography-500">Global rating</Text>
+                            </VStack>
+
+                            <VStack className="items-end">
+                                <HStack space="xs" className="mb-1">
+                                    {[1, 2, 3, 4, 5].map((star) => {
+                                        const avg = landmark.gmaps_rating || 0;
+                                        const isFilled = star <= avg;
+                                        const isHalf = !isFilled && star - 0.5 <= avg;
+
+                                        if (isHalf) {
+                                            return (
+                                                <Box key={star} className="relative w-4 h-4 justify-center items-center">
+                                                    <Star
+                                                        size={16}
+                                                        color="#f59e0b"
+                                                        fill="transparent"
+                                                    />
+                                                    <Box className="absolute top-0 left-0 bottom-0 right-0 justify-center items-center">
+                                                        <StarHalf
+                                                            size={16}
+                                                            color="#f59e0b"
+                                                            fill="#f59e0b"
+                                                        />
+                                                    </Box>
+                                                </Box>
+                                            );
+                                        }
+
+                                        return (
+                                            <Star
+                                                key={star}
+                                                size={16}
+                                                color={isFilled ? "#f59e0b" : "#e5e5e5"}
+                                                fill={isFilled ? "#f59e0b" : "transparent"}
+                                            />
+                                        );
+                                    })}
+                                </HStack>
+                                <Text size="sm" className="font-bold text-warning-600">
+                                    {landmark.gmaps_rating ? landmark.gmaps_rating.toFixed(1) + " / 5.0" : "N/A"}
+                                </Text>
+                            </VStack>
+                        </HStack>
+                    </VStack>
 
                     {/* Description */}
                     <VStack className="gap-3">
@@ -407,12 +512,33 @@ export default function LandmarkViewerScreen() {
 
                     <Divider className="my-2" />
 
+                    {/* Lakad Reviews Action */}
+                    <HStack className="justify-between items-center bg-background-50 p-4 rounded-2xl">
+                        <VStack className="flex-1 mr-4 gap-1">
+                            <Heading size="md">Lakad Reviews</Heading>
+                            <Text size="sm" className="text-typography-500">
+                                {landmark.review_count ? `Based on ${landmark.review_count} review(s)` : 'No reviews yet. Be the first!'}
+                            </Text>
+                        </VStack>
+                        <Button
+                            size="sm"
+                            action="primary"
+                            variant={existingReview ? "outline" : "solid"}
+                            className="rounded-xl px-4"
+                            onPress={() => router.push({ pathname: '/landmark/[id]/review', params: { id: landmark.id.toString() } })}
+                        >
+                            <ButtonText>{existingReview ? "Edit Your Review" : "Write a Review"}</ButtonText>
+                        </Button>
+                    </HStack>
+
+                    <Divider className="my-2" />
+
                     <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
-                        <Heading size="sm">Opening Hours</Heading>
+                        <Heading size="md">Opening Hours</Heading>
                         <VStack space="sm" className='gap-2'>
                             {
-                                landmark.landmark_opening_hours?.length ? (
-                                    landmark.landmark_opening_hours
+                                landmark.opening_hours?.length ? (
+                                    landmark.opening_hours
                                         .sort((a, b) => {
                                             const dayA = a.day_of_week === 0 ? 7 : a.day_of_week;
                                             const dayB = b.day_of_week === 0 ? 7 : b.day_of_week;

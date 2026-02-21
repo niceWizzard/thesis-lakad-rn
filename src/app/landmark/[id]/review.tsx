@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Camera, Star, X } from 'lucide-react-native';
@@ -36,9 +36,10 @@ export default function ReviewScreen() {
     const { showToast } = useToastNotification();
     const { session } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const queryClient = useQueryClient();
 
     const { data: existingReview, isLoading: isLoadingReview, error: reviewError } = useQuery({
-        queryKey: ['landmark_review', id, session?.user?.id],
+        queryKey: ['landmark_review', id],
         queryFn: async () => {
             if (!session?.user?.id) return null;
 
@@ -181,8 +182,10 @@ export default function ReviewScreen() {
 
                 if (reviewError) throw reviewError;
             }
-
+            await queryClient.invalidateQueries({ queryKey: ['landmark_review', id] });
+            await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
             setIsSubmitting(false);
+
             router.back();
         } catch (error) {
             console.error('Error submitting review:', error);

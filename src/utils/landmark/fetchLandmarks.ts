@@ -1,4 +1,4 @@
-import { Landmark } from "@/src/model/landmark.types";
+import { Landmark, LandmarkWithStats } from "@/src/model/landmark.types";
 import { supabase } from "../supabase";
 /**
  * Fetches all active tourist attractions from the database.
@@ -67,15 +67,12 @@ export const fetchLandmarkById = async (id: number | string) => {
     const parsedId = Number(id)
 
     let { data, error } = await supabase
-        .from('landmark')
-        .select('*, landmark_opening_hours(*)')
-        .eq('id', parsedId)
-        .order('created_at', { ascending: false })
-        .maybeSingle();
+        .rpc('get_landmarks_with_stats', {
+            target_id: parsedId
+        })
 
     if (error) {
         throw error;
     }
-
-    return data;
+    return data ? (data[0] as LandmarkWithStats) : null;
 }

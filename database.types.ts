@@ -345,6 +345,37 @@ export type Database = {
             Args: { p_landmark_list: Json; p_name: string; p_user_id: string }
             Returns: number
           }
+      get_landmarks_with_stats: {
+        Args: { target_id?: number }
+        Returns: {
+          average_rating: number
+          created_at: string
+          creation_type: Database["public"]["Enums"]["LandmarkCreationType"]
+          deleted_at: string
+          description: string
+          district: Database["public"]["Enums"]["district"]
+          gmaps_rating: number
+          id: number
+          image_credits: string
+          image_url: string
+          latitude: number
+          longitude: number
+          municipality: Database["public"]["Enums"]["municipality"]
+          name: string
+          opening_hours: Json
+          review_count: number
+          type: Database["public"]["Enums"]["landmark_type2"]
+          updated_at: string
+        }[]
+      }
+      get_landmarks_with_stats_json: {
+        Args: { target_id?: number }
+        Returns: {
+          avg_rating: number
+          landmark_data: Json
+          total_reviews: number
+        }[]
+      }
       submit_landmark_review: {
         Args: {
           content_input: string
