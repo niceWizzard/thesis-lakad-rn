@@ -1,3 +1,4 @@
+import { ReviewWithAuthor } from "@/src/model/review.types";
 import { supabase } from "../supabase";
 
 export const fetchReviewById = async (landmarkId: string | number, userId: string) => {
@@ -107,3 +108,44 @@ export const fetchFilterableReviews = async ({
         };
     });
 };
+
+export async function fetchReviewByReviewId(reviewId: string): Promise<ReviewWithAuthor | null> {
+    const { data, error } = await supabase
+        .from('landmark_reviews')
+        .select('*')
+        .eq('id', Number(reviewId!))
+        .single();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    // Fetch author profile
+    let author_name: string | null = null;
+    if (data.user_id) {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', data.user_id)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching profile:', error);
+            throw error;
+        }
+
+        if (profile?.full_name) {
+            author_name = profile.full_name;
+        }
+    }
+
+    if (author_name === null) {
+        return null;
+    }
+
+    const publicUrls = (data.images || []).map((img: string) => {
+        if (img.includes('supabase.co')) return img;
+        return supabase.storage.from('images').getPublicUrl(img).data.publicUrl;
+    });
+
+    return { ...data, images: publicUrls, author_name };
+}

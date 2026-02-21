@@ -1,4 +1,3 @@
-import { supabase } from '@/src/utils/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Star, User } from 'lucide-react-native';
@@ -11,38 +10,9 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
+import { fetchReviewByReviewId } from '@/src/utils/review/fetchReview';
 
-async function fetchReviewByReviewId(reviewId: string) {
-    const { data, error } = await supabase
-        .from('landmark_reviews')
-        .select('id, rating, content, images, created_at, user_id')
-        .eq('id', Number(reviewId!))
-        .single();
 
-    if (error) throw error;
-    if (!data) return null;
-
-    // Fetch author profile
-    let author_name: string | null = null;
-    if (data.user_id) {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', data.user_id as any)
-            .maybeSingle();
-
-        if (profile?.full_name) {
-            author_name = profile.full_name;
-        }
-    }
-
-    const publicUrls = (data.images || []).map((img: string) => {
-        if (img.includes('supabase.co')) return img;
-        return supabase.storage.from('images').getPublicUrl(img).data.publicUrl;
-    });
-
-    return { ...data, images: publicUrls, author_name };
-}
 
 export default function ReviewDetailScreen() {
     const { reviewId } = useLocalSearchParams<{ reviewId: string }>();
@@ -89,8 +59,10 @@ export default function ReviewDetailScreen() {
                                     {review.author_name || 'Lakbay User'}
                                 </Text>
                                 <Text size="xs" className="text-typography-500">
-                                    {new Date(review.created_at).toLocaleDateString(undefined, {
+                                    {new Date(review.updated_at).toLocaleDateString(undefined, {
                                         year: 'numeric', month: 'long', day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
                                     })}
                                 </Text>
                             </VStack>
@@ -127,17 +99,19 @@ export default function ReviewDetailScreen() {
                             <Text size="xs" className="font-bold text-typography-500 uppercase tracking-wider">
                                 Photos ({review.images.length})
                             </Text>
-                            <VStack space="md">
-                                {review.images.map((uri: string, idx: number) => (
-                                    <Image
-                                        key={idx}
-                                        source={{ uri }}
-                                        className="w-full rounded-2xl bg-background-100"
-                                        style={{ height: 220 }}
-                                        resizeMode="cover"
-                                    />
-                                ))}
-                            </VStack>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                <HStack space="md">
+                                    {review.images.map((uri: string, idx: number) => (
+                                        <Image
+                                            key={idx}
+                                            source={{ uri }}
+                                            className="w-72 rounded-2xl bg-background-100"
+                                            style={{ height: 220 }}
+                                            resizeMode="cover"
+                                        />
+                                    ))}
+                                </HStack>
+                            </ScrollView>
                         </VStack>
                     )}
                 </VStack>
