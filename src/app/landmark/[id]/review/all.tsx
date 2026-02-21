@@ -111,7 +111,7 @@ export default function AllReviewsScreen() {
                                 <Image
                                     key={imgIdx}
                                     source={{ uri }}
-                                    className="w-20 h-20 rounded-xl border border-outline-100 bg-background-100"
+                                    className="size-32 rounded-xl border border-outline-100 bg-background-100"
                                 />
                             ))}
                         </HStack>

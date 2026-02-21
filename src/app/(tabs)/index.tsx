@@ -606,7 +606,7 @@ const ExploreTab = () => {
                                                                                     <Image
                                                                                         key={imgIdx}
                                                                                         source={{ uri }}
-                                                                                        className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
+                                                                                        className="size-24 rounded-xl border border-outline-100 bg-background-100"
                                                                                     />
                                                                                 ))}
                                                                             </HStack>
