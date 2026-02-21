@@ -513,23 +513,36 @@ export default function LandmarkViewerScreen() {
                     <Divider className="my-2" />
 
                     {/* Lakad Reviews Action */}
-                    <HStack className="justify-between items-center bg-background-50 p-4 rounded-2xl">
-                        <VStack className="flex-1 mr-4 gap-1">
-                            <Heading size="md">Lakad Reviews</Heading>
-                            <Text size="sm" className="text-typography-500">
-                                {landmark.review_count ? `Based on ${landmark.review_count} review(s)` : 'No reviews yet. Be the first!'}
-                            </Text>
-                        </VStack>
-                        <Button
-                            size="sm"
-                            action="primary"
-                            variant={existingReview ? "outline" : "solid"}
-                            className="rounded-xl px-4"
-                            onPress={() => router.push({ pathname: '/landmark/[id]/review', params: { id: landmark.id.toString() } })}
-                        >
-                            <ButtonText>{existingReview ? "Edit Your Review" : "Write a Review"}</ButtonText>
-                        </Button>
-                    </HStack>
+                    <VStack className="bg-background-50 p-4 rounded-2xl gap-3">
+                        <HStack className="justify-between items-center">
+                            <VStack className="flex-1 mr-4 gap-1">
+                                <Heading size="md">Lakad Reviews</Heading>
+                                <Text size="sm" className="text-typography-500">
+                                    {landmark.review_count ? `Based on ${landmark.review_count} review(s)` : 'No reviews yet. Be the first!'}
+                                </Text>
+                            </VStack>
+                            <Button
+                                size="sm"
+                                action="primary"
+                                variant={existingReview ? "outline" : "solid"}
+                                className="rounded-xl px-4"
+                                onPress={() => router.push({ pathname: '/landmark/[id]/review', params: { id: landmark.id.toString() } })}
+                            >
+                                <ButtonText>{existingReview ? "Edit Your Review" : "Write a Review"}</ButtonText>
+                            </Button>
+                        </HStack>
+
+                        {landmark.review_count > 0 && (
+                            <Button
+                                variant="link"
+                                size="sm"
+                                className="h-8 self-start -ml-1"
+                                onPress={() => router.push({ pathname: '/landmark/[id]/review/all' as any, params: { id: landmark.id.toString() } })}
+                            >
+                                <ButtonText className="text-primary-600 font-semibold">See all reviews →</ButtonText>
+                            </Button>
+                        )}
+                    </VStack>
 
                     <Divider className="my-2" />
 

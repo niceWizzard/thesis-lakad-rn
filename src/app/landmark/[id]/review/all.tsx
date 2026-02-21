@@ -1,8 +1,8 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronDown, Star, User } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, ScrollView } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
@@ -17,6 +17,7 @@ import { fetchFilterableReviews } from '@/src/utils/review/fetchReview';
 export default function AllReviewsScreen() {
     const { id } = useLocalSearchParams();
     const { primary } = useThemeConfig();
+    const router = useRouter();
 
     // Filters and sorting
     const [ratingFilter, setRatingFilter] = useState<number | undefined>(undefined);
@@ -65,51 +66,59 @@ export default function AllReviewsScreen() {
     const reviews = data?.pages.flatMap(page => page.data) || [];
 
     const renderReviewCard = ({ item }: { item: any }) => (
-        <VStack space="sm" className="bg-background-0 p-4 rounded-2xl mb-4 border border-outline-100">
-            <HStack className="justify-between items-center mb-1">
-                <HStack className="items-center gap-2">
-                    <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
-                        <Icon as={User} size="sm" className="text-primary-600" />
-                    </Box>
-                    <VStack>
-                        <Text size="sm" className="font-medium text-typography-900 truncate max-w-[150px]" numberOfLines={1}>
-                            {item.author_name || 'Lakbay User'}
-                        </Text>
-                        <Text size="xs" className="text-typography-500">
-                            {new Date(item.created_at).toLocaleDateString()}
-                        </Text>
-                    </VStack>
-                </HStack>
-                <HStack space="xs">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                            key={star}
-                            size={14}
-                            color={star <= (item.rating ?? 0) ? primary['500'] : "#d4d4d4"}
-                            fill={star <= (item.rating ?? 0) ? primary['500'] : "none"}
-                        />
-                    ))}
-                </HStack>
-            </HStack>
-            {item.content ? (
-                <Text size="sm" className="text-typography-600 mt-2">
-                    {item.content}
-                </Text>
-            ) : null}
-            {item.images && item.images.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
-                    <HStack space="md">
-                        {item.images.map((uri: string, imgIdx: number) => (
-                            <Image
-                                key={imgIdx}
-                                source={{ uri }}
-                                className="w-20 h-20 rounded-xl border border-outline-100 bg-background-100"
+        <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={() => router.navigate({
+                pathname: '/landmark/[id]/review/[reviewId]' as any,
+                params: { id: id as string, reviewId: item.id.toString() },
+            })}
+        >
+            <VStack space="sm" className="bg-background-0 p-4 rounded-2xl mb-4 border border-outline-100">
+                <HStack className="justify-between items-center mb-1">
+                    <HStack className="items-center gap-2">
+                        <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
+                            <Icon as={User} size="sm" className="text-primary-600" />
+                        </Box>
+                        <VStack>
+                            <Text size="sm" className="font-medium text-typography-900 truncate max-w-[150px]" numberOfLines={1}>
+                                {item.author_name || 'Lakbay User'}
+                            </Text>
+                            <Text size="xs" className="text-typography-500">
+                                {new Date(item.created_at).toLocaleDateString()}
+                            </Text>
+                        </VStack>
+                    </HStack>
+                    <HStack space="xs">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                size={14}
+                                color={star <= (item.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                fill={star <= (item.rating ?? 0) ? primary['500'] : "none"}
                             />
                         ))}
                     </HStack>
-                </ScrollView>
-            )}
-        </VStack>
+                </HStack>
+                {item.content ? (
+                    <Text size="sm" className="text-typography-600 mt-2" numberOfLines={4} ellipsizeMode="tail">
+                        {item.content}
+                    </Text>
+                ) : null}
+                {item.images && item.images.length > 0 && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+                        <HStack space="md">
+                            {item.images.map((uri: string, imgIdx: number) => (
+                                <Image
+                                    key={imgIdx}
+                                    source={{ uri }}
+                                    className="w-20 h-20 rounded-xl border border-outline-100 bg-background-100"
+                                />
+                            ))}
+                        </HStack>
+                    </ScrollView>
+                )}
+            </VStack>
+        </TouchableOpacity>
     );
 
     const filterOptions = [

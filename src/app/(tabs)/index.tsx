@@ -566,51 +566,59 @@ const ExploreTab = () => {
                                                     </HStack>
                                                     <VStack space="md" className="gap-4">
                                                         {recentReviews.map((review, index) => (
-                                                            <VStack key={review.id} space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
-                                                                <HStack className="justify-between items-center mb-1">
-                                                                    <HStack className="items-center gap-2">
-                                                                        <Box className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center">
-                                                                            <Icon as={User} size="xs" className="text-primary-600" />
-                                                                        </Box>
-                                                                        <Text size="sm" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
-                                                                            {review.author_name || 'Lakbay User'}
-                                                                        </Text>
-                                                                    </HStack>
-                                                                    <HStack space="xs">
-                                                                        {[1, 2, 3, 4, 5].map((star) => (
-                                                                            <Star
-                                                                                key={star}
-                                                                                size={12}
-                                                                                color={star <= (review.rating ?? 0) ? primary['500'] : "#d4d4d4"}
-                                                                                fill={star <= (review.rating ?? 0) ? primary['500'] : "none"}
-                                                                            />
-                                                                        ))}
-                                                                    </HStack>
-                                                                </HStack>
-                                                                {review.content ? (
-                                                                    <Text size="sm" className="text-typography-600 mt-1" numberOfLines={3} ellipsizeMode="tail">
-                                                                        {review.content}
-                                                                    </Text>
-                                                                ) : null}
-                                                                {review.images && review.images.length > 0 && (
-                                                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
-                                                                        <HStack space="md">
-                                                                            {review.images.map((uri: string, imgIdx: number) => (
-                                                                                <Image
-                                                                                    key={imgIdx}
-                                                                                    source={{ uri }}
-                                                                                    className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
+                                                            <Pressable
+                                                                key={review.id}
+                                                                onPress={() => router.navigate({
+                                                                    pathname: '/landmark/[id]/review/[reviewId]' as any,
+                                                                    params: { id: selectedLandmark.id.toString(), reviewId: review.id.toString() },
+                                                                })}
+                                                            >
+                                                                <VStack space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
+                                                                    <HStack className="justify-between items-center mb-1">
+                                                                        <HStack className="items-center gap-2">
+                                                                            <Box className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center">
+                                                                                <Icon as={User} size="xs" className="text-primary-600" />
+                                                                            </Box>
+                                                                            <Text size="sm" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
+                                                                                {review.author_name || 'Lakbay User'}
+                                                                            </Text>
+                                                                        </HStack>
+                                                                        <HStack space="xs">
+                                                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                                                <Star
+                                                                                    key={star}
+                                                                                    size={12}
+                                                                                    color={star <= (review.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                                                                    fill={star <= (review.rating ?? 0) ? primary['500'] : "none"}
                                                                                 />
                                                                             ))}
                                                                         </HStack>
-                                                                    </ScrollView>
-                                                                )}
-                                                                {
-                                                                    index < recentReviews.length - 1 && (
-                                                                        <Divider />
-                                                                    )
-                                                                }
-                                                            </VStack>
+                                                                    </HStack>
+                                                                    {review.content ? (
+                                                                        <Text size="sm" className="text-typography-600 mt-1" numberOfLines={3} ellipsizeMode="tail">
+                                                                            {review.content}
+                                                                        </Text>
+                                                                    ) : null}
+                                                                    {review.images && review.images.length > 0 && (
+                                                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+                                                                            <HStack space="md">
+                                                                                {review.images.map((uri: string, imgIdx: number) => (
+                                                                                    <Image
+                                                                                        key={imgIdx}
+                                                                                        source={{ uri }}
+                                                                                        className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
+                                                                                    />
+                                                                                ))}
+                                                                            </HStack>
+                                                                        </ScrollView>
+                                                                    )}
+                                                                    {
+                                                                        index < recentReviews.length - 1 && (
+                                                                            <Divider />
+                                                                        )
+                                                                    }
+                                                                </VStack>
+                                                            </Pressable>
                                                         ))}
                                                     </VStack>
 
