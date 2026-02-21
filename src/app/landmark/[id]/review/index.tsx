@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Camera, Star, X } from 'lucide-react-native';
+import { Camera, Star, Trash2, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Image, Platform, Pressable, ScrollView } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
+import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Divider } from '@/components/ui/divider';
@@ -36,6 +37,8 @@ export default function ReviewScreen() {
     const { showToast } = useToastNotification();
     const { session } = useAuthStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false);
     const queryClient = useQueryClient();
 
     const { data: existingReview, isLoading: isLoadingReview, error: reviewError } = useQuery({
@@ -107,6 +110,62 @@ export default function ReviewScreen() {
     const handleRemoveImage = (indexToRemove: number) => {
         const newImages = selectedImages.filter((_, idx) => idx !== indexToRemove);
         setValue('images', newImages, { shouldValidate: true, shouldDirty: true });
+    };
+
+    const handleDeleteReview = async () => {
+        if (!existingReview?.id) return;
+        setIsDeleting(true);
+
+        try {
+            // Remove images associated with the review
+            const imagesToRemove = (existingReview.images || []).map((url: string) => {
+                if (url.includes('supabase.co')) {
+                    const pathWithQuery = url.split('/object/public/images/')[1];
+                    if (!pathWithQuery) return null;
+                    return pathWithQuery.split('?')[0];
+                }
+                return url;
+            }).filter(Boolean) as string[];
+
+            if (imagesToRemove.length > 0) {
+                const { error: removeError } = await supabase.storage.from('images').remove(imagesToRemove);
+                if (removeError) {
+                    console.error('Failed to clean up review images', removeError);
+                }
+            }
+
+            const { error: deleteError } = await supabase
+                .from('landmark_reviews')
+                .delete()
+                .eq('id', existingReview.id);
+
+            if (deleteError) throw deleteError;
+
+            await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
+            await queryClient.invalidateQueries({ queryKey: ['landmarks'] });
+            await queryClient.invalidateQueries({ queryKey: ['landmark_review', id] });
+
+            showToast({
+                title: "Success",
+                description: "Review deleted successfully.",
+                action: "success",
+            });
+
+            router.back();
+        } catch (error) {
+            console.error('Error deleting review:', error);
+            showToast({
+                title: "Error",
+                description: "Failed to delete review. Please try again.",
+                action: "error",
+            });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const confirmDelete = () => {
+        setIsAlertDialogOpen(true);
     };
 
     const onSubmit = async (data: ReviewFormData) => {
@@ -223,6 +282,11 @@ export default function ReviewScreen() {
             <Stack.Screen
                 options={{
                     title: existingReview ? 'Edit Review' : 'Write a Review',
+                    headerRight: () => existingReview ? (
+                        <Pressable onPress={confirmDelete} className="p-2 -mr-2 active:opacity-50" disabled={isSubmitting || isDeleting}>
+                            {isDeleting ? <ActivityIndicator size="small" color="#ef4444" /> : <Icon as={Trash2} size="md" className="text-error-500" />}
+                        </Pressable>
+                    ) : undefined,
                 }}
             />
 
@@ -336,7 +400,7 @@ export default function ReviewScreen() {
                     <Button
                         className="w-full rounded-xl bg-primary-600 h-14"
                         onPress={handleSubmit(onSubmit)}
-                        isDisabled={isSubmitting || !isValid}
+                        isDisabled={isSubmitting || isDeleting || !isValid}
                     >
                         {
                             isSubmitting && <ButtonSpinner />
@@ -345,6 +409,43 @@ export default function ReviewScreen() {
                     </Button>
                 </Box>
             </KeyboardAvoidingView>
+
+            <AlertDialog
+                isOpen={isAlertDialogOpen}
+                onClose={() => setIsAlertDialogOpen(false)}
+            >
+                <AlertDialogBackdrop />
+                <AlertDialogContent className='rounded-2xl'>
+                    <AlertDialogHeader>
+                        <Heading size="lg" className="text-typography-950 font-semibold">Delete Review</Heading>
+                    </AlertDialogHeader>
+                    <AlertDialogBody className="mt-3 mb-4">
+                        <Text size="md">
+                            Are you sure you want to delete your review? This action cannot be undone.
+                        </Text>
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <Button
+                            variant="outline"
+                            action="secondary"
+                            onPress={() => setIsAlertDialogOpen(false)}
+                            size="md"
+                        >
+                            <ButtonText>Cancel</ButtonText>
+                        </Button>
+                        <Button
+                            size="md"
+                            action="negative"
+                            onPress={() => {
+                                setIsAlertDialogOpen(false);
+                                handleDeleteReview();
+                            }}
+                        >
+                            <ButtonText>Delete</ButtonText>
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Box>
     );
 }
