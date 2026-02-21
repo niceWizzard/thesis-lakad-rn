@@ -586,7 +586,7 @@ const ExploreTab = () => {
                                                                     >
                                                                         <VStack space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
                                                                             <HStack className="justify-between items-center mb-1">
-                                                                                <HStack className="items-center gap-2">
+                                                                                <HStack className="items-center gap-2 flex-1">
                                                                                     <Box className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center">
                                                                                         <Icon as={User} size="xs" className="text-primary-600" />
                                                                                     </Box>

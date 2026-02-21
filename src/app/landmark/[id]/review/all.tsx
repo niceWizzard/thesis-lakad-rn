@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronDown, Star, User } from 'lucide-react-native';
+import { ChevronDown, ChevronRight, Star, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 
@@ -92,7 +92,7 @@ export default function AllReviewsScreen() {
             >
                 <VStack space="sm" className="bg-background-0 p-4 rounded-2xl mb-4 border border-outline-100">
                     <HStack className="justify-between items-center mb-1">
-                        <HStack className="items-center gap-2">
+                        <HStack className="items-center gap-2 flex-1">
                             <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
                                 <Icon as={User} size="sm" className="text-primary-600" />
                             </Box>
@@ -115,6 +115,7 @@ export default function AllReviewsScreen() {
                                     fill={star <= (item.rating ?? 0) ? primary['500'] : "none"} />
                             ))}
                         </HStack>
+                        <Icon as={ChevronRight} className='text-typography-500' />
                     </HStack>
                     {item.content ? (
                         <Text size="sm" className="text-typography-600 mt-2" numberOfLines={4} ellipsizeMode="tail">
