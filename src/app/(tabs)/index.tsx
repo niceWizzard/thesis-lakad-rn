@@ -28,6 +28,7 @@ import { Center } from '@/components/ui/center';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
+import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { LandmarkWithStats } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -43,6 +44,7 @@ const ExploreTab = () => {
     const [showImageCredits, setShowImageCredits] = useState(false);
     const router = useRouter();
     const camera = useRef<any>(null);
+    const { primary } = useThemeConfig()
 
     const sheetRef = useRef<BottomSheet>(null);
     const [sheetIndex, setSheetIndex] = useState(0)
@@ -450,7 +452,7 @@ const ExploreTab = () => {
                                                 <HStack className="justify-between items-center">
                                                     {/* 5 Stars Button */}
                                                     <Pressable
-                                                        className="flex-row gap-1 py-1 px-1 rounded-xl"
+                                                        className="flex-row gap-1 py-1 px-1 rounded-xl justify-center items-center"
                                                         onPress={() => {
                                                             router.navigate({
                                                                 pathname: '/landmark/[id]/review',
@@ -462,19 +464,23 @@ const ExploreTab = () => {
                                                             <ActivityIndicator size="small" color="#0891b2" />
                                                         ) : existingReview ? (
                                                             [1, 2, 3, 4, 5].map((star) => (
-                                                                <Icon
-                                                                    key={star}
-                                                                    as={Star}
-                                                                    size="lg"
-                                                                    className={star <= (existingReview.rating ?? 0) ? "text-warning-500" : "text-outline-300"}
-                                                                    fill={star <= (existingReview.rating ?? 0) ? "#f59e0b" : "none"}
+                                                                <Star
+                                                                    key={`filled-star-${star}`}
+                                                                    size={16}
+                                                                    color={star <= (existingReview.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                                                    fill={star <= (existingReview.rating ?? 0) ? primary['500'] : "none"}
                                                                 />
                                                             ))
                                                         ) : (
                                                             [1, 2, 3, 4, 5].map((star) => (
-                                                                <Icon key={star} as={Star} size="lg" className="text-outline-300" />
+                                                                <Icon
+                                                                    key={`star-${star}`}
+                                                                    as={Star}
+                                                                    size='lg'
+                                                                />
                                                             ))
                                                         )}
+                                                        <Text className="font-bold ml-1">{existingReview?.rating ?? 0}</Text>
                                                     </Pressable>
 
                                                     {/* Add Review Button */}
