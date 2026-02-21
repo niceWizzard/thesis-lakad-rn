@@ -84,8 +84,8 @@ export default function AllReviewsScreen() {
                         });
                     } else {
                         router.navigate({
-                            pathname: '/landmark/[id]/review/[reviewId]' as any,
-                            params: { id: id as string },
+                            pathname: '/landmark/[id]/review/[reviewId]',
+                            params: { id: id as string, reviewId: item.id.toString() },
                         });
                     }
                 }}
