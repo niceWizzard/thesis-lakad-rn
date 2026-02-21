@@ -1,7 +1,7 @@
 import { ReviewWithAuthor } from "@/src/model/review.types";
 import { supabase } from "../supabase";
 
-export const fetchReviewById = async (landmarkId: string | number, userId: string) => {
+export const fetchReviewById = async (landmarkId: string | number, userId: string): Promise<ReviewWithAuthor | null> => {
     if (typeof landmarkId !== 'number') {
         landmarkId = Number(landmarkId);
     }
@@ -10,9 +10,33 @@ export const fetchReviewById = async (landmarkId: string | number, userId: strin
         .select('*')
         .eq('landmark_id', landmarkId)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
     if (!data) return null;
+
+    let author_name: string | null = null;
+    if (data.user_id) {
+        const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', data.user_id)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching profile:', error);
+            throw error;
+        }
+
+        if (profile?.full_name) {
+            author_name = profile.full_name;
+        }
+    }
+
+    if (author_name === null) {
+        return null;
+    }
+
+
 
     const publicUrls = (data.images || []).map(img => {
         if (img.includes('supabase.co')) return img;
@@ -22,10 +46,11 @@ export const fetchReviewById = async (landmarkId: string | number, userId: strin
     return {
         ...data,
         images: publicUrls,
+        author_name,
     };
 }
 
-export const fetchRecentReviewsByLandmarkId = async (landmarkId: string | number, limit: number = 3) => {
+export const fetchRecentReviewsByLandmarkId = async (landmarkId: string | number, limit: number = 3): Promise<ReviewWithAuthor[]> => {
     if (typeof landmarkId !== 'number') {
         landmarkId = Number(landmarkId);
     }
@@ -51,7 +76,9 @@ export const fetchRecentReviewsByLandmarkId = async (landmarkId: string | number
         return {
             ...review,
             images: publicUrls,
-        };
+            landmark_id: typeof landmarkId === 'number' ? landmarkId : Number(landmarkId),
+            updated_at: review.created_at,
+        } as ReviewWithAuthor;
     });
 };
 
@@ -61,7 +88,8 @@ export const fetchFilterableReviews = async ({
     pageSize = 10,
     ratingFilter,
     sortColumn = 'created_at',
-    sortDescending = true
+    sortDescending = true,
+    ignoreUserId = undefined,
 }: {
     landmarkId: string | number;
     pageNumber?: number;
@@ -69,7 +97,8 @@ export const fetchFilterableReviews = async ({
     ratingFilter?: number;
     sortColumn?: string;
     sortDescending?: boolean;
-}) => {
+    ignoreUserId?: string;
+}): Promise<ReviewWithAuthor[]> => {
     if (typeof landmarkId !== 'number') {
         landmarkId = Number(landmarkId);
     }
@@ -85,6 +114,10 @@ export const fetchFilterableReviews = async ({
 
     if (ratingFilter !== undefined && ratingFilter > 0) {
         args.rating_filter = ratingFilter;
+    }
+
+    if (ignoreUserId) {
+        args.ignore_user_id = ignoreUserId;
     }
 
     const { data: reviewsData, error } = await supabase.rpc('get_filterable_reviews', args);

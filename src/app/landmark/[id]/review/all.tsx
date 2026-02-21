@@ -12,12 +12,17 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import useThemeConfig from '@/src/hooks/useThemeConfig';
+import { ReviewWithAuthor } from '@/src/model/review.types';
+import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchFilterableReviews } from '@/src/utils/review/fetchReview';
 
 export default function AllReviewsScreen() {
     const { id } = useLocalSearchParams();
     const { primary } = useThemeConfig();
     const router = useRouter();
+
+    const { session } = useAuthStore()
+    const userId = session?.user.id;
 
     // Filters and sorting
     const [ratingFilter, setRatingFilter] = useState<number | undefined>(undefined);
@@ -42,7 +47,7 @@ export default function AllReviewsScreen() {
             pageSize: 10,
             ratingFilter,
             sortColumn,
-            sortDescending
+            sortDescending,
         });
         return {
             data: results,
@@ -63,63 +68,75 @@ export default function AllReviewsScreen() {
         getNextPageParam: (lastPage) => lastPage.nextPage,
     });
 
+
     const reviews = data?.pages.flatMap(page => page.data) || [];
 
-    const renderReviewCard = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={() => router.navigate({
-                pathname: '/landmark/[id]/review/[reviewId]' as any,
-                params: { id: id as string, reviewId: item.id.toString() },
-            })}
-        >
-            <VStack space="sm" className="bg-background-0 p-4 rounded-2xl mb-4 border border-outline-100">
-                <HStack className="justify-between items-center mb-1">
-                    <HStack className="items-center gap-2">
-                        <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
-                            <Icon as={User} size="sm" className="text-primary-600" />
-                        </Box>
-                        <VStack>
-                            <Text size="sm" className="font-medium text-typography-900 truncate max-w-[150px]" numberOfLines={1}>
-                                {item.author_name || 'Lakbay User'}
-                            </Text>
-                            <Text size="xs" className="text-typography-500">
-                                {new Date(item.created_at).toLocaleDateString()}
-                            </Text>
-                        </VStack>
-                    </HStack>
-                    <HStack space="xs">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                                key={star}
-                                size={14}
-                                color={star <= (item.rating ?? 0) ? primary['500'] : "#d4d4d4"}
-                                fill={star <= (item.rating ?? 0) ? primary['500'] : "none"}
-                            />
-                        ))}
-                    </HStack>
-                </HStack>
-                {item.content ? (
-                    <Text size="sm" className="text-typography-600 mt-2" numberOfLines={4} ellipsizeMode="tail">
-                        {item.content}
-                    </Text>
-                ) : null}
-                {item.images && item.images.length > 0 && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
-                        <HStack space="md">
-                            {item.images.map((uri: string, imgIdx: number) => (
-                                <Image
-                                    key={imgIdx}
-                                    source={{ uri }}
-                                    className="size-32 rounded-xl border border-outline-100 bg-background-100"
-                                />
+    const renderReviewCard = ({ item }: { item: ReviewWithAuthor }) => {
+        const isCurrentUserReview = item.user_id === userId;
+        return (
+            <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={() => {
+                    if (isCurrentUserReview) {
+                        router.navigate({
+                            pathname: '/landmark/[id]/review',
+                            params: { id: id as string },
+                        });
+                    } else {
+                        router.navigate({
+                            pathname: '/landmark/[id]/review/[reviewId]' as any,
+                            params: { id: id as string },
+                        });
+                    }
+                }}
+            >
+                <VStack space="sm" className="bg-background-0 p-4 rounded-2xl mb-4 border border-outline-100">
+                    <HStack className="justify-between items-center mb-1">
+                        <HStack className="items-center gap-2">
+                            <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
+                                <Icon as={User} size="sm" className="text-primary-600" />
+                            </Box>
+                            <VStack>
+                                <Text size="sm" className="font-medium text-typography-900 truncate max-w-[150px]" numberOfLines={1}>
+                                    {item.author_name || 'Lakbay User'}
+                                    {isCurrentUserReview && ' (You)'}
+                                </Text>
+                                <Text size="xs" className="text-typography-500">
+                                    {new Date(item.created_at).toLocaleDateString()}
+                                </Text>
+                            </VStack>
+                        </HStack>
+                        <HStack space="xs">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                    key={star}
+                                    size={14}
+                                    color={star <= (item.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                    fill={star <= (item.rating ?? 0) ? primary['500'] : "none"} />
                             ))}
                         </HStack>
-                    </ScrollView>
-                )}
-            </VStack>
-        </TouchableOpacity>
-    );
+                    </HStack>
+                    {item.content ? (
+                        <Text size="sm" className="text-typography-600 mt-2" numberOfLines={4} ellipsizeMode="tail">
+                            {item.content}
+                        </Text>
+                    ) : null}
+                    {item.images && item.images.length > 0 && (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+                            <HStack space="md">
+                                {item.images.map((uri: string, imgIdx: number) => (
+                                    <Image
+                                        key={imgIdx}
+                                        source={{ uri }}
+                                        className="size-32 rounded-xl border border-outline-100 bg-background-100" />
+                                ))}
+                            </HStack>
+                        </ScrollView>
+                    )}
+                </VStack>
+            </TouchableOpacity>
+        );
+    };
 
     const filterOptions = [
         { label: 'All', value: undefined },
@@ -204,7 +221,7 @@ export default function AllReviewsScreen() {
                 <FlatList
                     data={reviews}
                     keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderReviewCard}
+                    renderItem={({ item }) => renderReviewCard({ item })}
                     contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
                     onEndReached={() => {
                         if (hasNextPage && !isFetchingNextPage) {

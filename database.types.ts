@@ -347,6 +347,7 @@ export type Database = {
           }
       get_filterable_reviews: {
         Args: {
+          ignore_user_id?: string
           landmark_id_input: number
           page_number?: number
           page_size?: number
@@ -360,7 +361,9 @@ export type Database = {
           created_at: string
           id: number
           images: string[]
+          landmark_id: number
           rating: number
+          updated_at: string
           user_id: string
         }[]
       }
