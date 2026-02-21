@@ -1,7 +1,7 @@
 import ImageCreditModal from '@/src/components/ImageCreditModal';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
-import { Info, MapPin, Star } from 'lucide-react-native';
+import { Info, MapPin, Star, User } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet } from 'react-native';
 
@@ -25,6 +25,7 @@ import {
     AlertDialogHeader,
 } from '@/components/ui/alert-dialog';
 import { Center } from '@/components/ui/center';
+import { Divider } from '@/components/ui/divider';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
@@ -35,6 +36,7 @@ import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { formatTime, getOpeningStatus } from '@/src/utils/landmark/getOpeningStatus';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { fetchRecentReviewsByLandmarkId } from '@/src/utils/review/fetchReview';
 import { supabase } from '@/src/utils/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -109,6 +111,15 @@ const ExploreTab = () => {
             };
         },
         enabled: !!userId && !!selectedLandmark?.id,
+    });
+
+    const { data: recentReviews } = useQuery({
+        queryKey: ['recent_reviews', selectedLandmark?.id?.toString()],
+        queryFn: async () => {
+            if (!selectedLandmark?.id) return [];
+            return fetchRecentReviewsByLandmarkId(selectedLandmark.id);
+        },
+        enabled: !!selectedLandmark?.id,
     });
 
     const handleAddToItinerary = () => {
@@ -530,6 +541,80 @@ const ExploreTab = () => {
                                                     </Button>
                                                 </HStack>
                                             </VStack>
+
+                                            {/* Separator before Recent Reviews */}
+                                            {recentReviews && recentReviews.length > 0 && (
+                                                <Box className="flex-row items-center my-2 opacity-50">
+                                                    <Box className="flex-1 h-[1px] bg-outline-200" />
+                                                    <Text size="xs" className="mx-3 text-typography-400 font-medium tracking-widest uppercase">Community</Text>
+                                                    <Box className="flex-1 h-[1px] bg-outline-200" />
+                                                </Box>
+                                            )}
+
+                                            {/* Recent Reviews Section */}
+                                            {recentReviews && recentReviews.length > 0 && (
+                                                <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                                    <HStack className="justify-between items-center mb-2">
+                                                        <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
+                                                            Recent Reviews
+                                                        </Text>
+                                                        <Badge variant="outline" action="muted" className="rounded-full px-2 py-0 border-outline-200 bg-background-0">
+                                                            <BadgeText className="text-[10px] text-typography-500 font-medium">
+                                                                {selectedLandmark.review_count} {selectedLandmark.review_count === 1 ? 'Review' : 'Reviews'}
+                                                            </BadgeText>
+                                                        </Badge>
+                                                    </HStack>
+                                                    <VStack space="md" className="gap-4">
+                                                        {recentReviews.map((review, index) => (
+                                                            <VStack key={review.id} space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
+                                                                <HStack className="justify-between items-center mb-1">
+                                                                    <HStack className="items-center gap-2">
+                                                                        <Box className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center">
+                                                                            <Icon as={User} size="xs" className="text-primary-600" />
+                                                                        </Box>
+                                                                        <Text size="sm" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
+                                                                            {review.author_name || 'Lakbay User'}
+                                                                        </Text>
+                                                                    </HStack>
+                                                                    <HStack space="xs">
+                                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                                            <Star
+                                                                                key={star}
+                                                                                size={12}
+                                                                                color={star <= (review.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                                                                fill={star <= (review.rating ?? 0) ? primary['500'] : "none"}
+                                                                            />
+                                                                        ))}
+                                                                    </HStack>
+                                                                </HStack>
+                                                                {review.content ? (
+                                                                    <Text size="sm" className="text-typography-600 mt-1" numberOfLines={3} ellipsizeMode="tail">
+                                                                        {review.content}
+                                                                    </Text>
+                                                                ) : null}
+                                                                {review.images && review.images.length > 0 && (
+                                                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+                                                                        <HStack space="md">
+                                                                            {review.images.map((uri: string, imgIdx: number) => (
+                                                                                <Image
+                                                                                    key={imgIdx}
+                                                                                    source={{ uri }}
+                                                                                    className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
+                                                                                />
+                                                                            ))}
+                                                                        </HStack>
+                                                                    </ScrollView>
+                                                                )}
+                                                                {
+                                                                    index < recentReviews.length - 1 && (
+                                                                        <Divider />
+                                                                    )
+                                                                }
+                                                            </VStack>
+                                                        ))}
+                                                    </VStack>
+                                                </VStack>
+                                            )}
                                         </VStack>
                                     )}
                                 </VStack>

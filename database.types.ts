@@ -376,6 +376,18 @@ export type Database = {
           total_reviews: number
         }[]
       }
+      get_recent_reviews_by_landmark: {
+        Args: { landmark_id_input: number; limit_input?: number }
+        Returns: {
+          author_name: string
+          content: string
+          created_at: string
+          id: number
+          images: string[]
+          rating: number
+          user_id: string
+        }[]
+      }
       submit_landmark_review: {
         Args: {
           content_input: string
