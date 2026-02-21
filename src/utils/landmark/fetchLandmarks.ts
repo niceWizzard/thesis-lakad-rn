@@ -9,19 +9,15 @@ import { supabase } from "../supabase";
  * sorted by most recently created.
  * @throws {PostgrestError} If the Supabase query fails.
  */
-export const fetchLandmarks = async (): Promise<Landmark[]> => {
+export const fetchLandmarks = async (): Promise<LandmarkWithStats[]> => {
     const { data, error } = await supabase
-        .from('landmark')
-        .select('*')
-        .eq('creation_type', "TOURIST_ATTRACTION")
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+        .rpc('get_landmarks_with_stats')
 
     if (error) {
         throw error;
     }
 
-    return data;
+    return (data ?? []) as LandmarkWithStats[];
 }
 
 /**

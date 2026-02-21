@@ -27,18 +27,19 @@ import {
 import { Center } from '@/components/ui/center';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useQueryCombinedLandmarks } from '@/src/hooks/useQueryCombinedLandmarks';
+import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { Landmark } from '@/src/model/landmark.types';
+import { LandmarkWithStats } from '@/src/model/landmark.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { formatTime, getOpeningStatus } from '@/src/utils/landmark/getOpeningStatus';
 import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { supabase } from '@/src/utils/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const ExploreTab = () => {
 
-    const [selectedLandmark, setSelectedLandmark] = useState<Landmark | null>(null);
+    const [selectedLandmark, setSelectedLandmark] = useState<LandmarkWithStats | null>(null);
     const [showImageCredits, setShowImageCredits] = useState(false);
     const router = useRouter();
     const camera = useRef<any>(null);
@@ -49,7 +50,17 @@ const ExploreTab = () => {
     // Define snap points: 0 is closed, 1 is the 40% mark
     const snapPoints = useMemo(() => ["30%", "80%",], []);
 
-    const { landmarks } = useQueryCombinedLandmarks()
+    const { landmarks } = useQueryLandmarks()
+
+    // Sync selected landmark if landmarks data changes (e.g. review updates rating)
+    useEffect(() => {
+        if (selectedLandmark && landmarks) {
+            const updatedLandmark = landmarks.find(l => l.id === selectedLandmark.id);
+            if (updatedLandmark && JSON.stringify(updatedLandmark) !== JSON.stringify(selectedLandmark)) {
+                setSelectedLandmark(updatedLandmark);
+            }
+        }
+    }, [landmarks, selectedLandmark]);
 
     // Add to Itinerary Logic
     const { session } = useAuthStore()
@@ -69,6 +80,23 @@ const ExploreTab = () => {
         queryKey: ['itineraries', userId!],
         queryFn: async () => fetchItinerariesOfUser(userId!),
         enabled: !!userId && showNoItineraryAlert,
+    });
+
+    const { data: existingReview, isLoading: isLoadingReview } = useQuery({
+        queryKey: ['landmark_review', selectedLandmark?.id?.toString()],
+        queryFn: async () => {
+            if (!userId || !selectedLandmark?.id) return null;
+
+            const { data } = await supabase
+                .from('landmark_reviews')
+                .select('*')
+                .eq('landmark_id', selectedLandmark.id)
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            return data || null;
+        },
+        enabled: !!userId && !!selectedLandmark?.id,
     });
 
     const handleAddToItinerary = () => {
@@ -126,7 +154,7 @@ const ExploreTab = () => {
 
     // Sync BottomSheet with selectedLandmark state
     useEffect(() => {
-        if (selectedLandmark) {
+        if (selectedLandmark?.id) {
             // Use requestAnimationFrame to ensure the sheet is ready
             requestAnimationFrame(() => {
                 sheetRef.current?.snapToIndex(0);
@@ -134,7 +162,7 @@ const ExploreTab = () => {
         } else {
             sheetRef.current?.close();
         }
-    }, [selectedLandmark]);
+    }, [selectedLandmark?.id]);
 
     // 2. Removed local location Effect
 
@@ -271,7 +299,7 @@ const ExploreTab = () => {
                                 </Box>
                                 {/* Header Info */}
                                 <VStack className="gap-2">
-                                    <HStack className="justify-between items-start">
+                                    <HStack className="justify-between items-start gap-2" >
                                         <VStack className="flex-1 pr-4">
                                             <Heading size="xl" className="text-typography-900 leading-tight">
                                                 {selectedLandmark.name}
@@ -283,11 +311,16 @@ const ExploreTab = () => {
                                                 </Text>
                                             </HStack>
                                         </VStack>
-
                                         <HStack className="items-center bg-warning-50 px-3 py-1.5 rounded-2xl border border-warning-100">
                                             <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
                                             <Text size="sm" className="font-bold text-warning-700">
                                                 {selectedLandmark.gmaps_rating?.toFixed(1) ?? '0.0'}
+                                            </Text>
+                                        </HStack>
+                                        <HStack className="items-center px-3 py-1.5 rounded-2xl border border-primary-100">
+                                            <Icon as={Star} size="xs" className="text-primary-600 mr-1" fill="#059669" />
+                                            <Text size="sm" className="font-bold text-primary-700">
+                                                {selectedLandmark.average_rating?.toFixed(1) ?? '0.0'}
                                             </Text>
                                         </HStack>
                                     </HStack>
@@ -409,7 +442,9 @@ const ExploreTab = () => {
                                             {/* Make a Review Section */}
                                             <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
                                                 <HStack className="justify-between items-center mb-1">
-                                                    <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">Make a Review</Text>
+                                                    <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
+                                                        {isLoadingReview ? "Loading..." : existingReview ? "Your Review" : "Make a Review"}
+                                                    </Text>
                                                 </HStack>
 
                                                 <HStack className="justify-between items-center">
@@ -423,9 +458,23 @@ const ExploreTab = () => {
                                                             });
                                                         }}
                                                     >
-                                                        {[1, 2, 3, 4, 5].map((star) => (
-                                                            <Icon key={star} as={Star} size="lg" className="text-outline-300" />
-                                                        ))}
+                                                        {isLoadingReview ? (
+                                                            <ActivityIndicator size="small" color="#0891b2" />
+                                                        ) : existingReview ? (
+                                                            [1, 2, 3, 4, 5].map((star) => (
+                                                                <Icon
+                                                                    key={star}
+                                                                    as={Star}
+                                                                    size="lg"
+                                                                    className={star <= (existingReview.rating ?? 0) ? "text-warning-500" : "text-outline-300"}
+                                                                    fill={star <= (existingReview.rating ?? 0) ? "#f59e0b" : "none"}
+                                                                />
+                                                            ))
+                                                        ) : (
+                                                            [1, 2, 3, 4, 5].map((star) => (
+                                                                <Icon key={star} as={Star} size="lg" className="text-outline-300" />
+                                                            ))
+                                                        )}
                                                     </Pressable>
 
                                                     {/* Add Review Button */}
@@ -439,7 +488,9 @@ const ExploreTab = () => {
                                                             });
                                                         }}
                                                     >
-                                                        <ButtonText className="text-primary-600 font-bold">Write a review</ButtonText>
+                                                        <ButtonText className="text-primary-600 font-bold">
+                                                            {isLoadingReview ? "Loading..." : existingReview ? "Edit review" : "Write a review"}
+                                                        </ButtonText>
                                                     </Button>
                                                 </HStack>
                                             </VStack>

@@ -4,11 +4,11 @@ import { MarkerView } from '@rnmapbox/maps'
 import React from 'react'
 import { Image } from 'react-native'
 import { Pressable } from 'react-native-gesture-handler'
-import { Landmark } from '../model/landmark.types'
+import { LandmarkWithStats } from '../model/landmark.types'
 
 const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allowOverlap }: {
-    landmark: Landmark,
-    handleMarkerPress?: (landmark: Landmark) => void,
+    landmark: LandmarkWithStats,
+    handleMarkerPress?: (landmark: LandmarkWithStats) => void,
     isSelected?: boolean,
     allowOverlap?: boolean,
 }) => {

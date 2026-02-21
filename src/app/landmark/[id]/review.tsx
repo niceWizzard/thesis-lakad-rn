@@ -184,6 +184,7 @@ export default function ReviewScreen() {
             }
             await queryClient.invalidateQueries({ queryKey: ['landmark_review', id] });
             await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
+            await queryClient.invalidateQueries({ queryKey: ['landmarks'] });
             setIsSubmitting(false);
 
             router.back();

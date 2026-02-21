@@ -2,7 +2,7 @@ import React, { ComponentProps, useMemo, useState } from 'react';
 
 import ExploreSearchBox from '@/src/components/ExploreSearchBox';
 import SearchResultsBox from '@/src/components/SearchResultsBox';
-import { Landmark } from '@/src/model/landmark.types';
+import { LandmarkWithStats } from '@/src/model/landmark.types';
 
 import CustomMapView from '@/src/components/CustomMapView';
 import MapFabs from '@/src/components/MapFabs';
@@ -25,11 +25,10 @@ const LandmarkMapView = ({
     setSelectedLandmark,
     cameraRef,
     tutorialStep, // Add tutorialStep to destructuring
-    // Tutorial props here
 }: {
-    landmarks: Landmark[]
-    selectedLandmark: Landmark | null
-    setSelectedLandmark: React.Dispatch<React.SetStateAction<Landmark | null>>
+    landmarks: LandmarkWithStats[]
+    selectedLandmark: LandmarkWithStats | null
+    setSelectedLandmark: React.Dispatch<React.SetStateAction<LandmarkWithStats | null>>
     tutorialStep?: {
         name: string;
         text: string;
@@ -57,7 +56,7 @@ const LandmarkMapView = ({
         });
     };
 
-    const handleMarkerPress = (landmark: Landmark) => {
+    const handleMarkerPress = (landmark: LandmarkWithStats) => {
         setSelectedLandmark(landmark);
         centerMap([landmark.longitude, landmark.latitude]);
     };
