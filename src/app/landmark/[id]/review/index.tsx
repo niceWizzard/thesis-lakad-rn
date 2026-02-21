@@ -26,8 +26,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const reviewFormSchema = z.object({
-    rating: z.number().min(1, "Please select a rating."),
-    reviewText: z.string().optional(),
+    rating: z.number().min(1, "Please select a rating.").max(5, "Rating must be at most 5."),
+    reviewText: z.string().max(512, "Review must be at most 512 characters.").optional(),
     images: z.array(z.string()).max(3, "You can upload up to 3 images."),
 });
 
@@ -71,6 +71,7 @@ export default function ReviewScreen() {
             reviewText: '',
             images: [],
         },
+        mode: 'onChange',
     });
 
     const selectedImages = watch('images') || [];
@@ -284,7 +285,6 @@ export default function ReviewScreen() {
                 <ScrollView
                     contentContainerStyle={{ flexGrow: 1, paddingBottom: 64 }}
                     keyboardShouldPersistTaps='always'
-                    keyboardDismissMode='on-drag'
                 >
                     <VStack space="xl" className="p-6" style={{ flexGrow: 1 }}>
                         <FormControl isInvalid={!!errors.rating}>
@@ -382,6 +382,9 @@ export default function ReviewScreen() {
                                         </Textarea>
                                     )}
                                 />
+                                <FormControlError>
+                                    <FormControlErrorText>{errors.reviewText?.message}</FormControlErrorText>
+                                </FormControlError>
                             </VStack>
                         </FormControl>
 
