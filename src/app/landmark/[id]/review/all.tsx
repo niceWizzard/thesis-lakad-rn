@@ -97,12 +97,18 @@ export default function AllReviewsScreen() {
                                 <Icon as={User} size="sm" className="text-primary-600" />
                             </Box>
                             <VStack>
-                                <Text size="sm" className="font-medium text-typography-900 truncate max-w-[150px]" numberOfLines={1}>
+                                <Text size="md" className="font-medium text-typography-900 truncate max-w-[150px]" numberOfLines={1}>
                                     {item.author_name || 'Lakbay User'}
                                     {isCurrentUserReview && ' (You)'}
                                 </Text>
-                                <Text size="xs" className="text-typography-500">
-                                    {new Date(item.created_at).toLocaleDateString()}
+                                <Text size="sm" className="text-typography-500">
+                                    {new Date(item.updated_at).toLocaleDateString(undefined, {
+                                        year: 'numeric',
+                                        month: 'numeric',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
                                 </Text>
                             </VStack>
                         </HStack>

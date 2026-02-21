@@ -367,7 +367,7 @@ const ExploreTab = () => {
 
                                 {/* Description */}
                                 <VStack space="xs" className='gap-3'>
-                                    <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">About</Text>
+                                    <Heading size="md" className="font-bold text-typography-900 uppercase tracking-wider">About</Heading>
                                     <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
                                         <Text size="sm" className="text-typography-600 leading-relaxed">
                                             {selectedLandmark.description || "This site holds deep historical significance in the province. It served as a pivotal location during the late 19th century and continues to stand as a testament to the local heritage and resilience of the community."}
@@ -576,13 +576,25 @@ const ExploreTab = () => {
                                                                         <VStack space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
                                                                             <HStack className="justify-between items-center mb-1">
                                                                                 <HStack className="items-center gap-2 flex-1">
-                                                                                    <Box className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center">
-                                                                                        <Icon as={User} size="xs" className="text-primary-600" />
+                                                                                    <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
+                                                                                        <Icon as={User} size="sm" className="text-primary-600" />
                                                                                     </Box>
-                                                                                    <Text size="sm" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
-                                                                                        {review.author_name || 'Lakbay User'}
-                                                                                        {review.user_id === userId && '(You)'}
-                                                                                    </Text>
+                                                                                    <VStack>
+                                                                                        <Text size="md" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
+                                                                                            {review.author_name || 'Lakbay User'}
+                                                                                            {review.user_id === userId && '(You)'}
+                                                                                        </Text>
+                                                                                        <Text size="sm" className="text-typography-500">
+                                                                                            {new Date(review.updated_at).toLocaleDateString(undefined, {
+                                                                                                year: 'numeric',
+                                                                                                month: 'numeric',
+                                                                                                day: 'numeric',
+                                                                                                hour: '2-digit',
+                                                                                                minute: '2-digit',
+                                                                                            })}
+                                                                                        </Text>
+                                                                                    </VStack>
+
                                                                                 </HStack>
                                                                                 <HStack space="xs">
                                                                                     {[1, 2, 3, 4, 5].map((star) => (
