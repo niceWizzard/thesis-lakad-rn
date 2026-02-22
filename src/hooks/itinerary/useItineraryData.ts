@@ -17,7 +17,7 @@ export const useItineraryData = (id: string | number) => {
 
     const { data: itinerary, isLoading, refetch } = useQuery({
         queryKey: ['itinerary', id],
-        enabled: !!userId && !!id,
+        enabled: !!userId && !!id && !isNaN(parsedId),
         queryFn: async () => fetchItineraryById(userId!, parsedId)
     });
 

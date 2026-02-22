@@ -1,4 +1,4 @@
-import { LandmarkDistrict, LandmarkMunicipality } from "../model/landmark.types";
+import { PlaceDistrict, PlaceMunicipality } from "../model/places.types";
 
 export const DISTRICT_TO_MUNICIPALITY_MAP = {
     "1": ["Bulakan", "Calumpit", "Hagonoy", "Malolos", "Paombong", "Pulilan"],
@@ -11,5 +11,5 @@ export const DISTRICT_TO_MUNICIPALITY_MAP = {
 } as const;
 
 
-export const MUNICIPALITIES = Object.values(DISTRICT_TO_MUNICIPALITY_MAP).flat().sort() satisfies LandmarkMunicipality[]
-export const DISTRICTS = Object.keys(DISTRICT_TO_MUNICIPALITY_MAP) as LandmarkDistrict[]
+export const MUNICIPALITIES = Object.values(DISTRICT_TO_MUNICIPALITY_MAP).flat().sort() satisfies PlaceMunicipality[]
+export const DISTRICTS = Object.keys(DISTRICT_TO_MUNICIPALITY_MAP) as PlaceDistrict[]

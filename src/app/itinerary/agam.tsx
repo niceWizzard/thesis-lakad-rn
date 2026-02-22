@@ -44,7 +44,7 @@ import { StorageKey } from '@/src/constants/Key';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { LandmarkDistrict, LandmarkMunicipality } from '@/src/model/landmark.types';
+import { PlaceDistrict, PlaceMunicipality } from '@/src/model/places.types';
 import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { mmkvStorage } from '@/src/utils/mmkv';
@@ -57,7 +57,7 @@ const CopilotBox = walkthroughable(Box);
 const CopilotAccordionItem = walkthroughable(AccordionItem);
 
 const DISTRICTS: {
-    id: LandmarkDistrict,
+    id: PlaceDistrict,
     label: string;
 }[] = [
         { id: '1', label: 'District 1' },
@@ -148,6 +148,7 @@ const CreateWithAgamScreenContent = () => {
     const availableCount = useMemo(() => {
         return landmarks.filter(l =>
             selectedMunicipalities.includes(l.municipality) &&
+            l.type &&
             selectedTypes.includes(l.type)
         ).length;
     }, [landmarks, selectedMunicipalities, selectedTypes]);
@@ -173,23 +174,23 @@ const CreateWithAgamScreenContent = () => {
         setValue(field, itemsToSelect, { shouldValidate: true });
     };
 
-    const toggleAllInDistrict = (districtId: LandmarkDistrict) => {
+    const toggleAllInDistrict = (districtId: PlaceDistrict) => {
         const districtMunis = [...(DISTRICT_TO_MUNICIPALITY_MAP[districtId] || [])];
-        // Cast to LandmarkMunicipality[] to ensure compatibility
+        // Cast to PlaceMunicipality[] to ensure compatibility
         const allSelected = districtMunis.every(m =>
-            (selectedMunicipalities as LandmarkMunicipality[]).includes(m)
+            (selectedMunicipalities as PlaceMunicipality[]).includes(m)
         );
 
         if (allSelected) {
             // Remove only the munis in this district
-            const next = (selectedMunicipalities as LandmarkMunicipality[]).filter(
+            const next = (selectedMunicipalities as PlaceMunicipality[]).filter(
                 m => !districtMunis.includes(m)
             );
             setValue('municipalities', next, { shouldValidate: true });
         } else {
             // Add all munis in this district, ensuring no duplicates
             const next = Array.from(new Set([...selectedMunicipalities, ...districtMunis]));
-            setValue('municipalities', next as LandmarkMunicipality[], { shouldValidate: true });
+            setValue('municipalities', next as PlaceMunicipality[], { shouldValidate: true });
         }
     };
 
@@ -198,13 +199,14 @@ const CreateWithAgamScreenContent = () => {
         try {
             const filteredLandmarks = landmarks.filter(l =>
                 selectedMunicipalities.includes(l.municipality) &&
+                l.type &&
                 formData.types.includes(l.type)
             );
 
             if (filteredLandmarks.length < 2) throw new Error("Not enough landmarks found.");
 
             const pois = filteredLandmarks.reduce((obj, cur) => {
-                const interest = preferredTypes.includes(cur.type) ? 1 : 0;
+                const interest = cur.type && preferredTypes.includes(cur.type) ? 1 : 0;
                 obj[cur.id] = { interest: interest, rating: cur.gmaps_rating / 5.0 };
                 return obj;
             }, {} as any);

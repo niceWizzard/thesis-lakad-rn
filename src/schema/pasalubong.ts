@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DISTRICT_TO_MUNICIPALITY_MAP, DISTRICTS, MUNICIPALITIES } from "../constants/jurisdictions";
-import { LandmarkDistrict } from "../model/landmark.types";
+import { PlaceDistrict } from "../model/places.types";
 
 export const createAndEditPasalubongCenterSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters"),
@@ -36,7 +36,7 @@ export const createAndEditPasalubongCenterSchema = z.object({
         .optional()
         .or(z.literal(''))
 }).superRefine((data, ctx) => {
-    const validMunicipalities = DISTRICT_TO_MUNICIPALITY_MAP[data.district as LandmarkDistrict] as readonly string[];
+    const validMunicipalities = DISTRICT_TO_MUNICIPALITY_MAP[data.district as PlaceDistrict] as readonly string[];
     if (!validMunicipalities.includes(data.municipality)) {
         ctx.addIssue({
             code: 'custom',

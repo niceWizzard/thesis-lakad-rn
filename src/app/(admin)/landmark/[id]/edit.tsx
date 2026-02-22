@@ -11,7 +11,7 @@ import { Box } from '@/components/ui/box';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { Landmark } from '@/src/model/landmark.types';
+import { Place } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { calculateIncrementalMatrix } from '@/src/utils/distance/calculateIncrementalMatrix';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
@@ -19,7 +19,7 @@ import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 
-type LandmarkFormData = z.infer<typeof createAndEditLandmarkSchema>;
+type PlaceFormData = z.infer<typeof createAndEditLandmarkSchema>;
 
 export default function AdminLandmarkEditScreen() {
     const { id } = useLocalSearchParams();
@@ -38,7 +38,7 @@ export default function AdminLandmarkEditScreen() {
 
 
     const updateMutation = useMutation({
-        mutationFn: async ({ formData, pendingImageData }: { formData: LandmarkFormData, pendingImageData: { base64?: string, remoteUrl?: string } | null }) => {
+        mutationFn: async ({ formData, pendingImageData }: { formData: PlaceFormData, pendingImageData: { base64?: string, remoteUrl?: string } | null }) => {
             let finalImageUrl = landmark?.image_url;
             if (pendingImageData) {
                 let arrayBuffer: ArrayBuffer;
@@ -71,7 +71,7 @@ export default function AdminLandmarkEditScreen() {
                 }
             }
 
-            const { error } = await supabase.from('landmark').update({
+            const { error } = await supabase.from('places').update({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),
@@ -92,7 +92,7 @@ export default function AdminLandmarkEditScreen() {
 
                 // Upsert new hours
                 const hoursToUpsert = formData.opening_hours.map(h => ({
-                    landmark_id: landmarkId,
+                    place_id: landmarkId,
                     day_of_week: h.day_of_week,
                     opens_at: formatTime(h.opens_at) || null,
                     closes_at: formatTime(h.closes_at) || null,
@@ -100,15 +100,15 @@ export default function AdminLandmarkEditScreen() {
                 }));
 
                 const { error: upsertError } = await supabase
-                    .from('landmark_opening_hours')
-                    .upsert(hoursToUpsert, { onConflict: 'landmark_id, day_of_week' });
+                    .from('opening_hours')
+                    .upsert(hoursToUpsert, { onConflict: 'place_id, day_of_week' });
 
                 if (upsertError) throw upsertError;
             }
 
             const hasLocationChanged = formData.latitude !== landmark?.latitude.toString() || formData.longitude !== landmark?.longitude.toString();
             if (hasLocationChanged) {
-                const landmarks = await queryClient.fetchQuery<Landmark[]>({ queryKey: ['landmarks'] })
+                const landmarks = await queryClient.fetchQuery<Place[]>({ queryKey: ['landmarks'] })
                 const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
                     newWaypoint: {
                         id: id.toString(),

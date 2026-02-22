@@ -36,7 +36,7 @@ import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBo
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 import LoadingModal from '@/src/components/LoadingModal';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
-import { StopWithLandmark } from '@/src/model/stops.types';
+import { StopWithPlace } from '@/src/model/stops.types';
 import { useQueryClient } from '@tanstack/react-query';
 
 
@@ -168,12 +168,11 @@ export default function ItineraryView() {
         }
     };
 
-    const onStopPress = (stop: StopWithLandmark) => {
+    const onStopPress = (stop: StopWithPlace) => {
         setLocalStops([stop])
         setIsSheetOpen(false)
         setIsCardViewOpened(true)
     }
-
     return (
         <>
             <Stack.Screen
@@ -217,8 +216,8 @@ export default function ItineraryView() {
                     <Camera
                         ref={cameraRef as any}
                         defaultSettings={{
-                            centerCoordinate: itinerary.stops.length > 0 ?
-                                [itinerary.stops[0].landmark.longitude, itinerary.stops[0].landmark.latitude] :
+                            centerCoordinate: itinerary.stops.length > 0 && itinerary.stops[0]?.place ?
+                                [itinerary.stops[0].place.longitude, itinerary.stops[0].place.latitude] :
                                 [120.8092, 14.8605],
                             zoomLevel: 14
                         }}
@@ -254,7 +253,7 @@ export default function ItineraryView() {
 
                     <NavigatingModeMapView
                         show={mode === Mode.Navigating}
-                        targetLandmark={nextUnvisitedStop?.landmark || null}
+                        targetLandmark={nextUnvisitedStop?.place || null}
                     />
 
                     <ViewingModeMapView

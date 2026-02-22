@@ -2,7 +2,7 @@ import { Button, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Text } from '@/components/ui/text'
 import { StorageKey } from '@/src/constants/Key'
-import { LandmarkType } from '@/src/model/landmark.types'
+import { PlaceType } from '@/src/model/places.types'
 import { mmkvStorage } from '@/src/utils/mmkv'
 import { getCategoryPreferences, setCategoryPreferences } from '@/src/utils/preferencesManager'
 import { Stack, useRouter } from 'expo-router'
@@ -10,7 +10,7 @@ import {
     Check,
     Church,
     History,
-    Landmark,
+    LandmarkIcon,
     Library,
     ShoppingBag,
     Trees
@@ -19,14 +19,14 @@ import React, { useEffect, useState } from 'react'
 import { ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 export const TYPES: {
-    id: LandmarkType,
+    id: PlaceType,
     label: string,
     icon: React.FC<any>,
     color: string,
     text: string
 }[] = [
         { id: 'Historical', label: 'Historical', icon: History, color: 'bg-green-100', text: 'text-green-700' },
-        { id: 'Landmark', label: 'Landmark', icon: Landmark, color: 'bg-green-100', text: 'text-green-700' },
+        { id: 'Landmark', label: 'Landmark', icon: LandmarkIcon, color: 'bg-green-100', text: 'text-green-700' },
         { id: 'Nature', label: 'Nature', icon: Trees, color: 'bg-green-100', text: 'text-green-700' },
         { id: 'Religious', label: 'Religious', icon: Church, color: 'bg-green-100', text: 'text-green-700' },
         { id: 'Museum', label: 'Museum', icon: Library, color: 'bg-green-100', text: 'text-green-700' },
@@ -43,10 +43,10 @@ const OnboardingPreferences = () => {
         )
     }, [])
 
-    const toggleCategory = (id: string) => {
-        if (selected.includes(id)) {
+    const toggleCategory = (id: string | null) => {
+        if (id && selected.includes(id)) {
             setSelected(selected.filter((item) => item !== id))
-        } else {
+        } else if (id) {
             setSelected([...selected, id])
         }
     }
@@ -81,7 +81,7 @@ const OnboardingPreferences = () => {
                     {/* Grid of Types */}
                     <View className="flex-row flex-wrap justify-between gap-y-4 pb-16">
                         {TYPES.map((item) => {
-                            const isSelected = selected.includes(item.id)
+                            const isSelected = item.id && selected.includes(item.id)
 
                             return (
                                 <TouchableOpacity

@@ -88,7 +88,7 @@ export const deleteReviewAndResolveReport = async (reviewId: number, reportId: n
     // 2. Delete the review row
     console.log('[deleteReviewAndResolveReport] Attempting to delete landmark_reviews row with id =', reviewId);
     const { data: deleteData, error: deleteError, count } = await supabase
-        .from('landmark_reviews')
+        .from('reviews')
         .delete()
         .eq('id', reviewId)
         .select();

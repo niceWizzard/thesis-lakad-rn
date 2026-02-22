@@ -8,7 +8,7 @@ import { VStack } from '@/components/ui/vstack';
 import { Check, Clock, EllipsisVertical, MapPin, Trash } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
-import { Landmark } from '../model/landmark.types';
+import { Place } from '../model/places.types';
 import { formatDuration } from '../utils/format/time';
 
 const StopListItem = ({
@@ -23,7 +23,7 @@ const StopListItem = ({
     onEditDuration,
 }: {
     isVisited: boolean,
-    landmark: Landmark,
+    landmark: Place,
     onVisitToggle: () => void,
     onDelete: () => void,
     displayNumber: number,

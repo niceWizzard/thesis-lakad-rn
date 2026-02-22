@@ -24,8 +24,8 @@ import { Heading } from '@/components/ui/heading';
 import LoadingModal from '@/src/components/LoadingModal';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
-import { Landmark } from '@/src/model/landmark.types';
-import { StopWithLandmark } from '@/src/model/stops.types';
+import { Place } from '@/src/model/places.types';
+import { StopWithPlace } from '@/src/model/stops.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { calculateDistanceMatrix } from '@/src/utils/distance/calculateDistanceMatrix';
 import { calculateRouteDistanceFromMatrix } from '@/src/utils/distance/calculateRouteDistanceFromMatrix';
@@ -65,22 +65,22 @@ const ReorderScreen = () => {
     // Calculate distance to the very next stop visually
     const [distanceToNextStop, setDistanceToNextStop] = useState(0);
 
-    const firstPendingStopId = itinerary?.stops.find(stop => !stop.visited_at)?.landmark_id;
+    const firstPendingStopId = itinerary?.stops.find(stop => !stop.visited_at)?.place_id;
 
     React.useEffect(() => {
         let mounted = true;
 
         async function fetchFirstStopDistance() {
             const firstStop = itinerary?.stops.find(stop => !stop.visited_at);
-            if (userLocation && firstStop?.landmark) {
+            if (userLocation && firstStop?.place) {
                 try {
                     const matrix = await calculateDistanceMatrix({
                         waypointsWithIds: [
                             { id: 'user', coords: userLocation },
-                            { id: firstStop.landmark_id.toString(), coords: [firstStop.landmark.longitude, firstStop.landmark.latitude] }
+                            { id: firstStop.place_id.toString(), coords: [firstStop.place.longitude, firstStop.place.latitude] }
                         ]
                     });
-                    const dist = matrix['user']?.[firstStop.landmark_id.toString()] ?? 0;
+                    const dist = matrix['user']?.[firstStop.place_id.toString()] ?? 0;
                     if (mounted) setDistanceToNextStop(dist);
                 } catch (e) {
                     console.warn(e);
@@ -93,7 +93,7 @@ const ReorderScreen = () => {
     }, [userLocation, firstPendingStopId, itinerary?.stops]);
 
 
-    const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<StopWithLandmark>) => {
+    const handleDragEnd = async ({ data: reorderedPending, from, to }: DragEndParams<StopWithPlace>) => {
         if (!itinerary || from === to) return;
 
         setLoadingModalMode(LoadingMode.Updating);
@@ -103,11 +103,11 @@ const ReorderScreen = () => {
             const updates = fullNewList.map((item, index) => ({
                 id: item.id,
                 itinerary_id: item.itinerary_id,
-                landmark_id: item.landmark_id,
+                place_id: item.place_id,
                 visit_order: index + 1,
                 visited_at: item.visited_at
             }));
-            const newDistance = await calculateRouteDistanceFromMatrix(fullNewList.map(v => v.landmark_id));
+            const newDistance = await calculateRouteDistanceFromMatrix(fullNewList.map(v => v.place_id));
             const itineraryUpdate = supabase.from('itinerary')
                 .update({ distance: newDistance })
                 .eq('id', itinerary.id);
@@ -137,7 +137,7 @@ const ReorderScreen = () => {
         }
     };
 
-    const renderItem = useCallback(({ item, drag, isActive, getIndex }: RenderItemParams<StopWithLandmark>) => {
+    const renderItem = useCallback(({ item, drag, isActive, getIndex }: RenderItemParams<StopWithPlace>) => {
         const currentIndex = getIndex() ?? 0;
         const completedCount = itinerary?.stops.filter(s => !!s.visited_at).length ?? 0;
         const displayNumber = currentIndex + completedCount + 1;
@@ -158,7 +158,7 @@ const ReorderScreen = () => {
                             <ReorderListItem
                                 displayNumber={displayNumber}
                                 isVisited={false}
-                                landmark={item.landmark}
+                                landmark={item.place}
                             />
                         </Box>
                     </HStack>
@@ -183,7 +183,7 @@ const ReorderScreen = () => {
             // 2. Fetch distances only for remaining stops
             const distanceMatrix = await Promise.race([
                 fetchDistanceMatrix(
-                    onGoingStops.map(v => v.landmark_id)
+                    onGoingStops.map(v => v.place_id)
                 ),
                 new Promise<never>((_, reject) =>
                     setTimeout(() => reject(new Error("Query timed out.")), 15000)
@@ -212,8 +212,8 @@ const ReorderScreen = () => {
                 const waypoints = [
                     { id: 'user', coords: userLocation },
                     ...onGoingStops.map(s => ({
-                        id: s.landmark_id.toString(),
-                        coords: [s.landmark.longitude, s.landmark.latitude] as [number, number]
+                        id: s.place_id.toString(),
+                        coords: [s.place.longitude, s.place.latitude] as [number, number]
                     }))
                 ];
                 try {
@@ -259,7 +259,7 @@ const ReorderScreen = () => {
             setLoadingModalMode(LoadingMode.Saving)
 
             optimizedIds.forEach(async (id, index) => {
-                const stopId = onGoingStops.find(v => v.landmark_id === Number(id))!.id;
+                const stopId = onGoingStops.find(v => v.place_id === Number(id))!.id;
                 const { error } = await supabase
                     .from('stops')
                     .update({
@@ -367,7 +367,7 @@ const ReorderScreen = () => {
                                                 key={stop.id}
                                                 displayNumber={displayNumber}
                                                 isVisited={true}
-                                                landmark={stop.landmark}
+                                                landmark={stop.place}
                                             />
                                         )
                                     })}
@@ -400,7 +400,7 @@ function ReorderListItem({
     displayNumber,
     isVisited,
     landmark,
-}: { landmark: Landmark, isVisited: boolean, displayNumber: number }) {
+}: { landmark: Place, isVisited: boolean, displayNumber: number }) {
     const isPersonal = landmark.creation_type === "PERSONAL"
     return (
         <HStack space='md' className='flex-1 items-center min-w-0 justify-center'>

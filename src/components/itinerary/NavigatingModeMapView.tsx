@@ -1,10 +1,10 @@
 import LandmarkMarker from '@/src/components/LandmarkMarker';
-import { Landmark } from '@/src/model/landmark.types';
+import { Place } from '@/src/model/places.types';
 import React from 'react';
 
 interface NavigatingModeMapViewProps {
     show: boolean;
-    targetLandmark: Landmark | null;
+    targetLandmark: Place | null;
 }
 
 export function NavigatingModeMapView({ show, targetLandmark }: NavigatingModeMapViewProps) {

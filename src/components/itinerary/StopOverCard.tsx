@@ -17,7 +17,7 @@ const StopOverCard = ({ stop }: {
     const cardWidth = Math.min(width * 0.90, 400);
     const cardHeight = Math.min(height * 0.60, 600);
 
-    const landmark = stop.landmark
+    const landmark = stop.place
     return (
         <View
             style={{ width: cardWidth, height: cardHeight }}

@@ -35,7 +35,7 @@ import { VStack } from '@/components/ui/vstack';
 
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
+import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchArchivedPasalubongCenters } from '@/src/utils/landmark/fetchPasalubongCenters';
 import { useQuery } from '@tanstack/react-query';
@@ -61,7 +61,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
         isLoading,
         isRefetching,
         refetch
-    } = useQuery<Landmark[]>({
+    } = useQuery<Place[]>({
         queryKey: ['archived-pasalubong-centers'],
         queryFn: fetchArchivedPasalubongCenters,
         enabled: !!userId,
@@ -273,7 +273,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                                         <VStack className="gap-2 mt-2">
                                             <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
                                             <View className="flex-row flex-wrap gap-2">
-                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict].map(muni => (
+                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as PlaceDistrict].map(muni => (
                                                     <TouchableOpacity
                                                         key={muni}
                                                         onPress={() => setSelectedMunicipality(prev => prev === muni ? null : muni)}

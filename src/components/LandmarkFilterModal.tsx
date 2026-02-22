@@ -30,7 +30,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { LandmarkDistrict } from '@/src/model/landmark.types';
+import { PlaceDistrict } from '@/src/model/places.types';
 
 export type SortKey = 'id' | 'name' | 'rating';
 export type SortOrder = 'asc' | 'desc';
@@ -166,7 +166,7 @@ export const LandmarkFilterModal: React.FC<LandmarkFilterModalProps> = ({
                                     <VStack className="gap-2 mt-2">
                                         <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
                                         <View className="flex-row flex-wrap gap-2">
-                                            {DISTRICT_TO_MUNICIPALITY_MAP[watchSelectedDistrict as LandmarkDistrict].map(muni => (
+                                            {DISTRICT_TO_MUNICIPALITY_MAP[watchSelectedDistrict as PlaceDistrict].map(muni => (
                                                 <TouchableOpacity
                                                     key={muni}
                                                     onPress={() => setValue('selectedMunicipality', watchSelectedMunicipality === muni ? null : muni)}

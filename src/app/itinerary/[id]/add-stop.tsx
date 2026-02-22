@@ -19,7 +19,7 @@ import { VStack } from '@/components/ui/vstack';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { calculateRouteDistanceFromMatrix } from '@/src/utils/distance/calculateRouteDistanceFromMatrix';
-import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { insertPlaceToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 
 export default function AddPOIScreen() {
@@ -39,7 +39,7 @@ export default function AddPOIScreen() {
     const { data: landmarks, isLoading } = useQuery({
         queryKey: ['landmarks', searchQuery],
         queryFn: async () => {
-            let query = supabase.from('landmark')
+            let query = supabase.from('places')
                 .select('id, name, municipality, image_url, type')
                 .is('deleted_at', null);
 
@@ -53,10 +53,10 @@ export default function AddPOIScreen() {
     });
 
     const addStopMutation = useMutation({
-        mutationFn: async (landmarkId: number) => {
+        mutationFn: async (placeId: number) => {
             const itinerary = await queryClient.fetchQuery<ItineraryWithStops>({ queryKey: ['itinerary', itineraryId] });
 
-            if (itinerary.stops.find(stop => stop.landmark_id === landmarkId)) {
+            if (itinerary.stops.find(stop => stop.place_id === placeId)) {
                 throw new Error("Landmark already in itinerary");
             }
 
@@ -64,15 +64,15 @@ export default function AddPOIScreen() {
                 throw new Error("Itinerary limit reached (50 stops max)");
             }
 
-            await insertLandmarkToItinerary({
+            await insertPlaceToItinerary({
                 currentCount: currentCount.toString(),
                 itineraryId: itineraryId.toString(),
-                landmarkId: landmarkId.toString(),
+                placeId: placeId.toString(),
             });
 
             if (Number(currentCount) + 1 > 1) {
                 const itinerary = await queryClient.fetchQuery<ItineraryWithStops>({ queryKey: ['itinerary', itineraryId] });
-                const newDistance = await calculateRouteDistanceFromMatrix(itinerary.stops.map(stop => stop.landmark_id))
+                const newDistance = await calculateRouteDistanceFromMatrix(itinerary.stops.map(stop => stop.place_id))
                 await supabase.from('itinerary').update({ distance: newDistance }).eq('id', itinerary.id)
             }
         },

@@ -7,7 +7,7 @@ import { Box } from '@/components/ui/box';
 
 const DEFAULT_COORDS: [number, number] = [120.8092, 14.8605];
 
-interface LandmarkMapViewProps {
+interface PlaceMapViewProps {
     cameraRef: React.RefObject<Camera | null>;
     children?: React.ReactNode;
     overlays?: React.ReactNode;
@@ -23,7 +23,7 @@ const CustomMapView = ({
     mapViewProps,
     cameraProps,
     onDidFinishLoadingStyle,
-}: LandmarkMapViewProps) => {
+}: PlaceMapViewProps) => {
     return (
         <Box className="flex-1 bg-background-0">
             <MapView

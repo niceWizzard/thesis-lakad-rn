@@ -42,7 +42,7 @@ export default function AllReviewsScreen() {
     const fetchReviewsPage = async ({ pageParam = 1 }) => {
         const { sortColumn, sortDescending } = getSortArgs();
         const results = await fetchFilterableReviews({
-            landmarkId: id as string,
+            placeId: id as string,
             pageNumber: pageParam,
             pageSize: 10,
             ratingFilter,

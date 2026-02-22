@@ -31,7 +31,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
-import { StopWithLandmark } from '@/src/model/stops.types';
+import { StopWithPlace } from '@/src/model/stops.types';
 import { formatDistance } from '@/src/utils/format/distance';
 import { formatDuration } from '@/src/utils/format/duration';
 import { getETATime } from '@/src/utils/navigation/calculateETA';
@@ -41,7 +41,7 @@ import { getStepIcon } from '@/src/utils/ui/getStepIcon';
 interface NavigatingModeBottomSheetProps {
     navigationRoute: MapboxRoute[];
     mode: Mode;
-    nextUnvisitedStop: StopWithLandmark | null;
+    nextUnvisitedStop: StopWithPlace | null;
     exitNavigationMode: () => void;
     navigationProfile: 'driving' | 'walking' | 'cycling';
     setNavigationProfile: (profile: 'driving' | 'walking' | 'cycling') => void;
@@ -52,7 +52,7 @@ interface NavigatingModeBottomSheetProps {
     currentStepRemainingDistance: number;
     isVoiceEnabled: boolean;
     setVoiceEnabled: (enabled: boolean) => void;
-    pendingStops: StopWithLandmark[];
+    pendingStops: StopWithPlace[];
 }
 
 export function NavigatingModeBottomSheet({
@@ -302,7 +302,7 @@ export function NavigatingModeBottomSheet({
                     <HStack space="sm" className='items-center'>
                         <Icon as={CheckCircle} size="sm" className="text-success-500" />
                         <Text size="sm" className="text-typography-500 font-medium">
-                            Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.landmark.name}</Text>
+                            Target: <Text size="sm" className="font-bold text-typography-900">{nextUnvisitedStop?.place.name}</Text>
                         </Text>
                         <Text size="xs" className="text-typography-400">
                             ({formatDuration(visitDurationSeconds)} visit)
@@ -327,7 +327,7 @@ export function NavigatingModeBottomSheet({
                                     Next Up
                                 </Text>
                                 <Text size="sm" className="font-bold text-typography-900" numberOfLines={1}>
-                                    {subsequentStop.landmark.name}
+                                    {subsequentStop.place.name}
                                 </Text>
                             </VStack>
                             <VStack className="items-end">

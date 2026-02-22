@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
+import { Place } from '@/src/model/places.types';
 import { ReviewWithAuthor } from '@/src/model/review.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchMyReviews } from '@/src/utils/review/fetchReview';
@@ -68,7 +69,7 @@ export default function MyReviewsScreen() {
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             result = result.filter(review =>
-                review.landmark?.name?.toLowerCase().includes(query) ||
+                review.place?.name?.toLowerCase().includes(query) ||
                 review.content?.toLowerCase().includes(query)
             );
         }
@@ -98,13 +99,13 @@ export default function MyReviewsScreen() {
         return result;
     }, [reviews, searchQuery, ratingFilter, sortBy]);
 
-    const renderReviewItem: ListRenderItem<ReviewWithAuthor & { landmark: any }> = ({ item }) => {
+    const renderReviewItem: ListRenderItem<ReviewWithAuthor & { place: Place }> = ({ item }) => {
         return (
             <Box className="bg-background-0 p-4 mb-4 rounded-2xl border border-outline-100 shadow-sm mx-4">
                 <View className="flex-row justify-between items-start mb-2">
                     <View className="flex-1 mr-4">
                         <Text className="font-bold text-lg text-typography-900 mb-1" numberOfLines={1}>
-                            {item.landmark?.name || 'Unknown Landmark'}
+                            {item.place?.name || 'Unknown Landmark'}
                         </Text>
                         <Text className="text-xs text-typography-500 mb-2">
                             {new Date(item.updated_at).toLocaleDateString(undefined, {
@@ -154,10 +155,10 @@ export default function MyReviewsScreen() {
                         size="sm"
                         action="secondary"
                         variant="outline"
-                        onPress={() => item.landmark_id && router.navigate({
+                        onPress={() => item.place_id && router.navigate({
                             pathname: '/landmark/[id]/view',
                             params: {
-                                id: item.landmark_id
+                                id: item.place_id
                             }
                         })}
                     >
@@ -167,10 +168,10 @@ export default function MyReviewsScreen() {
                         size="sm"
                         action="secondary"
                         variant="solid"
-                        onPress={() => item.landmark_id && router.navigate({
+                        onPress={() => item.place_id && router.navigate({
                             pathname: '/landmark/[id]/review',
                             params: {
-                                id: item.landmark_id,
+                                id: item.place_id,
                             }
                         })}
                     >

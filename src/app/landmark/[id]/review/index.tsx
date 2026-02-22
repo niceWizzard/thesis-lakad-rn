@@ -134,7 +134,7 @@ export default function ReviewScreen() {
             }
 
             const { error: deleteError } = await supabase
-                .from('landmark_reviews')
+                .from('reviews')
                 .delete()
                 .eq('id', existingReview.id);
 
@@ -220,7 +220,7 @@ export default function ReviewScreen() {
                 }
 
                 const { error: reviewError } = await supabase
-                    .from('landmark_reviews')
+                    .from('reviews')
                     .update({
                         content: data.reviewText ?? '',
                         images: uploadedImages,
@@ -232,10 +232,10 @@ export default function ReviewScreen() {
                 if (reviewError) throw reviewError;
             } else {
                 const { error: reviewError } = await supabase
-                    .rpc('submit_landmark_review', {
+                    .rpc('submit_place_review', {
                         content_input: data.reviewText ?? '',
                         images_input: uploadedImages,
-                        landmark_id_input: Number(id),
+                        place_id_input: Number(id),
                         rating_input: data.rating,
                     })
 
@@ -248,7 +248,6 @@ export default function ReviewScreen() {
             reset();
             setIsSubmitting(false);
 
-            router.back();
         } catch (error) {
             console.error('Error submitting review:', error);
             showToast({

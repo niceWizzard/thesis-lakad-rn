@@ -59,7 +59,7 @@ export default function AdminLandmarksScreen() {
     const processedLandmarks = useMemo(() => {
         let result = landmarks.filter(landmark => {
             const matchesSearch = landmark.name.toLowerCase().includes(searchString.toLowerCase());
-            const matchesType = selectedTypes.length === 0 || selectedTypes.includes(landmark.type);
+            const matchesType = selectedTypes.length === 0 || (landmark.type && selectedTypes.includes(landmark.type));
             const matchesDistrict = !selectedDistrict || landmark.district === selectedDistrict;
             const matchesMuni = !selectedMunicipality || landmark.municipality === selectedMunicipality;
 

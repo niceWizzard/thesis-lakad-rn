@@ -13,7 +13,7 @@ import { ScrollView, View } from 'react-native';
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
-import { Stop, StopWithLandmark } from '@/src/model/stops.types';
+import { Stop, StopWithPlace } from '@/src/model/stops.types';
 import { formatDistance } from '@/src/utils/format/distance';
 import { formatDuration } from '@/src/utils/format/time';
 import { supabase } from '@/src/utils/supabase';
@@ -36,14 +36,14 @@ interface ViewingModeBottomSheetProps {
     itinerary: ItineraryWithStops;
     mode: Mode;
     isSheetOpen: boolean;
-    pendingStops: StopWithLandmark[];
-    completedStops: StopWithLandmark[];
+    pendingStops: StopWithPlace[];
+    completedStops: StopWithPlace[];
     refetch: () => Promise<any>;
     showToast: ReturnType<typeof useToastNotification>['showToast'];
     locatePOI: (longitude: number, latitude: number) => void;
     goNavigationMode: () => void;
     onCardViewOpen: (a: boolean) => void,
-    onStopPress: (stop: StopWithLandmark) => void,
+    onStopPress: (stop: StopWithPlace) => void,
 }
 
 export function ViewingModeBottomSheet({
@@ -61,7 +61,7 @@ export function ViewingModeBottomSheet({
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
     const [isUpdating, setIsUpdating] = useState(false);
-    const [editingStop, setEditingStop] = useState<StopWithLandmark | null>(null);
+    const [editingStop, setEditingStop] = useState<StopWithPlace | null>(null);
     const queryClient = useQueryClient();
 
     // Auto-scroll to top when sheet opens
@@ -155,7 +155,7 @@ export function ViewingModeBottomSheet({
             queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             showToast({
                 title: "Duration updated",
-                description: `Visit duration for ${editingStop.landmark.name} updated.`,
+                description: `Visit duration for ${editingStop.place.name} updated.`,
                 action: 'success'
             });
         } catch (e: any) {
@@ -185,7 +185,7 @@ export function ViewingModeBottomSheet({
                 onClose={() => setEditingStop(null)}
                 onSave={handleEditDuration}
                 initialDuration={editingStop?.visit_duration}
-                stopName={editingStop?.landmark.name || ''}
+                stopName={editingStop?.place.name || ''}
             />
 
             <VStack space='lg' className='pb-6 h-full flex-1'>
@@ -248,10 +248,10 @@ export function ViewingModeBottomSheet({
                             <StopListItem
                                 displayNumber={displayNumber}
                                 isVisited={isVisited}
-                                landmark={item.landmark}
+                                landmark={item.place}
                                 onVisitToggle={() => handleVisitedPress(item)}
                                 onDelete={() => handleRemoveStop(item.id)}
-                                onLocate={() => locatePOI(item.landmark.longitude, item.landmark.latitude)}
+                                onLocate={() => locatePOI(item.place.longitude, item.place.latitude)}
                                 onPress={() => onStopPress(item)}
                                 visitDuration={item.visit_duration}
                                 onEditDuration={() => setEditingStop(item)}

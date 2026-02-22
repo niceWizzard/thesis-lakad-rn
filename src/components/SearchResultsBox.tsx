@@ -8,7 +8,7 @@ import { ChevronRight, Clock, MapPin } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import { FlatList, Keyboard, TouchableOpacity, View } from 'react-native'
 import { useQueryCombinedLandmarks } from '../hooks/useQueryCombinedLandmarks'
-import { Landmark } from '../model/landmark.types'
+import { Place } from '../model/places.types'
 
 const SearchResultsBox = ({
     searchString,
@@ -21,7 +21,7 @@ const SearchResultsBox = ({
 }) => {
 
     const { landmarks } = useQueryCombinedLandmarks();
-    const [recentLandmarks, setRecentLandmarks] = useState<Landmark[]>([])
+    const [recentLandmarks, setRecentLandmarks] = useState<Place[]>([])
 
     // Load recent searches when visible becomes true
     useEffect(() => {
@@ -29,7 +29,7 @@ const SearchResultsBox = ({
             const ids = getRecentSearches();
             const recent = ids
                 .map(id => landmarks.find(l => l.id === id))
-                .filter((l): l is Landmark => !!l);
+                .filter((l): l is Place => !!l);
             setRecentLandmarks(recent);
         }
     }, [visible, landmarks]);
@@ -37,7 +37,7 @@ const SearchResultsBox = ({
     const query = searchString.trim().toLowerCase();
     const isSearching = query.length > 0;
 
-    let results: Landmark[] = [];
+    let results: Place[] = [];
     let title = "";
 
     if (isSearching) {

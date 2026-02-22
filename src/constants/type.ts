@@ -1,4 +1,4 @@
-import { LandmarkType } from "../model/landmark.types";
+import { PlaceType } from "../model/places.types";
 
 export const LANDMARK_TYPES = [
     'Historical',
@@ -7,4 +7,4 @@ export const LANDMARK_TYPES = [
     'Religious',
     'Museum',
     'Mall'
-] satisfies LandmarkType[]
+] satisfies PlaceType[]

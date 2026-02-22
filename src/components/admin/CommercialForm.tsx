@@ -21,8 +21,7 @@ import { Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalH
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { LandmarkDistrict } from '@/src/model/landmark.types';
-import { PasalubongCenter } from '@/src/model/pasalubong.types';
+import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { createAndEditPasalubongCenterSchema } from '@/src/schema/pasalubong';
 import { useNavigation, useRouter } from 'expo-router';
 import * as z from 'zod';
@@ -31,7 +30,7 @@ import { LocationDialogSelection } from '../LocationDialogSelection';
 type FormData = z.infer<typeof createAndEditPasalubongCenterSchema>;
 
 interface PasalubongCenterFormProps {
-    initialData?: PasalubongCenter;
+    initialData?: Place;
     onSubmit: (data: FormData, pendingImage: { base64?: string; remoteUrl?: string } | null) => Promise<void>;
     isUpdating: boolean;
     submitLabel: string;
@@ -289,7 +288,7 @@ export function PasalubongCenterForm({
                                                     <SelectIcon className="mr-3" as={ChevronDown} />
                                                 </SelectTrigger>
                                                 <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                    {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => (
+                                                    {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as PlaceDistrict] || []).map((m) => (
                                                         <SelectItem key={m} label={m} value={m} />
                                                     ))}
                                                 </SelectContent></SelectPortal>
