@@ -16,7 +16,7 @@ export interface ReportWithDetails {
     reporter_name: string;
     reviewer_name: string;
     review_content: string;
-    landmark_name: string;
+    place_name: string;
     review_images: string[];
     review_rating: number;
 }

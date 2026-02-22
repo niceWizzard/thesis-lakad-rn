@@ -57,9 +57,9 @@ export default function AdminReportsScreen() {
                         <Text size="sm" className="text-typography-800 italic" numberOfLines={2}>
                             &quot;{reviewPreview}&quot;
                         </Text>
-                        {item.landmark_name && (
+                        {item.place_name && (
                             <Text size="xs" className="text-typography-500 mt-2 font-medium">
-                                Review on: {item.landmark_name}
+                                Review on: {item.place_name}
                             </Text>
                         )}
                     </Box>

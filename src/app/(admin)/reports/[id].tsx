@@ -175,8 +175,8 @@ export default function ReportDetailScreen() {
                                 </Box>
                                 <VStack>
                                     <Text size="xs" className="text-typography-400 uppercase font-bold tracking-wider">Reported Review</Text>
-                                    {report.landmark_name && (
-                                        <Text size="sm" className="text-typography-600 font-medium">{report.landmark_name}</Text>
+                                    {report.place_name && (
+                                        <Text size="sm" className="text-typography-600 font-medium">{report.place_name}</Text>
                                     )}
                                 </VStack>
                             </HStack>
