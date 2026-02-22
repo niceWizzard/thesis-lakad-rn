@@ -36,6 +36,10 @@
             "DEFAULT"
           ]
         }
+      ],
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -78,6 +82,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bf4876d7-7f6a-4493-95a5-5311741a0aca"
+      }
+    },
+    "owner": "ritsard23"
   }
 }
