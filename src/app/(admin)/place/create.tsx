@@ -65,6 +65,7 @@ export default function AdminLandmarkCreateScreen() {
                 municipality: formData.municipality,
                 gmaps_rating: parseFloat(formData.gmaps_rating || '0'),
                 image_url: publicUrl,
+                is_verified: formData.is_verified ?? true,
                 created_at: new Date().toISOString(),
             })
 

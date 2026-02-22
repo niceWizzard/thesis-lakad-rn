@@ -81,6 +81,7 @@ export default function AdminLandmarkEditScreen() {
                 municipality: formData.municipality,
                 gmaps_rating: parseFloat(formData.gmaps_rating || '0'),
                 image_url: finalImageUrl,
+                is_verified: formData.is_verified ?? false,
                 updated_at: new Date().toISOString(),
             }).eq('id', id as any);
             if (error) throw error;
