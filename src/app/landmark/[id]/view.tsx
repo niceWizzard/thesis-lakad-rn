@@ -554,14 +554,16 @@ export default function LandmarkViewerScreen() {
                             onPress={handleAddToItinerary}
                             size="lg"
                             className="rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                            isDisabled={isAddingStop || (!!itineraryId && currentCountNum >= 50)}
+                            isDisabled={!landmark.is_verified || isAddingStop || (!!itineraryId && currentCountNum >= 50)}
                         >
                             {
                                 isAddingStop && <ButtonSpinner />
                             }
                             <ButtonText className="font-bold">
                                 {
-                                    isAddingStop ? 'Adding...' : 'Add to Itinerary '
+                                    landmark.is_verified ? (
+                                        isAddingStop ? 'Adding...' : 'Add to Itinerary'
+                                    ) : "Unverified Place"
                                 }
                             </ButtonText>
                         </Button>

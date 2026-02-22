@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
     AlertCircle,
@@ -42,11 +42,11 @@ import LoadingModal from '@/src/components/LoadingModal';
 import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
 import { StorageKey } from '@/src/constants/Key';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { PlaceDistrict, PlaceMunicipality } from '@/src/model/places.types';
 import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
+import { fetchVerifiedPlaces } from '@/src/utils/landmark/fetchLandmarks';
 import { mmkvStorage } from '@/src/utils/mmkv';
 import { useTypePreferences } from '@/src/utils/preferencesManager';
 import { useIsFocused } from '@react-navigation/native';
@@ -96,7 +96,11 @@ enum GeneratingState {
 
 const CreateWithAgamScreenContent = () => {
     const router = useRouter();
-    const { landmarks } = useQueryLandmarks()
+    const { data: landmarks } = useQuery({
+        queryKey: ['landmarks'],
+        queryFn: fetchVerifiedPlaces,
+        initialData: [],
+    })
     const queryClient = useQueryClient();
     const preferredTypes = useTypePreferences();
     const [state, setState] = useState(GeneratingState.Idle)

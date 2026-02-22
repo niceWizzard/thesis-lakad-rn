@@ -37,7 +37,7 @@ import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { useAuthStore } from '@/src/stores/useAuth';
-import { fetchArchivedPasalubongCenters } from '@/src/utils/landmark/fetchPasalubongCenters';
+import { fetchArchivedUnverifiedPlaces } from '@/src/utils/landmark/fetchUnverifiedPlaces';
 import { useQuery } from '@tanstack/react-query';
 
 type SortKey = 'id' | 'name' | 'rating';
@@ -63,7 +63,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
         refetch
     } = useQuery<Place[]>({
         queryKey: ['archived-pasalubong-centers'],
-        queryFn: fetchArchivedPasalubongCenters,
+        queryFn: fetchArchivedUnverifiedPlaces,
         enabled: !!userId,
     });
 
@@ -158,7 +158,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
                 renderItem={({ item: landmark }) => (
                     <TouchableOpacity
                         activeOpacity={0.7}
-                        onPress={() => router.navigate({ pathname: '/(admin)/pasalubong/[id]', params: { id: landmark.id.toString() } })}
+                        onPress={() => router.navigate({ pathname: '/(admin)/landmark/[id]/info/details', params: { id: landmark.id.toString() } })}
                         className="bg-background-50 rounded-3xl border border-outline-100 shadow-soft-1 overflow-hidden"
                     >
                         <HStack className="p-4 items-center gap-4">

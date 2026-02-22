@@ -9,10 +9,11 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { ChevronRight, MapPin, Star } from "lucide-react-native";
 import useThemeConfig from "../hooks/useThemeConfig";
+import { PlaceWithStats } from "../model/places.types";
 
 const ITEM_HEIGHT = 114;
 
-export const LandmarkListItem = ({ landmark, onPress }: { landmark: any, onPress: () => void }) => {
+export const LandmarkListItem = ({ landmark, onPress }: { landmark: PlaceWithStats, onPress: () => void }) => {
     const { primary } = useThemeConfig()
     return (
         <TouchableOpacity
@@ -29,7 +30,9 @@ export const LandmarkListItem = ({ landmark, onPress }: { landmark: any, onPress
                     <HStack className="justify-between items-start">
                         <HStack className="flex-wrap gap-1 flex-1">
                             <Badge action="info" variant="outline" className="rounded-md px-1">
-                                <BadgeText className="text-[9px] uppercase font-bold">{landmark.type}</BadgeText>
+                                <BadgeText className="text-[9px] uppercase font-bold">
+                                    {landmark.is_verified ? landmark.type : "Pasalubong Center"}
+                                </BadgeText>
                             </Badge>
                         </HStack>
 

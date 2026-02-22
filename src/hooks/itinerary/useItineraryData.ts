@@ -1,4 +1,4 @@
-import { useQueryPasalubongCenters } from '@/src/hooks/useQueryPasalubongs';
+import { useQueryUnverifiedPlaces } from '@/src/hooks/useQueryUnverified';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +21,7 @@ export const useItineraryData = (id: string | number) => {
         queryFn: async () => fetchItineraryById(userId!, parsedId)
     });
 
-    const { landmarks: pasalubongs } = useQueryPasalubongCenters();
+    const { landmarks: pasalubongs } = useQueryUnverifiedPlaces();
 
     const nextUnvisitedStop = useMemo(() => {
         if (!itinerary) return null;

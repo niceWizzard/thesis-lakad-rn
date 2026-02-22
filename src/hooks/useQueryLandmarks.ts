@@ -10,7 +10,7 @@ export const useQueryLandmarks = () => {
         ...rest
     } = useQuery({
         queryKey: ['landmarks'],
-        queryFn: fetchLandmarks,
+        queryFn: () => fetchLandmarks(true),
         initialData: [],
     })
 
