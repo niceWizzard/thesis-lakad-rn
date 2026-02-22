@@ -250,7 +250,62 @@ $$;
 ALTER FUNCTION "public"."get_filterable_reviews"("place_id_input" bigint, "rating_filter" integer, "sort_column" "text", "sort_descending" boolean, "page_number" integer, "page_size" integer, "ignore_user_id" "uuid") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."get_places_with_stats"("target_id" bigint DEFAULT NULL::bigint) RETURNS TABLE("id" bigint, "name" "text", "municipality" "public"."municipality", "district" "public"."district", "latitude" double precision, "longitude" double precision, "description" "text", "image_url" "text", "image_credits" "text", "gmaps_rating" real, "type" "public"."landmark_type2", "updated_at" timestamp with time zone, "created_at" timestamp with time zone, "deleted_at" timestamp with time zone, "creation_type" "public"."LandmarkCreationType", "average_rating" double precision, "review_count" bigint, "opening_hours" "jsonb")
+CREATE OR REPLACE FUNCTION "public"."get_place_by_id"("place_id_input" bigint) RETURNS TABLE("id" bigint, "name" "text", "municipality" "public"."municipality", "district" "public"."district", "latitude" double precision, "longitude" double precision, "description" "text", "image_url" "text", "image_credits" "text", "gmaps_rating" real, "type" "public"."landmark_type2", "updated_at" timestamp with time zone, "created_at" timestamp with time zone, "deleted_at" timestamp with time zone, "creation_type" "public"."LandmarkCreationType", "is_verified" boolean, "average_rating" double precision, "review_count" bigint, "opening_hours" "jsonb")
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  RETURN QUERY
+  WITH review_stats AS (
+    SELECT 
+      r.place_id,
+      AVG(r.rating)::float8 as avg_r,
+      COUNT(r.id)::bigint as count_r
+    FROM reviews r
+    WHERE r.place_id = place_id_input
+    GROUP BY r.place_id
+  ),
+  hours_agg AS (
+    SELECT 
+      oh.place_id,
+      -- Removed the oh.id reference to fix Error 42703
+      jsonb_agg(oh.*) as hours 
+    FROM opening_hours oh
+    WHERE oh.place_id = place_id_input
+    GROUP BY oh.place_id
+  )
+  SELECT 
+    p.id,
+    p.name::text,
+    p.municipality,
+    p.district,
+    p.latitude::float8,
+    p.longitude::float8,
+    p.description::text,
+    p.image_url::text,
+    p.image_credits::text,
+    p.gmaps_rating::float4,
+    p.type,
+    p.updated_at,
+    p.created_at,
+    p.deleted_at,
+    p.creation_type,
+    p.is_verified,
+    COALESCE(rs.avg_r, 0)::float8,
+    COALESCE(rs.count_r, 0)::bigint,
+    -- Safely returns [] even if no opening hours exist
+    COALESCE(ha.hours, '[]'::jsonb) 
+  FROM places p
+  LEFT JOIN review_stats rs ON p.id = rs.place_id
+  LEFT JOIN hours_agg ha ON p.id = ha.place_id
+  WHERE p.id = place_id_input;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_place_by_id"("place_id_input" bigint) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_places_with_stats"() RETURNS TABLE("id" bigint, "name" "text", "municipality" "public"."municipality", "district" "public"."district", "latitude" double precision, "longitude" double precision, "description" "text", "image_url" "text", "image_credits" "text", "gmaps_rating" real, "type" "public"."landmark_type2", "updated_at" timestamp with time zone, "created_at" timestamp with time zone, "deleted_at" timestamp with time zone, "creation_type" "public"."LandmarkCreationType", "is_verified" boolean, "average_rating" double precision, "review_count" bigint, "opening_hours" "jsonb")
     LANGUAGE "plpgsql"
     AS $$
 BEGIN
@@ -266,12 +321,13 @@ BEGIN
   hours_agg AS (
     SELECT 
       oh.place_id,
-      jsonb_agg(oh.*) as hours
+      -- 2. Removed 'ORDER BY oh.id' because it doesn't exist
+      jsonb_agg(oh.*) as hours 
     FROM opening_hours oh
     GROUP BY oh.place_id
   )
   SELECT 
-    p.id,             -- Explicitly use 'p.' to avoid ambiguity
+    p.id,
     p.name::text,
     p.municipality,
     p.district,
@@ -286,19 +342,19 @@ BEGIN
     p.created_at,
     p.deleted_at,
     p.creation_type,
+    p.is_verified,     -- 3. Included in the selection
     COALESCE(rs.avg_r, 0)::float8,
     COALESCE(rs.count_r, 0)::bigint,
     COALESCE(ha.hours, '[]'::jsonb)
   FROM places p
   LEFT JOIN review_stats rs ON p.id = rs.place_id
   LEFT JOIN hours_agg ha ON p.id = ha.place_id
-  WHERE (target_id IS NULL OR p.id = target_id) -- 'p.id' resolves ambiguity
-    AND p.deleted_at IS NULL;
+  WHERE p.deleted_at IS NULL;
 END;
 $$;
 
 
-ALTER FUNCTION "public"."get_places_with_stats"("target_id" bigint) OWNER TO "postgres";
+ALTER FUNCTION "public"."get_places_with_stats"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."get_recent_reviews_by_place"("place_id_input" bigint, "limit_input" integer DEFAULT 3) RETURNS TABLE("id" bigint, "place_id" bigint, "content" "text", "rating" real, "images" "text"[], "created_at" timestamp with time zone, "updated_at" timestamp with time zone, "user_id" "uuid", "author_name" "text")
@@ -1047,9 +1103,15 @@ GRANT ALL ON FUNCTION "public"."get_filterable_reviews"("place_id_input" bigint,
 
 
 
-GRANT ALL ON FUNCTION "public"."get_places_with_stats"("target_id" bigint) TO "anon";
-GRANT ALL ON FUNCTION "public"."get_places_with_stats"("target_id" bigint) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."get_places_with_stats"("target_id" bigint) TO "service_role";
+GRANT ALL ON FUNCTION "public"."get_place_by_id"("place_id_input" bigint) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_place_by_id"("place_id_input" bigint) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_place_by_id"("place_id_input" bigint) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_places_with_stats"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_places_with_stats"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_places_with_stats"() TO "service_role";
 
 
 
@@ -1238,330 +1300,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 drop extension if exists "pg_net";
-
-drop policy "Allow admins to update distances" on "public"."distances";
-
-drop policy "Allow inserts for admins" on "public"."distances";
-
-drop policy "Allow regular users to insert their own landmarks" on "public"."places";
-
-drop policy "Allow update only to admins" on "public"."places";
-
-drop policy "Enable insert for admins only" on "public"."places";
-
-drop policy "Enable admins to change status" on "public"."profiles";
-
-drop policy "Allow admins to update report status" on "public"."review_reports";
-
-drop policy "Allow admins to delete reviews" on "public"."reviews";
-
-drop policy "Allow users to update their itinerary only" on "public"."stops";
-
-alter table "public"."distances" drop constraint "distances_destination_fkey";
-
-alter table "public"."distances" drop constraint "distances_source_fkey";
-
-alter table "public"."opening_hours" drop constraint "landmark_opening_hours_landmark_id_fkey";
-
-alter table "public"."review_reports" drop constraint "review_reports_review_id_fkey";
-
-alter table "public"."reviews" drop constraint "landmark_reviews_landmark_id_fkey";
-
-alter table "public"."stops" drop constraint "poi_itinerary_id_fkey";
-
-alter table "public"."stops" drop constraint "poi_landmark_id_fkey";
-
-drop function if exists "public"."get_review_reports"(p_status review_report_status);
-
-drop function if exists "public"."get_places_with_stats"(target_id bigint);
-
-drop function if exists "public"."get_review_report_by_id"(p_report_id bigint);
-
-alter table "public"."places" alter column "creation_type" set default 'TOURIST_ATTRACTION'::public."LandmarkCreationType";
-
-alter table "public"."places" alter column "creation_type" set data type public."LandmarkCreationType" using "creation_type"::text::public."LandmarkCreationType";
-
-alter table "public"."places" alter column "district" set data type public.district using "district"::text::public.district;
-
-alter table "public"."places" alter column "municipality" set data type public.municipality using "municipality"::text::public.municipality;
-
-alter table "public"."places" alter column "type" set default 'Landmark'::public.landmark_type2;
-
-alter table "public"."places" alter column "type" set data type public.landmark_type2 using "type"::text::public.landmark_type2;
-
-alter table "public"."profiles" alter column "user_type" set default 'Regular'::public.user_type;
-
-alter table "public"."profiles" alter column "user_type" set data type public.user_type using "user_type"::text::public.user_type;
-
-alter table "public"."review_reports" alter column "status" set default 'PENDING'::public.review_report_status;
-
-alter table "public"."review_reports" alter column "status" set data type public.review_report_status using "status"::text::public.review_report_status;
-
-alter table "public"."distances" add constraint "distances_destination_fkey" FOREIGN KEY (destination) REFERENCES public.places(id) not valid;
-
-alter table "public"."distances" validate constraint "distances_destination_fkey";
-
-alter table "public"."distances" add constraint "distances_source_fkey" FOREIGN KEY (source) REFERENCES public.places(id) not valid;
-
-alter table "public"."distances" validate constraint "distances_source_fkey";
-
-alter table "public"."opening_hours" add constraint "landmark_opening_hours_landmark_id_fkey" FOREIGN KEY (place_id) REFERENCES public.places(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
-
-alter table "public"."opening_hours" validate constraint "landmark_opening_hours_landmark_id_fkey";
-
-alter table "public"."review_reports" add constraint "review_reports_review_id_fkey" FOREIGN KEY (review_id) REFERENCES public.reviews(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
-
-alter table "public"."review_reports" validate constraint "review_reports_review_id_fkey";
-
-alter table "public"."reviews" add constraint "landmark_reviews_landmark_id_fkey" FOREIGN KEY (place_id) REFERENCES public.places(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
-
-alter table "public"."reviews" validate constraint "landmark_reviews_landmark_id_fkey";
-
-alter table "public"."stops" add constraint "poi_itinerary_id_fkey" FOREIGN KEY (itinerary_id) REFERENCES public.itinerary(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
-
-alter table "public"."stops" validate constraint "poi_itinerary_id_fkey";
-
-alter table "public"."stops" add constraint "poi_landmark_id_fkey" FOREIGN KEY (place_id) REFERENCES public.places(id) ON UPDATE CASCADE ON DELETE SET NULL not valid;
-
-alter table "public"."stops" validate constraint "poi_landmark_id_fkey";
-
-set check_function_bodies = off;
-
-CREATE OR REPLACE FUNCTION public.get_review_reports(p_status public.review_report_status DEFAULT NULL::public.review_report_status)
- RETURNS TABLE(id bigint, review_id bigint, reporter_id uuid, reason text, details text, status public.review_report_status, created_at timestamp with time zone, review_content text, review_rating integer, review_images text[], place_name text, reporter_name text, reviewer_name text)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    rr.id,
-    rr.review_id,
-    rr.reporter_id,
-    rr.reason,
-    rr.details,
-    rr.status,
-    rr.created_at,
-    r.content AS review_content,
-    r.rating::int AS review_rating,
-    r.images AS review_images,
-    p.name AS place_name,     -- Updated alias and column
-    p_rep.full_name AS reporter_name,
-    p_auth.full_name AS reviewer_name
-  FROM review_reports rr
-  LEFT JOIN reviews r ON rr.review_id = r.id         -- Updated table name
-  LEFT JOIN places p ON r.place_id = p.id            -- Updated table/column names
-  LEFT JOIN profiles p_rep ON rr.reporter_id = p_rep.user_id
-  LEFT JOIN profiles p_auth ON r.user_id = p_auth.user_id
-  WHERE (p_status IS NULL OR rr.status = p_status)
-  ORDER BY rr.created_at DESC;
-END;
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.get_places_with_stats(target_id bigint DEFAULT NULL::bigint)
- RETURNS TABLE(id bigint, name text, municipality public.municipality, district public.district, latitude double precision, longitude double precision, description text, image_url text, image_credits text, gmaps_rating real, type public.landmark_type2, updated_at timestamp with time zone, created_at timestamp with time zone, deleted_at timestamp with time zone, creation_type public."LandmarkCreationType", average_rating double precision, review_count bigint, opening_hours jsonb)
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-  RETURN QUERY
-  WITH review_stats AS (
-    SELECT 
-      r.place_id,
-      AVG(r.rating)::float8 as avg_r,
-      COUNT(r.id)::bigint as count_r
-    FROM reviews r
-    GROUP BY r.place_id
-  ),
-  hours_agg AS (
-    SELECT 
-      oh.place_id,
-      jsonb_agg(oh.*) as hours
-    FROM opening_hours oh
-    GROUP BY oh.place_id
-  )
-  SELECT 
-    p.id,             -- Explicitly use 'p.' to avoid ambiguity
-    p.name::text,
-    p.municipality,
-    p.district,
-    p.latitude::float8,
-    p.longitude::float8,
-    p.description::text,
-    p.image_url::text,
-    p.image_credits::text,
-    p.gmaps_rating::float4,
-    p.type,
-    p.updated_at,
-    p.created_at,
-    p.deleted_at,
-    p.creation_type,
-    COALESCE(rs.avg_r, 0)::float8,
-    COALESCE(rs.count_r, 0)::bigint,
-    COALESCE(ha.hours, '[]'::jsonb)
-  FROM places p
-  LEFT JOIN review_stats rs ON p.id = rs.place_id
-  LEFT JOIN hours_agg ha ON p.id = ha.place_id
-  WHERE (target_id IS NULL OR p.id = target_id) -- 'p.id' resolves ambiguity
-    AND p.deleted_at IS NULL;
-END;
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.get_review_report_by_id(p_report_id bigint)
- RETURNS TABLE(id bigint, review_id bigint, reporter_id uuid, reason text, details text, status public.review_report_status, created_at timestamp with time zone, review_content text, review_rating numeric, review_images text[], place_name text, reporter_name text, reviewer_name text)
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
-BEGIN
-  RETURN QUERY
-  SELECT 
-    rr.id,
-    rr.review_id,
-    rr.reporter_id,
-    rr.reason,
-    rr.details,
-    rr.status,
-    rr.created_at,
-    r.content AS review_content,
-    r.rating::NUMERIC AS review_rating,
-    r.images AS review_images,
-    p.name AS place_name,     -- Updated table/alias
-    p_rep.full_name AS reporter_name,
-    p_auth.full_name AS reviewer_name
-  FROM review_reports rr
-  LEFT JOIN reviews r ON rr.review_id = r.id         -- Updated table name
-  LEFT JOIN places p ON r.place_id = p.id            -- Updated table/column names
-  LEFT JOIN profiles p_rep ON rr.reporter_id = p_rep.user_id
-  LEFT JOIN profiles p_auth ON r.user_id = p_auth.user_id
-  WHERE rr.id = p_report_id;
-END;
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.submit_place_review(place_id_input bigint, rating_input integer, content_input text, images_input text[])
- RETURNS SETOF public.reviews
- LANGUAGE plpgsql
-AS $function$
-BEGIN
-  RETURN QUERY
-  INSERT INTO public.reviews (
-    place_id,
-    rating,
-    content,
-    images,
-    user_id
-  )
-  VALUES (
-    place_id_input,
-    rating_input,
-    content_input,
-    images_input,
-    auth.uid() -- Automatically gets the ID from the JWT
-  )
-  RETURNING *; 
-END;
-$function$
-;
-
-
-  create policy "Allow admins to update distances"
-  on "public"."distances"
-  as permissive
-  for update
-  to public
-using ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type));
-
-
-
-  create policy "Allow inserts for admins"
-  on "public"."distances"
-  as permissive
-  for insert
-  to public
-with check ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type));
-
-
-
-  create policy "Allow regular users to insert their own landmarks"
-  on "public"."places"
-  as permissive
-  for insert
-  to authenticated
-with check ((creation_type = 'PERSONAL'::public."LandmarkCreationType"));
-
-
-
-  create policy "Allow update only to admins"
-  on "public"."places"
-  as permissive
-  for update
-  to authenticated
-using ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type))
-with check (true);
-
-
-
-  create policy "Enable insert for admins only"
-  on "public"."places"
-  as permissive
-  for insert
-  to authenticated
-with check ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type));
-
-
-
-  create policy "Enable admins to change status"
-  on "public"."profiles"
-  as permissive
-  for update
-  to authenticated
-using ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type))
-with check (true);
-
-
-
-  create policy "Allow admins to update report status"
-  on "public"."review_reports"
-  as permissive
-  for update
-  to public
-using ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type));
-
-
-
-  create policy "Allow admins to delete reviews"
-  on "public"."reviews"
-  as permissive
-  for delete
-  to public
-using ((( SELECT profiles_1.user_type
-   FROM public.profiles profiles_1
-  WHERE (profiles_1.user_id = auth.uid())) <> 'Regular'::public.user_type));
-
-
-
-  create policy "Allow users to update their itinerary only"
-  on "public"."stops"
-  as permissive
-  for all
-  to public
-using ((EXISTS ( SELECT 1
-   FROM public.itinerary
-  WHERE ((itinerary.id = stops.itinerary_id) AND (itinerary.user_id = auth.uid())))));
-
 
 
   create policy "Allow delete 1ffg0oo_0"
