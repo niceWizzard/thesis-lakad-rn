@@ -13,6 +13,7 @@ import {
     Archive,
     ArrowLeftRight,
     ChevronRight,
+    Flag,
     Key,
     LogOut,
     Mail,
@@ -34,6 +35,12 @@ function MoreTab() {
             title: 'Manage Users',
             icon: Settings,
             onPress: () => router.navigate("/(admin)/users"),
+        },
+        {
+            id: '2',
+            title: 'Review Reports',
+            icon: Flag,
+            onPress: () => router.navigate('/(admin)/reports'),
         },
         {
             id: '4',

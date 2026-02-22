@@ -108,7 +108,7 @@ export type Database = {
           latitude: number
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
-          name?: string
+          name: string
           type?: Database["public"]["Enums"]["landmark_type2"]
           updated_at?: string
         }
@@ -446,6 +446,42 @@ export type Database = {
           images: string[]
           rating: number
           user_id: string
+        }[]
+      }
+      get_review_report_by_id: {
+        Args: { p_report_id: number }
+        Returns: {
+          created_at: string
+          details: string
+          id: number
+          landmark_name: string
+          reason: string
+          reporter_id: string
+          reporter_name: string
+          review_content: string
+          review_id: number
+          review_images: string[]
+          review_rating: number
+          reviewer_name: string
+          status: Database["public"]["Enums"]["review_report_status"]
+        }[]
+      }
+      get_review_reports: {
+        Args: { p_status?: Database["public"]["Enums"]["review_report_status"] }
+        Returns: {
+          created_at: string
+          details: string
+          id: number
+          landmark_name: string
+          reason: string
+          reporter_id: string
+          reporter_name: string
+          review_content: string
+          review_id: number
+          review_images: string[]
+          review_rating: number
+          reviewer_name: string
+          status: Database["public"]["Enums"]["review_report_status"]
         }[]
       }
       submit_landmark_review: {
