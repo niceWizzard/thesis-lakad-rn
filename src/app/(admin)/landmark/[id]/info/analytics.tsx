@@ -6,10 +6,10 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { useLandmarkAnalytics } from '@/src/hooks/useLandmarkAnalytics';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
-import { useGlobalSearchParams } from 'expo-router';
-import { Activity, Map, MessageSquare, Star, TrendingUp } from 'lucide-react-native';
+import { Link, useGlobalSearchParams } from 'expo-router';
+import { Activity, ChevronRight, Map, MessageSquare, Star, TrendingUp } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
 const LandmarkAnalyticsScreen = () => {
@@ -54,23 +54,30 @@ const LandmarkAnalyticsScreen = () => {
                 />
             </View>
 
-            {/* Review Cards */}
-            <View className="flex-row flex-wrap gap-3 mb-8 justify-between">
-                <SummaryCard
-                    title="Total Reviews"
-                    value={data?.totalReviews || 0}
-                    icon={MessageSquare}
-                    iconClassName="text-info-600"
-                    cardClassName="bg-info-50 border-info-200"
-                />
-                <SummaryCard
-                    title="Avg Rating"
-                    value={data?.averageRating ? Number(data.averageRating.toFixed(1)) : 0}
-                    icon={Star}
-                    iconClassName="text-warning-600"
-                    cardClassName="bg-warning-50 border-warning-200"
-                />
-            </View>
+            <Link href={`/(admin)/landmark/${id}/reviews` as any} asChild>
+                <Pressable className="mb-8">
+                    <HStack className="justify-between items-center mb-3 px-1">
+                        <Heading size="md" className="text-typography-900">Manage Reviews</Heading>
+                        <Icon as={ChevronRight} size="sm" className="text-typography-400" />
+                    </HStack>
+                    <View className="flex-row flex-wrap gap-3 justify-between pointer-events-none">
+                        <SummaryCard
+                            title="Total Reviews"
+                            value={data?.totalReviews || 0}
+                            icon={MessageSquare}
+                            iconClassName="text-info-600"
+                            cardClassName="bg-info-50 border-info-200"
+                        />
+                        <SummaryCard
+                            title="Avg Rating"
+                            value={data?.averageRating ? Number(data.averageRating.toFixed(1)) : 0}
+                            icon={Star}
+                            iconClassName="text-warning-600"
+                            cardClassName="bg-warning-50 border-warning-200"
+                        />
+                    </View>
+                </Pressable>
+            </Link>
 
             {/* Rating Distribution */}
             <VStack className="gap-4 mb-8">
@@ -143,7 +150,7 @@ const LandmarkAnalyticsScreen = () => {
                 </Card>
             </VStack>
 
-        </ScrollView>
+        </ScrollView >
     );
 };
 

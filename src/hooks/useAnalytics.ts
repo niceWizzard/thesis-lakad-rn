@@ -8,6 +8,7 @@ export interface AnalyticsData {
     totalDistance: number;
     topLandmarks: { id: string; name: string; count: number }[];
     lowestLandmarks: { id: string; name: string; count: number }[];
+    highestRatedLandmarks: { id: string; name: string; rating: number; count: number }[];
     categoryDistribution: { type: string; count: number }[];
 }
 
@@ -86,6 +87,34 @@ export const useAnalytics = () => {
                 .sort((a: any, b: any) => a.count - b.count)
                 .slice(0, 5);
 
+            // 5. Fetch Highest Rated Landmarks
+            const { data: reviewsData } = await supabase
+                .from("landmark_reviews")
+                .select("landmark_id, rating, landmark(name)")
+                .not("rating", "is", null);
+
+            const ratingStats: Record<string, { sum: number; count: number; name: string }> = {};
+
+            reviewsData?.forEach((review: any) => {
+                if (review.landmark_id && review.rating !== null && review.landmark?.name) {
+                    if (!ratingStats[review.landmark_id]) {
+                        ratingStats[review.landmark_id] = { sum: 0, count: 0, name: review.landmark.name };
+                    }
+                    ratingStats[review.landmark_id].sum += review.rating;
+                    ratingStats[review.landmark_id].count += 1;
+                }
+            });
+
+            const highestRatedLandmarks = Object.entries(ratingStats)
+                .map(([id, stats]) => ({
+                    id,
+                    name: stats.name,
+                    rating: stats.sum / stats.count,
+                    count: stats.count
+                }))
+                .sort((a, b) => b.rating !== a.rating ? b.rating - a.rating : b.count - a.count)
+                .slice(0, 5);
+
 
             return {
                 totalItineraries: itinerariesCount.count || 0,
@@ -94,6 +123,7 @@ export const useAnalytics = () => {
                 totalDistance,
                 topLandmarks,
                 lowestLandmarks,
+                highestRatedLandmarks,
                 categoryDistribution,
             };
         },

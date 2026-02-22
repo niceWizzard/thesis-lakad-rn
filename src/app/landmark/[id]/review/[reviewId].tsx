@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { Flag, Star, User } from 'lucide-react-native';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Flag, Star, Trash2, User } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView } from 'react-native';
 
@@ -22,13 +22,18 @@ import { supabase } from '@/src/utils/supabase';
 
 
 export default function ReviewDetailScreen() {
-    const { reviewId } = useLocalSearchParams<{ reviewId: string }>();
+    const { reviewId, adminMode } = useLocalSearchParams<{ reviewId: string, adminMode?: string }>();
     const { primary } = useThemeConfig();
     const { session } = useAuthStore();
     const { showToast } = useToastNotification();
+    const queryClient = useQueryClient();
+    const router = useRouter();
 
     const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // new states for the report form
     const [reportReason, setReportReason] = useState<string>('');
@@ -57,6 +62,63 @@ export default function ReviewDetailScreen() {
             </Box>
         );
     }
+
+    const handleDeleteReview = async () => {
+        if (!review?.id) return;
+        setIsDeleting(true);
+
+        try {
+            // Remove images associated with the review
+            const imagesToRemove = (review.images || []).map((url: string) => {
+                if (url.includes('supabase.co')) {
+                    const pathWithQuery = url.split('/object/public/images/')[1];
+                    if (!pathWithQuery) return null;
+                    return pathWithQuery.split('?')[0];
+                }
+                return url;
+            }).filter(Boolean) as string[];
+
+            if (imagesToRemove.length > 0) {
+                const { error: removeError } = await supabase.storage.from('images').remove(imagesToRemove);
+                if (removeError) {
+                    console.error('Failed to clean up review images', removeError);
+                }
+            }
+
+            const { error: deleteError } = await supabase
+                .from('landmark_reviews')
+                .delete()
+                .eq('id', review.id);
+
+            if (deleteError) throw deleteError;
+
+            // Invalidate parent queries related to reviews
+            if (review.landmark_id) {
+                await queryClient.invalidateQueries({ queryKey: ['admin-landmark-reviews', review.landmark_id.toString()] });
+                await queryClient.invalidateQueries({ queryKey: ['landmark-analytics', review.landmark_id.toString()] });
+            }
+            await queryClient.invalidateQueries({ queryKey: ['reviews'] });
+            await queryClient.invalidateQueries({ queryKey: ['landmark-review'] });
+
+            showToast({
+                title: "Success",
+                description: "Review deleted successfully.",
+                action: "success",
+            });
+
+            router.back();
+
+        } catch (error) {
+            console.error('Error deleting review:', error);
+            showToast({
+                title: "Error",
+                description: "Failed to delete review. Please try again.",
+                action: "error",
+            });
+            setIsDeleting(false);
+            setIsDeleteDialogOpen(false);
+        }
+    };
 
     const handleReportReview = async () => {
         if (!session?.user?.id) return;
@@ -113,20 +175,37 @@ export default function ReviewDetailScreen() {
     };
 
     const isOwnReview = session?.user?.id === review.user_id;
+    const isAdminMode = adminMode === 'true';
 
     return (
         <Box className="flex-1 bg-background-50">
             <Stack.Screen
                 options={{
                     title: 'Review',
-                    headerRight: () => session?.user?.id && !isOwnReview ? (
-                        <Pressable
-                            onPress={() => setIsReportDialogOpen(true)}
-                            className="p-2 -mr-2 active:opacity-50"
-                        >
-                            <Icon as={Flag} size="md" className="text-typography-500" />
-                        </Pressable>
-                    ) : undefined
+                    headerRight: () => {
+                        if (isAdminMode) {
+                            return (
+                                <Pressable
+                                    onPress={() => setIsDeleteDialogOpen(true)}
+                                    className="p-2 -mr-2 active:opacity-50"
+                                >
+                                    <Icon as={Trash2} size="md" className="text-error-500" />
+                                </Pressable>
+                            );
+                        }
+
+                        if (session?.user?.id && !isOwnReview) {
+                            return (
+                                <Pressable
+                                    onPress={() => setIsReportDialogOpen(true)}
+                                    className="p-2 -mr-2 active:opacity-50"
+                                >
+                                    <Icon as={Flag} size="md" className="text-typography-500" />
+                                </Pressable>
+                            );
+                        }
+                        return undefined;
+                    }
                 }}
             />
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
@@ -279,6 +358,43 @@ export default function ReviewDetailScreen() {
                         >
                             {isSubmittingReport && <ButtonSpinner color="white" />}
                             <ButtonText className="font-semibold text-white">Report Review</ButtonText>
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog
+                isOpen={isDeleteDialogOpen}
+                onClose={() => !isDeleting && setIsDeleteDialogOpen(false)}
+            >
+                <AlertDialogBackdrop />
+                <AlertDialogContent className='rounded-2xl'>
+                    <AlertDialogHeader>
+                        <Heading size="lg" className="text-typography-950 font-semibold">Delete Review</Heading>
+                    </AlertDialogHeader>
+                    <AlertDialogBody className="mt-3 mb-4">
+                        <Text size="md">
+                            Are you sure you want to delete this review by {review?.author_name}? This action cannot be undone.
+                        </Text>
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <Button
+                            variant="outline"
+                            action="secondary"
+                            onPress={() => setIsDeleteDialogOpen(false)}
+                            size="md"
+                            isDisabled={isDeleting}
+                        >
+                            <ButtonText>Cancel</ButtonText>
+                        </Button>
+                        <Button
+                            size="md"
+                            action="negative"
+                            onPress={handleDeleteReview}
+                            isDisabled={isDeleting}
+                        >
+                            {isDeleting ? <ButtonSpinner color="white" className="mr-2" /> : null}
+                            <ButtonText>Delete</ButtonText>
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>

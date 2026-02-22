@@ -7,16 +7,24 @@ import { VStack } from '@/components/ui/vstack';
 import { useAnalytics } from '@/src/hooks/useAnalytics';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useRouter } from 'expo-router';
-import { Archive, ChevronRight, MapPin, Navigation, TrendingUp } from 'lucide-react-native';
+import { Archive, ChevronRight, MapPin, Navigation, Star, TrendingUp } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 
 const AnalyticsScreen = () => {
     const router = useRouter();
-    const { data, isLoading, error } = useAnalytics();
+    const { data, isLoading, error, refetch } = useAnalytics();
 
     const { primary, tertiary, info, warning, success, typography } = useThemeConfig()
+
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const onRefresh = React.useCallback(async () => {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
+    }, [refetch]);
 
     if (isLoading) {
         return (
@@ -41,7 +49,13 @@ const AnalyticsScreen = () => {
     };
 
     return (
-        <ScrollView className="flex-1 bg-background-0" contentContainerStyle={{ paddingBottom: 100 }}>
+        <ScrollView
+            className="flex-1 bg-background-0"
+            contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[primary['500']]} tintColor={primary['500']} />
+            }
+        >
             <View className="p-6 pt-10">
                 <HStack className="items-center gap-3 mb-6">
                     <Heading size="2xl" className="text-typography-900">Overview</Heading>
@@ -117,6 +131,51 @@ const AnalyticsScreen = () => {
                             </TouchableOpacity>
                         ))}
                         {data?.topLandmarks.length === 0 && (
+                            <View className="p-4">
+                                <Text className="text-typography-500 italic">No data available yet.</Text>
+                            </View>
+                        )}
+                    </Card>
+                </VStack>
+
+                {/* Highest Rated Places */}
+                <VStack className="mb-8 gap-4">
+                    <HStack className="items-center gap-3">
+                        <View className="w-1 h-6 rounded-full bg-warning-500" />
+                        <Heading size="lg" className="text-typography-900">Highest Rated Places</Heading>
+                    </HStack>
+                    <Card className="p-0 overflow-hidden bg-background-50 border border-outline-100 rounded-xl">
+                        {data?.highestRatedLandmarks?.map((place, index) => (
+                            <TouchableOpacity
+                                key={place.id}
+                                activeOpacity={0.7}
+                                onPress={() => router.push({ pathname: '/(admin)/landmark/[id]/info/analytics', params: { id: place.id } })}
+                            >
+                                <HStack className={`p-4 items-center justify-between border-b border-outline-50 ${index === data.highestRatedLandmarks.length - 1 ? 'border-b-0' : ''}`}>
+                                    <HStack className="items-center gap-3 flex-1 mr-4">
+                                        <View
+                                            className={`w-8 h-8 rounded-full items-center justify-center ${index === 0 ? 'bg-primary-100' : index === 1 ? 'bg-info-100' : index === 2 ? 'bg-tertiary-100' : 'bg-background-200'
+                                                }`}
+                                        >
+                                            <Text
+                                                className={`font-bold ${index === 0 ? 'text-primary-700' : index === 1 ? 'text-info-700' : index === 2 ? 'text-tertiary-700' : 'text-typography-500'
+                                                    }`}
+                                            >
+                                                {index + 1}
+                                            </Text>
+                                        </View>
+                                        <Text numberOfLines={1} ellipsizeMode="tail" className="flex-1">{place.name}</Text>
+                                    </HStack>
+                                    <HStack className="items-center gap-2">
+                                        <Icon as={Star} size="sm" className="text-warning-500" fill="currentColor" />
+                                        <Text className="font-bold text-typography-700">{place.rating.toFixed(1)}</Text>
+                                        <Text className="text-typography-500 text-xs">({place.count})</Text>
+                                        <Icon as={ChevronRight} size="xs" className="text-typography-400" />
+                                    </HStack>
+                                </HStack>
+                            </TouchableOpacity>
+                        ))}
+                        {(!data?.highestRatedLandmarks || data.highestRatedLandmarks.length === 0) && (
                             <View className="p-4">
                                 <Text className="text-typography-500 italic">No data available yet.</Text>
                             </View>
