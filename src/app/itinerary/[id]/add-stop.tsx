@@ -41,6 +41,7 @@ export default function AddPOIScreen() {
         queryFn: async () => {
             let query = supabase.from('places')
                 .select('id, name, municipality, image_url, type')
+                .eq('is_verified', true)
                 .is('deleted_at', null);
 
             if (searchQuery) {

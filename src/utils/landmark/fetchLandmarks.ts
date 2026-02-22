@@ -9,9 +9,26 @@ import { supabase } from "../supabase";
  * sorted by most recently created.
  * @throws {PostgrestError} If the Supabase query fails.
  */
-export const fetchLandmarks = async (): Promise<PlaceWithStats[]> => {
+export const fetchLandmarks = async (isVerified: boolean = true): Promise<PlaceWithStats[]> => {
     const { data, error } = await supabase
         .rpc('get_places_with_stats')
+        .eq('is_verified', isVerified)
+
+    if (error) {
+        throw error;
+    }
+
+    return (data ?? []) as PlaceWithStats[];
+}
+
+export const fetchVerifiedPlaces = async (): Promise<Place[]> => {
+    const { data, error } = await supabase
+        .from('places')
+        .select('*')
+        .is('deleted_at', null)
+        .eq('creation_type', "TOURIST_ATTRACTION")
+        .eq('is_verified', true)
+        .order('created_at', { ascending: false });
 
     if (error) {
         throw error;
@@ -34,6 +51,7 @@ export const fetchArchivedLandmarks = async (): Promise<Place[]> => {
         .select('*')
         .eq('creation_type', "TOURIST_ATTRACTION")
         .not('deleted_at', 'is', null)
+        .eq('is_verified', true)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -56,15 +74,15 @@ export const fetchArchivedLandmarks = async (): Promise<Place[]> => {
  * * @throws {Error} If the ID is non-numeric.
  * @throws {PostgrestError} If the record is not found or the query fails.
  */
-export const fetchLandmarkById = async (id: number | string) => {
+export const fetchLandmarkById = async (id: number | string): Promise<PlaceWithStats | null> => {
     if (typeof id === 'string' && Number.isNaN(Number.parseInt(id))) {
         throw new Error("Invalid ID. Must be a number.")
     }
     const parsedId = Number(id)
 
     let { data, error } = await supabase
-        .rpc('get_places_with_stats', {
-            target_id: parsedId
+        .rpc('get_place_by_id', {
+            place_id_input: parsedId
         })
 
     if (error) {

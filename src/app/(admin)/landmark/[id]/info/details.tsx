@@ -49,7 +49,11 @@ export default function AdminLandmarkDetailScreen() {
   // --- DATA FETCHING ---
   const { data: landmark, isLoading, error } = useQuery({
     queryKey: ['landmark', id],
-    queryFn: () => fetchLandmarkById(id as string),
+    queryFn: async () => {
+      const a = await fetchLandmarkById(id as string);
+      console.log(a)
+      return a
+    },
     enabled: !!id,
   });
 
@@ -185,7 +189,7 @@ export default function AdminLandmarkDetailScreen() {
                   <Text size="xl" className="font-bold text-typography-900">{landmark.name}</Text>
                 </VStack>
                 <VStack className="items-end">
-                  <Text size="xs" className="font-bold text-typography-400 uppercase mb-1">Rating</Text>
+                  <Text size="xs" className="font-bold text-typography-400 uppercase mb-1">Gmaps Rating</Text>
                   <HStack className="items-center bg-warning-50 px-3 py-1 rounded-full border border-warning-100">
                     <Icon as={Star} size="xs" className="text-warning-600 mr-1" fill="#d97706" />
                     <Text size="sm" className="font-bold text-warning-700">

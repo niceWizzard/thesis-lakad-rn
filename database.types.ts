@@ -354,8 +354,8 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_places_with_stats: {
-        Args: { target_id?: number }
+      get_place_by_id: {
+        Args: { place_id_input: number }
         Returns: {
           average_rating: number
           created_at: string
@@ -367,6 +367,31 @@ export type Database = {
           id: number
           image_credits: string
           image_url: string
+          is_verified: boolean
+          latitude: number
+          longitude: number
+          municipality: Database["public"]["Enums"]["municipality"]
+          name: string
+          opening_hours: Json
+          review_count: number
+          type: Database["public"]["Enums"]["landmark_type2"]
+          updated_at: string
+        }[]
+      }
+      get_places_with_stats: {
+        Args: never
+        Returns: {
+          average_rating: number
+          created_at: string
+          creation_type: Database["public"]["Enums"]["LandmarkCreationType"]
+          deleted_at: string
+          description: string
+          district: Database["public"]["Enums"]["district"]
+          gmaps_rating: number
+          id: number
+          image_credits: string
+          image_url: string
+          is_verified: boolean
           latitude: number
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]

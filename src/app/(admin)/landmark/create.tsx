@@ -10,7 +10,6 @@ import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Place } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { calculateIncrementalMatrix } from '@/src/utils/distance/calculateIncrementalMatrix';
-import { fetchLandmarks } from '@/src/utils/landmark/fetchLandmarks';
 import { createPlace } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -136,7 +135,7 @@ export default function AdminLandmarkCreateScreen() {
             }
 
 
-            await queryClient.fetchQuery({ queryKey: ['landmarks'], queryFn: fetchLandmarks });
+            await queryClient.fetchQuery({ queryKey: ['landmarks'] });
         },
         onSuccess: () => {
             showToast({

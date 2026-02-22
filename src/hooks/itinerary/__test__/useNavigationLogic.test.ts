@@ -71,7 +71,7 @@ describe('useNavigationLogic', () => {
         switchMode: mockSwitchMode,
         nextUnvisitedStop: {
             id: '1',
-            landmark: { longitude: 120.1, latitude: 14.1 }
+            place: { longitude: 120.1, latitude: 14.1 }
         } as any,
         refetchItinerary: mockRefetchItinerary,
         pasalubongs: [],

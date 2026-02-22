@@ -2,11 +2,9 @@ import { useRouter } from 'expo-router';
 import {
     ArrowDown,
     ArrowUp,
-    ChevronRight,
     Clock,
     Filter,
     Map as MapIcon,
-    MapPin,
     Plus,
     Search,
     SortAsc,
@@ -14,7 +12,7 @@ import {
     X
 } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { FlatList, Image, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
@@ -36,8 +34,9 @@ import { VStack } from '@/components/ui/vstack';
 
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
+import { LandmarkListItem } from '@/src/components/LandmarkListItem';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { useQueryPasalubongCenters } from '@/src/hooks/useQueryPasalubongs';
+import { useQueryUnverifiedPlaces } from '@/src/hooks/useQueryUnverified';
 import { PlaceDistrict } from '@/src/model/places.types';
 
 // --- Updated SortKey Type ---
@@ -55,12 +54,13 @@ export default function AdminPasalubongCenterScreens() {
     const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
     const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
 
+
     const {
         landmarks,
         isLoading,
         isRefetching,
         refetch
-    } = useQueryPasalubongCenters()
+    } = useQueryUnverifiedPlaces()
 
     // --- ENHANCED FILTERING & SORTING LOGIC ---
     const processedLandmarks = useMemo(() => {
@@ -77,8 +77,7 @@ export default function AdminPasalubongCenterScreens() {
             if (sortKey === 'name') {
                 comparison = a.name.localeCompare(b.name);
             } else if (sortKey === 'rating') {
-                // Sort by gmaps_rating (defaulting to 0 if null/undefined)
-                comparison = (a.gmaps_rating ?? 0) - (b.gmaps_rating ?? 0);
+                comparison = (a.average_rating ?? 0) - (b.average_rating ?? 0);
             } else {
                 comparison = a.id - b.id;
             }
@@ -153,33 +152,13 @@ export default function AdminPasalubongCenterScreens() {
                     </VStack>
                 }
                 renderItem={({ item: landmark }) => (
-                    <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() => router.navigate({ pathname: '/(admin)/pasalubong/[id]', params: { id: landmark.id.toString() } })}
-                        className="bg-background-50 rounded-3xl border border-outline-100 shadow-soft-1 overflow-hidden"
-                    >
-                        <HStack className="p-4 items-center gap-4">
-                            <Box className="w-20 h-20 bg-background-200 rounded-2xl overflow-hidden">
-                                <Image source={{ uri: landmark.image_url || "https://via.placeholder.com/150" }} className="w-full h-full" resizeMode="cover" />
-                            </Box>
-                            <VStack className='flex-1 gap-1'>
-                                <HStack className="justify-between items-start">
-                                    {/* --- Rating Badge on Card --- */}
-                                    <HStack className="items-center bg-warning-50 px-1.5 py-0.5 rounded-lg border border-warning-100">
-                                        <Icon as={Star} size='sm' fill="#d97706" color="#d97706" className="mr-1" />
-                                        <Text size="xs" className="font-bold text-warning-700">{landmark.gmaps_rating ?? '0'}</Text>
-                                    </HStack>
-                                </HStack>
-
-                                <Heading size="sm" className="text-typography-900" numberOfLines={1}>{landmark.name}</Heading>
-                                <HStack space="xs" className="items-center">
-                                    <Icon as={MapPin} size="xs" className="text-typography-400" />
-                                    <Text size="xs" className="text-typography-500">{landmark.municipality.replace('_', ' ')} - District {landmark.district}</Text>
-                                </HStack>
-                            </VStack>
-                            <Icon as={ChevronRight} className="text-typography-300 mr-1" />
-                        </HStack>
-                    </TouchableOpacity>
+                    <LandmarkListItem
+                        landmark={landmark}
+                        onPress={() => router.navigate({
+                            pathname: '/(admin)/landmark/[id]/info/details',
+                            params: { id: landmark.id.toString() }
+                        })}
+                    />
                 )}
                 ListEmptyComponent={
                     <VStack className="items-center justify-center py-20 gap-4">
@@ -304,7 +283,7 @@ export default function AdminPasalubongCenterScreens() {
                 </ModalContent>
             </Modal>
 
-            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create-pasalubong')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
+            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
                 <FabIcon as={Plus} />
                 <FabLabel className="font-bold">Add New</FabLabel>
             </Fab>

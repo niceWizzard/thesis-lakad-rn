@@ -13,9 +13,10 @@ import { PlaceWithStats } from '@/src/model/places.types';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
+import { supabase } from '@/src/utils/supabase';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 
@@ -28,7 +29,17 @@ const AdminExploreTab = () => {
     const [sheetIndex, setSheetIndex] = useState(0)
 
 
-    const { landmarks } = useQueryLandmarks();
+    const { data: landmarks } = useQuery({
+        queryKey: ['landmarks'],
+        queryFn: async () => {
+            const { data, error } = await supabase.rpc('get_places_with_stats')
+            if (error) {
+                throw error;
+            }
+            return data as PlaceWithStats[];
+        },
+        initialData: [],
+    })
 
     useEffect(() => {
         if (selectedLandmark) {

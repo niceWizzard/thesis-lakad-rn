@@ -1,6 +1,5 @@
 import { Place } from "@/src/model/places.types";
 import { supabase } from "../supabase";
-import { fetchPasalubongCenters } from "./fetchPasalubongCenters";
 
 /**
  * Fetches both active tourist attractions and pasalubong centers from the database.
@@ -18,18 +17,9 @@ export const fetchCombinedLandmarks = async (): Promise<Place[]> => {
         .eq('creation_type', "TOURIST_ATTRACTION")
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
-    if (touristError) {
+    if (touristError)
         throw touristError;
-    }
-    const pasalubongCenters = await fetchPasalubongCenters();
-
-    // Combine and sort
-    const combined = [...(touristLandmarks || []), ...pasalubongCenters];
-
-    // Sort by created_at descending
-    combined.sort((a, b) => {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
-    return combined;
+    if (!touristLandmarks)
+        return [];
+    return touristLandmarks;
 }

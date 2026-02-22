@@ -28,7 +28,6 @@ import { Center } from '@/components/ui/center';
 import { Divider } from '@/components/ui/divider';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import LandmarkMapView from '@/src/components/LandmarkMapView';
-import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { PlaceWithStats } from '@/src/model/places.types';
@@ -54,7 +53,18 @@ const ExploreTab = () => {
     // Define snap points: 0 is closed, 1 is the 40% mark
     const snapPoints = useMemo(() => ["30%", "80%",], []);
 
-    const { landmarks } = useQueryLandmarks()
+    const { data: landmarks } = useQuery({
+        queryKey: ['landmarks'],
+        queryFn: async () => {
+            const { data, error } = await supabase.rpc('get_places_with_stats')
+            if (error) {
+                throw error;
+            }
+            return data as PlaceWithStats[];
+        },
+        initialData: [],
+    })
+
 
     // Sync selected landmark if landmarks data changes (e.g. review updates rating)
     useEffect(() => {
@@ -345,7 +355,9 @@ const ExploreTab = () => {
                                     <HStack space="xs" className="flex-wrap mt-1">
                                         <Badge
                                             action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
-                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">{selectedLandmark.type}</BadgeText>
+                                            <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">
+                                                {selectedLandmark.is_verified ? selectedLandmark.type : "Pasalubong Center"}
+                                            </BadgeText>
                                         </Badge>
                                     </HStack>
                                 </VStack>
@@ -375,7 +387,7 @@ const ExploreTab = () => {
                                     </Box>
 
                                     {/* Opening Hours */}
-                                    {(selectedLandmark.type as string) !== 'Pasalubong Center' && selectedLandmark.landmark_opening_hours && selectedLandmark.landmark_opening_hours.length > 0 && (
+                                    {selectedLandmark.landmark_opening_hours && selectedLandmark.landmark_opening_hours.length > 0 && (
                                         <VStack space="xs">
                                             <HStack className="justify-between items-center">
                                                 <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">Opening Hours</Text>
@@ -427,236 +439,234 @@ const ExploreTab = () => {
                                     )}
 
 
-                                    {/* Actions */}
-                                    {(selectedLandmark.type as string) !== 'Pasalubong Center' && (
-                                        <VStack className="pb-10 gap-6">
-                                            <HStack space="md">
-                                                <Button
-                                                    variant="outline"
-                                                    className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                    <VStack className="pb-10 gap-6">
+                                        <HStack space="md">
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
+                                                onPress={() => {
+                                                    router.navigate({
+                                                        pathname: '/landmark/[id]/view',
+                                                        params: {
+                                                            id: selectedLandmark.id.toString(),
+                                                        },
+                                                    });
+                                                }}
+                                            >
+                                                <ButtonIcon as={Info} className="mr-2 text-typography-900" />
+                                                <ButtonText className="font-bold text-typography-900">Details</ButtonText>
+                                            </Button>
+
+                                            <Button
+                                                className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
+                                                onPress={handleAddToItinerary}
+                                                isDisabled={!selectedLandmark.is_verified}
+                                            >
+                                                <ButtonIcon as={MapPin} className="mr-2" />
+                                                <ButtonText className="font-bold">{selectedLandmark.is_verified ? 'Add to Itinerary' : 'Not Verified'}</ButtonText>
+                                            </Button>
+                                        </HStack>
+
+                                        {/* Make a Review Section */}
+                                        <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                            <HStack className="justify-between items-center mb-1">
+                                                <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
+                                                    {isLoadingReview ? "Loading..." : existingReview ? "Your Review" : "Make a Review"}
+                                                </Text>
+                                            </HStack>
+
+                                            {existingReview && existingReview.content ? (
+                                                <Text size="sm" className="text-typography-600 mb-2" numberOfLines={3} ellipsizeMode="tail">
+                                                    {existingReview.content.length > 150 ? `${existingReview.content.substring(0, 150)}...` : existingReview.content}
+                                                </Text>
+                                            ) : null}
+
+                                            {existingReview?.images && existingReview.images.length > 0 && (
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
+                                                    <HStack space="md">
+                                                        {existingReview.images.map((uri: string, index: number) => (
+                                                            <Image
+                                                                key={index}
+                                                                source={{ uri }}
+                                                                className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
+                                                            />
+                                                        ))}
+                                                    </HStack>
+                                                </ScrollView>
+                                            )}
+
+                                            <HStack className="justify-between items-center">
+                                                {/* 5 Stars Button */}
+                                                <Pressable
+                                                    className="flex-row gap-1 py-1 px-1 rounded-xl justify-center items-center"
                                                     onPress={() => {
                                                         router.navigate({
-                                                            pathname: '/landmark/[id]/view',
-                                                            params: {
-                                                                id: selectedLandmark.id.toString(),
-                                                            },
+                                                            pathname: '/landmark/[id]/review',
+                                                            params: { id: selectedLandmark.id.toString() }
                                                         });
                                                     }}
                                                 >
-                                                    <ButtonIcon as={Info} className="mr-2 text-typography-900" />
-                                                    <ButtonText className="font-bold text-typography-900">Details</ButtonText>
-                                                </Button>
+                                                    {isLoadingReview ? (
+                                                        <ActivityIndicator size="small" color="#0891b2" />
+                                                    ) : existingReview ? (
+                                                        [1, 2, 3, 4, 5].map((star) => (
+                                                            <Star
+                                                                key={`filled-star-${star}`}
+                                                                size={16}
+                                                                color={star <= (existingReview.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                                                fill={star <= (existingReview.rating ?? 0) ? primary['500'] : "none"}
+                                                            />
+                                                        ))
+                                                    ) : (
+                                                        [1, 2, 3, 4, 5].map((star) => (
+                                                            <Icon
+                                                                key={`star-${star}`}
+                                                                as={Star}
+                                                                size='lg'
+                                                            />
+                                                        ))
+                                                    )}
+                                                    <Text className="font-bold ml-1">{existingReview?.rating ?? 0}</Text>
+                                                </Pressable>
 
+                                                {/* Add Review Button */}
                                                 <Button
-                                                    className="flex-[2] rounded-2xl h-14 bg-primary-600 shadow-soft-2"
-                                                    onPress={handleAddToItinerary}
+                                                    variant="link"
+                                                    className="h-10"
+                                                    onPress={() => {
+                                                        router.navigate({
+                                                            pathname: '/landmark/[id]/review',
+                                                            params: { id: selectedLandmark.id.toString() }
+                                                        });
+                                                    }}
                                                 >
-                                                    <ButtonIcon as={MapPin} className="mr-2" />
-                                                    <ButtonText className="font-bold">Add to Itinerary</ButtonText>
+                                                    <ButtonText className="text-primary-600 font-bold">
+                                                        {isLoadingReview ? "Loading..." : existingReview ? "Edit review" : "Write a review"}
+                                                    </ButtonText>
                                                 </Button>
                                             </HStack>
+                                        </VStack>
 
-                                            {/* Make a Review Section */}
-                                            <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
-                                                <HStack className="justify-between items-center mb-1">
-                                                    <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
-                                                        {isLoadingReview ? "Loading..." : existingReview ? "Your Review" : "Make a Review"}
-                                                    </Text>
-                                                </HStack>
+                                        {/* Recent Reviews Section */}
+                                        {recentReviews && recentReviews.length > 0 && (
+                                            <>
+                                                <Box className="flex-row items-center my-2 opacity-50">
+                                                    <Box className="flex-1 h-[1px] bg-outline-200" />
+                                                    <Text size="xs" className="mx-3 text-typography-400 font-medium tracking-widest uppercase">Community</Text>
+                                                    <Box className="flex-1 h-[1px] bg-outline-200" />
+                                                </Box>
+                                                <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                                    <HStack className="justify-between items-center mb-2">
+                                                        <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
+                                                            Recent Reviews
+                                                        </Text>
+                                                    </HStack>
+                                                    <VStack space="md" className="gap-4">
+                                                        {recentReviews.map((review, index) => (
+                                                            <VStack
+                                                                key={review.id}
+                                                                className='gap-4'
+                                                            >
+                                                                <Pressable
+                                                                    onPress={() => {
+                                                                        if (review.user_id === userId) {
+                                                                            router.navigate({
+                                                                                pathname: '/landmark/[id]/review' as any,
+                                                                                params: { id: selectedLandmark.id.toString() },
+                                                                            });
 
-                                                {existingReview && existingReview.content ? (
-                                                    <Text size="sm" className="text-typography-600 mb-2" numberOfLines={3} ellipsizeMode="tail">
-                                                        {existingReview.content.length > 150 ? `${existingReview.content.substring(0, 150)}...` : existingReview.content}
-                                                    </Text>
-                                                ) : null}
+                                                                        } else {
+                                                                            router.navigate({
+                                                                                pathname: '/landmark/[id]/review/[reviewId]' as any,
+                                                                                params: { id: selectedLandmark.id.toString(), reviewId: review.id.toString() },
+                                                                            });
+                                                                        }
+                                                                    }}
+                                                                    className='active:bg-background-100 p-3 rounded-xl'
+                                                                >
+                                                                    <VStack space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
+                                                                        <HStack className="justify-between items-center mb-1">
+                                                                            <HStack className="items-center gap-2 flex-1">
+                                                                                <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
+                                                                                    <Icon as={User} size="sm" className="text-primary-600" />
+                                                                                </Box>
+                                                                                <VStack>
+                                                                                    <Text size="md" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
+                                                                                        {review.author_name || 'Lakbay User'}
+                                                                                        {review.user_id === userId && '(You)'}
+                                                                                    </Text>
+                                                                                    <Text size="sm" className="text-typography-500">
+                                                                                        {new Date(review.updated_at).toLocaleDateString(undefined, {
+                                                                                            year: 'numeric',
+                                                                                            month: 'numeric',
+                                                                                            day: 'numeric',
+                                                                                            hour: '2-digit',
+                                                                                            minute: '2-digit',
+                                                                                        })}
+                                                                                    </Text>
+                                                                                </VStack>
 
-                                                {existingReview?.images && existingReview.images.length > 0 && (
-                                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
-                                                        <HStack space="md">
-                                                            {existingReview.images.map((uri: string, index: number) => (
-                                                                <Image
-                                                                    key={index}
-                                                                    source={{ uri }}
-                                                                    className="w-16 h-16 rounded-xl border border-outline-100 bg-background-100"
-                                                                />
-                                                            ))}
-                                                        </HStack>
-                                                    </ScrollView>
-                                                )}
+                                                                            </HStack>
+                                                                            <HStack space="xs">
+                                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                                    <Star
+                                                                                        key={star}
+                                                                                        size={12}
+                                                                                        color={star <= (review.rating ?? 0) ? primary['500'] : "#d4d4d4"}
+                                                                                        fill={star <= (review.rating ?? 0) ? primary['500'] : "none"}
+                                                                                    />
+                                                                                ))}
+                                                                            </HStack>
+                                                                            <Icon as={ChevronRight} size="sm" className="text-typography-500" />
+                                                                        </HStack>
+                                                                        {review.content ? (
+                                                                            <Text size="sm" className="text-typography-600 mt-1" numberOfLines={3} ellipsizeMode="tail">
+                                                                                {review.content}
+                                                                            </Text>
+                                                                        ) : null}
+                                                                        {review.images && review.images.length > 0 && (
+                                                                            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+                                                                                <HStack space="md">
+                                                                                    {review.images.map((uri: string, imgIdx: number) => (
+                                                                                        <Image
+                                                                                            key={imgIdx}
+                                                                                            source={{ uri }}
+                                                                                            className="size-24 rounded-xl border border-outline-100 bg-background-100"
+                                                                                        />
+                                                                                    ))}
+                                                                                </HStack>
+                                                                            </ScrollView>
+                                                                        )}
 
-                                                <HStack className="justify-between items-center">
-                                                    {/* 5 Stars Button */}
-                                                    <Pressable
-                                                        className="flex-row gap-1 py-1 px-1 rounded-xl justify-center items-center"
-                                                        onPress={() => {
-                                                            router.navigate({
-                                                                pathname: '/landmark/[id]/review',
-                                                                params: { id: selectedLandmark.id.toString() }
-                                                            });
-                                                        }}
-                                                    >
-                                                        {isLoadingReview ? (
-                                                            <ActivityIndicator size="small" color="#0891b2" />
-                                                        ) : existingReview ? (
-                                                            [1, 2, 3, 4, 5].map((star) => (
-                                                                <Star
-                                                                    key={`filled-star-${star}`}
-                                                                    size={16}
-                                                                    color={star <= (existingReview.rating ?? 0) ? primary['500'] : "#d4d4d4"}
-                                                                    fill={star <= (existingReview.rating ?? 0) ? primary['500'] : "none"}
-                                                                />
-                                                            ))
-                                                        ) : (
-                                                            [1, 2, 3, 4, 5].map((star) => (
-                                                                <Icon
-                                                                    key={`star-${star}`}
-                                                                    as={Star}
-                                                                    size='lg'
-                                                                />
-                                                            ))
-                                                        )}
-                                                        <Text className="font-bold ml-1">{existingReview?.rating ?? 0}</Text>
-                                                    </Pressable>
+                                                                    </VStack>
+                                                                </Pressable>
+                                                                {
+                                                                    index < recentReviews.length - 1 && (
+                                                                        <Divider />
+                                                                    )
+                                                                }
+                                                            </VStack>
+                                                        ))}
+                                                    </VStack>
 
-                                                    {/* Add Review Button */}
                                                     <Button
                                                         variant="link"
-                                                        className="h-10"
+                                                        className="h-10 mt-2"
                                                         onPress={() => {
                                                             router.navigate({
-                                                                pathname: '/landmark/[id]/review',
+                                                                pathname: '/landmark/[id]/review/all',
                                                                 params: { id: selectedLandmark.id.toString() }
                                                             });
                                                         }}
                                                     >
                                                         <ButtonText className="text-primary-600 font-bold">
-                                                            {isLoadingReview ? "Loading..." : existingReview ? "Edit review" : "Write a review"}
+                                                            See all reviews ({selectedLandmark.review_count})
                                                         </ButtonText>
                                                     </Button>
-                                                </HStack>
-                                            </VStack>
-
-                                            {/* Recent Reviews Section */}
-                                            {recentReviews && recentReviews.length > 0 && (
-                                                <>
-                                                    <Box className="flex-row items-center my-2 opacity-50">
-                                                        <Box className="flex-1 h-[1px] bg-outline-200" />
-                                                        <Text size="xs" className="mx-3 text-typography-400 font-medium tracking-widest uppercase">Community</Text>
-                                                        <Box className="flex-1 h-[1px] bg-outline-200" />
-                                                    </Box>
-                                                    <VStack space="sm" className="bg-background-50 p-4 rounded-2xl border border-outline-100">
-                                                        <HStack className="justify-between items-center mb-2">
-                                                            <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">
-                                                                Recent Reviews
-                                                            </Text>
-                                                        </HStack>
-                                                        <VStack space="md" className="gap-4">
-                                                            {recentReviews.map((review, index) => (
-                                                                <VStack
-                                                                    key={review.id}
-                                                                    className='gap-4'
-                                                                >
-                                                                    <Pressable
-                                                                        onPress={() => {
-                                                                            if (review.user_id === userId) {
-                                                                                router.navigate({
-                                                                                    pathname: '/landmark/[id]/review' as any,
-                                                                                    params: { id: selectedLandmark.id.toString() },
-                                                                                });
-
-                                                                            } else {
-                                                                                router.navigate({
-                                                                                    pathname: '/landmark/[id]/review/[reviewId]' as any,
-                                                                                    params: { id: selectedLandmark.id.toString(), reviewId: review.id.toString() },
-                                                                                });
-                                                                            }
-                                                                        }}
-                                                                        className='active:bg-background-100 p-3 rounded-xl'
-                                                                    >
-                                                                        <VStack space="sm" className="border-b border-outline-100 pb-3 last:border-b-0 last:pb-0">
-                                                                            <HStack className="justify-between items-center mb-1">
-                                                                                <HStack className="items-center gap-2 flex-1">
-                                                                                    <Box className="w-8 h-8 rounded-full bg-primary-100 items-center justify-center">
-                                                                                        <Icon as={User} size="sm" className="text-primary-600" />
-                                                                                    </Box>
-                                                                                    <VStack>
-                                                                                        <Text size="md" className="font-medium text-typography-900 truncate max-w-[120px]" numberOfLines={1}>
-                                                                                            {review.author_name || 'Lakbay User'}
-                                                                                            {review.user_id === userId && '(You)'}
-                                                                                        </Text>
-                                                                                        <Text size="sm" className="text-typography-500">
-                                                                                            {new Date(review.updated_at).toLocaleDateString(undefined, {
-                                                                                                year: 'numeric',
-                                                                                                month: 'numeric',
-                                                                                                day: 'numeric',
-                                                                                                hour: '2-digit',
-                                                                                                minute: '2-digit',
-                                                                                            })}
-                                                                                        </Text>
-                                                                                    </VStack>
-
-                                                                                </HStack>
-                                                                                <HStack space="xs">
-                                                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                                                        <Star
-                                                                                            key={star}
-                                                                                            size={12}
-                                                                                            color={star <= (review.rating ?? 0) ? primary['500'] : "#d4d4d4"}
-                                                                                            fill={star <= (review.rating ?? 0) ? primary['500'] : "none"}
-                                                                                        />
-                                                                                    ))}
-                                                                                </HStack>
-                                                                                <Icon as={ChevronRight} size="sm" className="text-typography-500" />
-                                                                            </HStack>
-                                                                            {review.content ? (
-                                                                                <Text size="sm" className="text-typography-600 mt-1" numberOfLines={3} ellipsizeMode="tail">
-                                                                                    {review.content}
-                                                                                </Text>
-                                                                            ) : null}
-                                                                            {review.images && review.images.length > 0 && (
-                                                                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
-                                                                                    <HStack space="md">
-                                                                                        {review.images.map((uri: string, imgIdx: number) => (
-                                                                                            <Image
-                                                                                                key={imgIdx}
-                                                                                                source={{ uri }}
-                                                                                                className="size-24 rounded-xl border border-outline-100 bg-background-100"
-                                                                                            />
-                                                                                        ))}
-                                                                                    </HStack>
-                                                                                </ScrollView>
-                                                                            )}
-
-                                                                        </VStack>
-                                                                    </Pressable>
-                                                                    {
-                                                                        index < recentReviews.length - 1 && (
-                                                                            <Divider />
-                                                                        )
-                                                                    }
-                                                                </VStack>
-                                                            ))}
-                                                        </VStack>
-
-                                                        <Button
-                                                            variant="link"
-                                                            className="h-10 mt-2"
-                                                            onPress={() => {
-                                                                router.navigate({
-                                                                    pathname: '/landmark/[id]/review/all',
-                                                                    params: { id: selectedLandmark.id.toString() }
-                                                                });
-                                                            }}
-                                                        >
-                                                            <ButtonText className="text-primary-600 font-bold">
-                                                                See all reviews ({selectedLandmark.review_count})
-                                                            </ButtonText>
-                                                        </Button>
-                                                    </VStack>
-                                                </>
-                                            )}
-                                        </VStack>
-                                    )}
+                                                </VStack>
+                                            </>
+                                        )}
+                                    </VStack>
                                 </VStack>
                             </VStack>
                         ) : (
