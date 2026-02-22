@@ -6,16 +6,16 @@ import { Image } from 'react-native'
 import { Pressable } from 'react-native-gesture-handler'
 import { Place } from '../model/places.types'
 
-const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allowOverlap }: {
-    landmark: Place,
+const PlaceMarker = ({ place, handleMarkerPress, isSelected = false, allowOverlap }: {
+    place: Place,
     handleMarkerPress?: () => void,
     isSelected?: boolean,
     allowOverlap?: boolean,
 }) => {
     return (
         <MarkerView
-            key={landmark.id}
-            coordinate={[landmark.longitude, landmark.latitude]}
+            key={place.id}
+            coordinate={[place.longitude, place.latitude]}
             anchor={{ x: 0.5, y: 1 }}
             allowOverlapWithPuck
             allowOverlap={allowOverlap}
@@ -31,7 +31,7 @@ const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allow
                                     ${isSelected ? 'border border-primary-500' : ''}`}
                 >
                     <Image
-                        source={{ uri: landmark.image_url || "https://via.placeholder.com/150" }}
+                        source={{ uri: place.image_url || "https://via.placeholder.com/150" }}
                         style={{ width: 32, height: 32, borderRadius: 22 }}
                     />
                 </Box>
@@ -50,7 +50,7 @@ const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allow
                 {/* Label with better padding */}
                 <Box className="mt-1 bg-background-100 px-2 py-0.5 rounded-full border border-outline-100 shadow-sm max-w-24">
                     <Text size="xs" numberOfLines={1} className="font-semibold text-typography-900">
-                        {landmark.name}
+                        {place.name}
                     </Text>
                 </Box>
             </Pressable>
@@ -58,4 +58,4 @@ const LandmarkMarker = ({ landmark, handleMarkerPress, isSelected = false, allow
     )
 }
 
-export default LandmarkMarker
+export default PlaceMarker

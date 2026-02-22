@@ -1,4 +1,4 @@
-import LandmarkMarker from '@/src/components/LandmarkMarker';
+import PlaceMarker from '@/src/components/PlaceMarker';
 import { Place } from '@/src/model/places.types';
 import React from 'react';
 
@@ -11,8 +11,8 @@ export function NavigatingModeMapView({ show, targetLandmark }: NavigatingModeMa
     if (!show || !targetLandmark) return null;
 
     return (
-        <LandmarkMarker
-            landmark={targetLandmark}
+        <PlaceMarker
+            place={targetLandmark}
             isSelected
         />
     );

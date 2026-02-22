@@ -27,7 +27,7 @@ import {
 import { Center } from '@/components/ui/center';
 import { Divider } from '@/components/ui/divider';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
-import LandmarkMapView from '@/src/components/LandmarkMapView';
+import PlacesMapView from '@/src/components/PlacesMapView';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { PlaceWithStats } from '@/src/model/places.types';
@@ -300,11 +300,11 @@ const ExploreTab = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <LandmarkMapView
+            <PlacesMapView
                 cameraRef={camera}
-                selectedLandmark={selectedLandmark}
-                setSelectedLandmark={setSelectedLandmark}
-                landmarks={landmarks}
+                selectedPlace={selectedLandmark}
+                setSelectedPlace={setSelectedLandmark}
+                places={landmarks}
             />
 
             <CustomBottomSheet
@@ -446,7 +446,7 @@ const ExploreTab = () => {
                                                 className="flex-1 rounded-2xl h-14 border-outline-200 bg-background-50"
                                                 onPress={() => {
                                                     router.navigate({
-                                                        pathname: '/landmark/[id]/view',
+                                                        pathname: '/place/[id]/view',
                                                         params: {
                                                             id: selectedLandmark.id.toString(),
                                                         },
@@ -501,7 +501,7 @@ const ExploreTab = () => {
                                                     className="flex-row gap-1 py-1 px-1 rounded-xl justify-center items-center"
                                                     onPress={() => {
                                                         router.navigate({
-                                                            pathname: '/landmark/[id]/review',
+                                                            pathname: '/place/[id]/review',
                                                             params: { id: selectedLandmark.id.toString() }
                                                         });
                                                     }}
@@ -535,7 +535,7 @@ const ExploreTab = () => {
                                                     className="h-10"
                                                     onPress={() => {
                                                         router.navigate({
-                                                            pathname: '/landmark/[id]/review',
+                                                            pathname: '/place/[id]/review',
                                                             params: { id: selectedLandmark.id.toString() }
                                                         });
                                                     }}
@@ -571,13 +571,13 @@ const ExploreTab = () => {
                                                                     onPress={() => {
                                                                         if (review.user_id === userId) {
                                                                             router.navigate({
-                                                                                pathname: '/landmark/[id]/review' as any,
+                                                                                pathname: '/place/[id]/review' as any,
                                                                                 params: { id: selectedLandmark.id.toString() },
                                                                             });
 
                                                                         } else {
                                                                             router.navigate({
-                                                                                pathname: '/landmark/[id]/review/[reviewId]' as any,
+                                                                                pathname: '/place/[id]/review/[reviewId]' as any,
                                                                                 params: { id: selectedLandmark.id.toString(), reviewId: review.id.toString() },
                                                                             });
                                                                         }
@@ -654,7 +654,7 @@ const ExploreTab = () => {
                                                         className="h-10 mt-2"
                                                         onPress={() => {
                                                             router.navigate({
-                                                                pathname: '/landmark/[id]/review/all',
+                                                                pathname: '/place/[id]/review/all',
                                                                 params: { id: selectedLandmark.id.toString() }
                                                             });
                                                         }}

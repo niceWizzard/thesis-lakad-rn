@@ -156,7 +156,7 @@ export default function MyReviewsScreen() {
                         action="secondary"
                         variant="outline"
                         onPress={() => item.place_id && router.navigate({
-                            pathname: '/landmark/[id]/view',
+                            pathname: '/place/[id]/view',
                             params: {
                                 id: item.place_id
                             }
@@ -169,7 +169,7 @@ export default function MyReviewsScreen() {
                         action="secondary"
                         variant="solid"
                         onPress={() => item.place_id && router.navigate({
-                            pathname: '/landmark/[id]/review',
+                            pathname: '/place/[id]/review',
                             params: {
                                 id: item.place_id,
                             }

@@ -19,8 +19,8 @@ import { VStack } from '@/components/ui/vstack';
 
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
-import { FilterFormData, LandmarkFilterModal } from '@/src/components/LandmarkFilterModal';
-import { LandmarkListItem } from '@/src/components/LandmarkListItem';
+import { FilterFormData, PlaceFilterModal } from '@/src/components/PlaceFilterModal';
+import { PlaceListItem } from '@/src/components/PlaceListItem';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 
 // --- Updated SortKey Type ---
@@ -155,9 +155,9 @@ export default function AdminLandmarksScreen() {
                     </VStack>
                 }
                 renderItem={({ item: landmark }) => (
-                    <LandmarkListItem
-                        landmark={landmark}
-                        onPress={() => router.navigate({ pathname: '/(admin)/landmark/[id]/info/details', params: { id: landmark.id.toString() } })}
+                    <PlaceListItem
+                        place={landmark}
+                        onPress={() => router.navigate({ pathname: '/(admin)/place/[id]/info/details', params: { id: landmark.id.toString() } })}
                     />
                 )}
                 removeClippedSubviews={true}
@@ -171,14 +171,14 @@ export default function AdminLandmarksScreen() {
             />
 
             {/* --- FILTER & SORT MODAL --- */}
-            <LandmarkFilterModal
+            <PlaceFilterModal
                 isOpen={showFilterModal}
                 onClose={() => setShowFilterModal(false)}
                 initialFilters={currentFilters}
                 onApply={handleApplyFilters}
             />
 
-            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
+            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/place/create')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
                 <FabIcon as={Plus} />
                 <FabLabel className="font-bold">Add New</FabLabel>
             </Fab>

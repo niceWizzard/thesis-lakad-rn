@@ -79,12 +79,12 @@ export default function AllReviewsScreen() {
                 onPress={() => {
                     if (isCurrentUserReview) {
                         router.navigate({
-                            pathname: '/landmark/[id]/review',
+                            pathname: '/place/[id]/review',
                             params: { id: id as string },
                         });
                     } else {
                         router.navigate({
-                            pathname: '/landmark/[id]/review/[reviewId]',
+                            pathname: '/place/[id]/review/[reviewId]',
                             params: { id: id as string, reviewId: item.id.toString() },
                         });
                     }

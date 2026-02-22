@@ -177,7 +177,7 @@ export default function AdminReviewsScreen() {
     const renderReviewCard = ({ item }: { item: any }) => (
         <Link
             href={{
-                pathname: '/landmark/[id]/review/[reviewId]',
+                pathname: '/place/[id]/review/[reviewId]',
                 params: { id: item.landmark_id, reviewId: item.id, adminMode: 'true' }
             }}
             asChild

@@ -13,7 +13,7 @@ import { PlaceWithStats } from "../model/places.types";
 
 const ITEM_HEIGHT = 114;
 
-export const LandmarkListItem = ({ landmark, onPress }: { landmark: PlaceWithStats, onPress: () => void }) => {
+export const PlaceListItem = ({ place, onPress }: { place: PlaceWithStats, onPress: () => void }) => {
     const { primary } = useThemeConfig()
     return (
         <TouchableOpacity
@@ -24,28 +24,28 @@ export const LandmarkListItem = ({ landmark, onPress }: { landmark: PlaceWithSta
         >
             <HStack className="p-4 items-center gap-4">
                 <Box className="w-20 h-20 bg-background-200 rounded-2xl overflow-hidden">
-                    <Image source={{ uri: landmark.image_url || "https://via.placeholder.com/150" }} className="w-full h-full" resizeMode="cover" />
+                    <Image source={{ uri: place.image_url || "https://via.placeholder.com/150" }} className="w-full h-full" resizeMode="cover" />
                 </Box>
                 <VStack className='flex-1 gap-1'>
                     <HStack className="justify-between items-start">
                         <HStack className="flex-wrap gap-1 flex-1">
                             <Badge action="info" variant="outline" className="rounded-md px-1">
                                 <BadgeText className="text-[9px] uppercase font-bold">
-                                    {landmark.is_verified ? landmark.type : "Pasalubong Center"}
+                                    {place.is_verified ? place.type : "Pasalubong Center"}
                                 </BadgeText>
                             </Badge>
                         </HStack>
 
                         <HStack className="items-center bg-primary-50 px-1.5 py-0.5 rounded-lg border border-primary-100">
                             <Icon as={Star} size='sm' color={primary['500']} className="mr-1" />
-                            <Text size="xs" className="font-bold text-primary-700">{landmark.average_rating ?? '0'}</Text>
+                            <Text size="xs" className="font-bold text-primary-700">{place.average_rating ?? '0'}</Text>
                         </HStack>
                     </HStack>
 
-                    <Heading size="sm" className="text-typography-900" numberOfLines={1}>{landmark.name}</Heading>
+                    <Heading size="sm" className="text-typography-900" numberOfLines={1}>{place.name}</Heading>
                     <HStack space="xs" className="items-center">
                         <Icon as={MapPin} size="xs" className="text-typography-400" />
-                        <Text size="xs" className="text-typography-500">{landmark.municipality.replace('_', ' ')} - District {landmark.district}</Text>
+                        <Text size="xs" className="text-typography-500">{place.municipality.replace('_', ' ')} - District {place.district}</Text>
                     </HStack>
                 </VStack>
                 <Icon as={ChevronRight} className="text-typography-300 mr-1" />

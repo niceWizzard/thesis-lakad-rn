@@ -134,7 +134,7 @@ export default function AddPOIScreen() {
                                 <Pressable
                                     className="mb-4 bg-background-0 border border-outline-100 rounded-3xl overflow-hidden active:bg-background-50"
                                     onPress={() => router.navigate({
-                                        pathname: '/landmark/[id]/view',
+                                        pathname: '/place/[id]/view',
                                         params: {
                                             id: item.id.toString(),
                                             itineraryId: itineraryId.toString(),

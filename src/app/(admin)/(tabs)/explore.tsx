@@ -12,7 +12,7 @@ import { PlaceWithStats } from '@/src/model/places.types';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
-import LandmarkMapView from '@/src/components/LandmarkMapView';
+import PlacesMapView from '@/src/components/PlacesMapView';
 import { supabase } from '@/src/utils/supabase';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
@@ -68,7 +68,7 @@ const AdminExploreTab = () => {
 
     return (
         <>
-            <LandmarkMapView
+            <PlacesMapView
                 mapViewProps={{
                     style: styles.map,
                     logoEnabled: false,
@@ -78,9 +78,9 @@ const AdminExploreTab = () => {
                     compassPosition: { top: 96, right: 8 },
                 }}
                 cameraRef={camera}
-                selectedLandmark={selectedLandmark}
-                setSelectedLandmark={setSelectedLandmark}
-                landmarks={landmarks}
+                selectedPlace={selectedLandmark}
+                setSelectedPlace={setSelectedLandmark}
+                places={landmarks}
             />
             <CustomBottomSheet
                 onChange={(index) => setSheetIndex(index)}
@@ -152,7 +152,7 @@ const AdminExploreTab = () => {
                                     className="flex-1 rounded-2xl h-14 bg-primary-600 shadow-soft-2"
                                     onPress={() => {
                                         router.navigate({
-                                            pathname: '/(admin)/landmark/[id]/info/details',
+                                            pathname: '/(admin)/place/[id]/info/details',
                                             params: {
                                                 id: selectedLandmark.id.toString(),
                                                 isPasalubong: ((selectedLandmark.type as string) === 'Pasalubong Center').toString(),

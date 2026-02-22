@@ -11,24 +11,24 @@ import * as Location from 'expo-location';
 import { Keyboard, View } from 'react-native';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { useUserLocation } from '../hooks/useUserLocation';
-import LandmarkMarker from './LandmarkMarker';
+import PlaceMarker from './PlaceMarker';
 
 
 const CopilotView = walkthroughable(View);
 
-const LandmarkMapView = ({
+const PlacesMapView = ({
     children,
     mapViewProps,
     overlays,
-    landmarks,
-    selectedLandmark,
-    setSelectedLandmark,
+    places,
+    selectedPlace,
+    setSelectedPlace: setSelectedPlace,
     cameraRef,
     tutorialStep, // Add tutorialStep to destructuring
 }: {
-    landmarks: PlaceWithStats[]
-    selectedLandmark: PlaceWithStats | null
-    setSelectedLandmark: React.Dispatch<React.SetStateAction<PlaceWithStats | null>>
+    places: PlaceWithStats[]
+    selectedPlace: PlaceWithStats | null
+    setSelectedPlace: React.Dispatch<React.SetStateAction<PlaceWithStats | null>>
     tutorialStep?: {
         name: string;
         text: string;
@@ -57,7 +57,7 @@ const LandmarkMapView = ({
     };
 
     const onMarkerPress = (landmark: PlaceWithStats) => {
-        setSelectedLandmark(landmark);
+        setSelectedPlace(landmark);
         centerMap([landmark.longitude, landmark.latitude]);
     };
 
@@ -97,7 +97,7 @@ const LandmarkMapView = ({
                 logoEnabled: false,
                 attributionEnabled: false,
                 onPress: () => {
-                    setSelectedLandmark(null);
+                    setSelectedPlace(null);
                     setIsSearchFocused(false);
                     Keyboard.dismiss();
                 },
@@ -138,7 +138,7 @@ const LandmarkMapView = ({
                     <SearchResultsBox
                         searchString={searchString}
                         onResultPress={(id) => {
-                            const landmark = landmarks.find(l => l.id === id);
+                            const landmark = places.find(l => l.id === id);
                             if (landmark) onMarkerPress(landmark);
                             setSearchString('');
                         }}
@@ -161,11 +161,11 @@ const LandmarkMapView = ({
             )}
         >
             {
-                isMapReady && landmarks.map(v => (
-                    <LandmarkMarker
-                        landmark={v}
+                isMapReady && places.map(v => (
+                    <PlaceMarker
+                        place={v}
                         key={v.id}
-                        isSelected={selectedLandmark?.id === v.id}
+                        isSelected={selectedPlace?.id === v.id}
                         handleMarkerPress={() => onMarkerPress(v)}
                     />
                 ))
@@ -179,4 +179,4 @@ const LandmarkMapView = ({
 };
 
 
-export default LandmarkMapView;
+export default PlacesMapView;

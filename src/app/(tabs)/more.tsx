@@ -168,7 +168,7 @@ function MoreTab() {
                         App
                     </Text>
                     <Box className="bg-background-50 rounded-3xl border border-outline-200 shadow-sm overflow-hidden">
-                        <TouchableOpacity onPress={() => router.navigate('/landmark/all')} className="flex-row items-center justify-between p-5 active:bg-background-100">
+                        <TouchableOpacity onPress={() => router.navigate('/place/all')} className="flex-row items-center justify-between p-5 active:bg-background-100">
                             <View className="flex-row items-center gap-4">
                                 <View className="bg-background-100 p-2 rounded-xl">
                                     <Icon as={MapPin} size='lg' />
