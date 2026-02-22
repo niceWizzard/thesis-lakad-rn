@@ -49,11 +49,7 @@ export default function AdminLandmarkDetailScreen() {
   // --- DATA FETCHING ---
   const { data: landmark, isLoading, error } = useQuery({
     queryKey: ['landmark', id],
-    queryFn: async () => {
-      const a = await fetchLandmarkById(id as string);
-      console.log(a)
-      return a
-    },
+    queryFn: async () => fetchLandmarkById(id as string),
     enabled: !!id,
   });
 

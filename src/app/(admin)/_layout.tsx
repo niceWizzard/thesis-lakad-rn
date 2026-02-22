@@ -34,44 +34,37 @@ const AdminRootLayout = () => {
             />
 
             <Stack.Screen
-                name='landmark/[id]/edit'
+                name='place/[id]/edit'
                 options={{
-                    headerTitle: "Edit Landmark",
+                    headerTitle: "Edit Place",
 
                 }}
             />
 
             <Stack.Screen
-                name='landmark/[id]/info'
+                name='place/[id]/info'
                 options={{
-                    headerTitle: "Landmark Management",
+                    headerTitle: "Place Management",
                 }}
             />
 
             <Stack.Screen
-                name='landmark/create'
+                name='place/create'
                 options={{
-                    headerTitle: "New Landmark",
+                    headerTitle: "New Place",
                 }}
             />
 
             <Stack.Screen
-                name='landmark/archived-places'
+                name='place/archived-places'
                 options={{
                     headerTitle: "Archived Places"
                 }}
             />
             <Stack.Screen
-                name='landmark/matrix'
+                name='place/matrix'
                 options={{
                     headerTitle: ''
-                }}
-            />
-
-            <Stack.Screen
-                name='pasalubong'
-                options={{
-                    headerShown: false,
                 }}
             />
 
