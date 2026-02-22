@@ -43,14 +43,14 @@ export type FilterFormData = {
     selectedMunicipality: string | null;
 };
 
-interface LandmarkFilterModalProps {
+interface PlaceFilterModalProps {
     isOpen: boolean;
     onClose: () => void;
     initialFilters: FilterFormData;
     onApply: (filters: FilterFormData) => void;
 }
 
-export const LandmarkFilterModal: React.FC<LandmarkFilterModalProps> = ({
+export const PlaceFilterModal: React.FC<PlaceFilterModalProps> = ({
     isOpen,
     onClose,
     initialFilters,

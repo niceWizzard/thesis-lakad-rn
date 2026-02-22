@@ -157,7 +157,7 @@ export default function AdminLandmarkDetailScreen() {
                   action="secondary"
                   size="xs"
                   onPress={() => router.navigate({
-                    pathname: `/landmark/[id]/view`,
+                    pathname: `/place/[id]/view`,
                     params: { id: landmark.id.toString(), previewMode: 'true', }
                   })}
                 >
@@ -344,7 +344,7 @@ export default function AdminLandmarkDetailScreen() {
             <Button
               className={`flex-1 rounded-2xl h-14 ${isArchived ? 'bg-background-100' : 'bg-primary-600'}`}
               onPress={() => !isArchived && router.navigate({
-                pathname: `/(admin)/landmark/[id]/edit`,
+                pathname: `/(admin)/place/[id]/edit`,
                 params: {
                   id: landmark.id.toString(),
                 }

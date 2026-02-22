@@ -46,13 +46,13 @@ function MoreTab() {
             id: '4',
             title: 'Archived Places',
             icon: Archive,
-            onPress: () => router.navigate('/(admin)/landmark/archived-places'),
+            onPress: () => router.navigate('/(admin)/place/archived-places'),
         },
         {
             id: '5',
             title: 'Distance Database',
             icon: RulerDimensionLine,
-            onPress: () => router.navigate('/(admin)/landmark/matrix'),
+            onPress: () => router.navigate('/(admin)/place/matrix'),
         },
         {
             id: '3',

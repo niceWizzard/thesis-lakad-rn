@@ -54,7 +54,7 @@ const LandmarkAnalyticsScreen = () => {
                 />
             </View>
 
-            <Link href={`/(admin)/landmark/${id}/reviews` as any} asChild>
+            <Link href={`/(admin)/place/${id}/reviews`} asChild>
                 <Pressable className="mb-8">
                     <HStack className="justify-between items-center mb-3 px-1">
                         <Heading size="md" className="text-typography-900">Manage Reviews</Heading>

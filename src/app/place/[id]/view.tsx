@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Center } from '@/components/ui/center';
 import ImageCreditModal from '@/src/components/ImageCreditModal';
-import LandmarkSkeleton from '@/src/components/LandmarkSkeleton';
+import PlaceSkeleton from '@/src/components/PlaceSkeleton';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -130,7 +130,7 @@ export default function LandmarkViewerScreen() {
     });
 
     if (isLoading) {
-        return <LandmarkSkeleton />
+        return <PlaceSkeleton />
     }
 
     if (isError || !landmark) {
@@ -474,7 +474,7 @@ export default function LandmarkViewerScreen() {
                                 action="primary"
                                 variant={existingReview ? "outline" : "solid"}
                                 className="rounded-xl px-4"
-                                onPress={() => router.push({ pathname: '/landmark/[id]/review', params: { id: landmark.id.toString() } })}
+                                onPress={() => router.push({ pathname: '/place/[id]/review', params: { id: landmark.id.toString() } })}
                             >
                                 <ButtonText>{existingReview ? "Edit Your Review" : "Write a Review"}</ButtonText>
                             </Button>
@@ -485,7 +485,7 @@ export default function LandmarkViewerScreen() {
                                 variant="link"
                                 size="sm"
                                 className="h-8 self-start -ml-1"
-                                onPress={() => router.push({ pathname: '/landmark/[id]/review/all' as any, params: { id: landmark.id.toString() } })}
+                                onPress={() => router.push({ pathname: '/place/[id]/review/all' as any, params: { id: landmark.id.toString() } })}
                             >
                                 <ButtonText className="text-primary-600 font-semibold">See all reviews →</ButtonText>
                             </Button>

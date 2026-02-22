@@ -16,8 +16,8 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
-import { FilterFormData, LandmarkFilterModal, SortKey, SortOrder } from '@/src/components/LandmarkFilterModal';
-import { LandmarkListItem } from '@/src/components/LandmarkListItem';
+import { FilterFormData, PlaceFilterModal, SortKey, SortOrder } from '@/src/components/PlaceFilterModal';
+import { PlaceListItem } from '@/src/components/PlaceListItem';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 
@@ -149,10 +149,10 @@ export default function LandmarkListScreen() {
                     </VStack>
                 }
                 renderItem={({ item: landmark }) => (
-                    <LandmarkListItem
-                        landmark={landmark}
+                    <PlaceListItem
+                        place={landmark}
                         onPress={() => router.navigate({
-                            pathname: '/landmark/[id]/view', params: { id: landmark.id.toString() }
+                            pathname: '/place/[id]/view', params: { id: landmark.id.toString() }
                         })}
 
                     />
@@ -167,7 +167,7 @@ export default function LandmarkListScreen() {
             />
 
             {/* --- FILTER & SORT MODAL --- */}
-            <LandmarkFilterModal
+            <PlaceFilterModal
                 isOpen={showFilterModal}
                 onClose={() => setShowFilterModal(false)}
                 initialFilters={currentFilters}

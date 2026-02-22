@@ -3,7 +3,7 @@ import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { ScrollView } from "react-native";
 
-const LandmarkSkeleton = () => {
+const PlaceSkeleton = () => {
     return (
         <Box className="flex-1 bg-background-0">
             <ScrollView
@@ -74,4 +74,4 @@ const LandmarkSkeleton = () => {
     );
 };
 
-export default LandmarkSkeleton;
+export default PlaceSkeleton;

@@ -17,7 +17,7 @@ import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon } from '@/components/ui/button';
 import { VStack } from '@/components/ui/vstack';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
-import LandmarkMarker from '@/src/components/LandmarkMarker';
+import PlaceMarker from '@/src/components/PlaceMarker';
 
 // Hooks
 import { useItineraryData } from '@/src/hooks/itinerary/useItineraryData';
@@ -264,9 +264,9 @@ export default function ItineraryView() {
 
                     {/* Pasalubongs Centers along the route */}
                     {mode === Mode.Navigating && closePasalubongsInPath.map(poi => (
-                        <LandmarkMarker
+                        <PlaceMarker
                             key={`nearby-${poi.id}`}
-                            landmark={poi}
+                            place={poi}
                             isSelected={false}
                         />
                     ))}

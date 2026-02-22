@@ -34,7 +34,7 @@ import { VStack } from '@/components/ui/vstack';
 
 import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
-import { LandmarkListItem } from '@/src/components/LandmarkListItem';
+import { PlaceListItem } from '@/src/components/PlaceListItem';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { useQueryUnverifiedPlaces } from '@/src/hooks/useQueryUnverified';
 import { PlaceDistrict } from '@/src/model/places.types';
@@ -152,10 +152,10 @@ export default function AdminPasalubongCenterScreens() {
                     </VStack>
                 }
                 renderItem={({ item: landmark }) => (
-                    <LandmarkListItem
-                        landmark={landmark}
+                    <PlaceListItem
+                        place={landmark}
                         onPress={() => router.navigate({
-                            pathname: '/(admin)/landmark/[id]/info/details',
+                            pathname: '/(admin)/place/[id]/info/details',
                             params: { id: landmark.id.toString() }
                         })}
                     />
@@ -283,7 +283,7 @@ export default function AdminPasalubongCenterScreens() {
                 </ModalContent>
             </Modal>
 
-            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/landmark/create')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
+            <Fab size="lg" placement="bottom right" onPress={() => router.navigate('/(admin)/place/create')} className="bg-primary-600 mb-6 mr-4 shadow-xl">
                 <FabIcon as={Plus} />
                 <FabLabel className="font-bold">Add New</FabLabel>
             </Fab>
