@@ -37,6 +37,7 @@ export const createAndEditLandmarkSchema = z.object({
     externalImageUrl: z.url({ message: "Please enter a valid URL (include http://)" })
         .optional()
         .or(z.literal('')),
+    is_verified: z.boolean().optional(),
     opening_hours: z.array(z.object({
         day_of_week: z.number().min(0).max(6), // 0=Sunday, 6=Saturday
         opens_at: z.date().optional(),

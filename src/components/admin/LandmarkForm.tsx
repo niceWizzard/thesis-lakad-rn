@@ -19,6 +19,7 @@ import { VStack } from '@/components/ui/vstack';
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalHeader } from '@/components/ui/modal';
 import { Radio, RadioGroup, RadioIcon, RadioIndicator, RadioLabel } from '@/components/ui/radio';
+import { Switch } from '@/components/ui/switch';
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
@@ -71,6 +72,7 @@ export function LandmarkForm({
             gmaps_rating: initialData.gmaps_rating.toString(),
             description: initialData.description || '',
             externalImageUrl: '',
+            is_verified: initialData.is_verified ?? true,
             opening_hours: (initialData.opening_hours && initialData.opening_hours.length > 0) ? initialData.opening_hours.map(h => ({
                 day_of_week: h.day_of_week,
                 opens_at: parseTime(h.opens_at),
@@ -88,6 +90,7 @@ export function LandmarkForm({
             district: undefined,
             municipality: undefined,
             description: '', latitude: '', longitude: '', gmaps_rating: '0', externalImageUrl: '',
+            is_verified: true,
             opening_hours: [0, 1, 2, 3, 4, 5, 6].map(day => ({
                 day_of_week: day,
                 opens_at: new Date(new Date().setHours(8, 0, 0, 0)),
@@ -355,6 +358,22 @@ export function LandmarkForm({
                                         </RadioGroup>
                                     )} />
                                 </Box>
+                            </FormControl>
+
+                            <FormControl isInvalid={!!errors.is_verified}>
+                                <FormControlLabel className="mb-1">
+                                    <HStack className="items-center gap-2">
+                                        <Icon as={CheckCircle2} size="xs" />
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">Verified Status</FormControlLabelText>
+                                    </HStack>
+                                </FormControlLabel>
+                                <Controller control={control} name="is_verified" render={({ field: { onChange, value } }) => (
+                                    <HStack className="items-center justify-between bg-background-50 p-4 rounded-2xl border border-outline-100">
+                                        <Text size="sm">Mark as a verified landmark</Text>
+                                        <Switch size="md" value={value} onValueChange={onChange} />
+                                    </HStack>
+                                )} />
+                                <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.is_verified?.message}</FormControlErrorText></FormControlError>
                             </FormControl>
 
                             <FormControl isInvalid={!!errors.description}>
