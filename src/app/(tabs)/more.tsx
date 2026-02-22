@@ -25,6 +25,7 @@ import {
     MapPin,
     Settings,
     Sliders,
+    Star,
     User
 } from 'lucide-react-native';
 import { CopilotProvider, CopilotStep, useCopilot, walkthroughable } from 'react-native-copilot';
@@ -161,8 +162,31 @@ function MoreTabContent() {
                     </CopilotStep>
 
                     <CopilotStep
-                        text="View and restore your deleted trips."
+                        text="View and manage the reviews you've written."
                         order={3}
+                        name="myReviews"
+                    >
+                        <CopilotBox collapsable={false}>
+                            <TouchableOpacity
+                                onPress={() => router.navigate('/profile/my-reviews')}
+                                className="flex-row items-center justify-between p-5 active:bg-background-100 border-t border-outline-100"
+                            >
+                                <View className="flex-row items-center gap-4">
+                                    <View className="bg-background-100 p-2 rounded-xl">
+                                        <Icon as={Star} size='lg' />
+                                    </View>
+                                    <Text size="md" className="font-medium text-typography-800">
+                                        My Reviews
+                                    </Text>
+                                </View>
+                                <Icon as={ChevronRight} />
+                            </TouchableOpacity>
+                        </CopilotBox>
+                    </CopilotStep>
+
+                    <CopilotStep
+                        text="View and restore your deleted trips."
+                        order={4}
                         name="archivedItineraries"
                     >
                         <CopilotBox collapsable={false}>
@@ -185,7 +209,7 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="Set your travel preferences to get personalized recommendations."
-                        order={4}
+                        order={5}
                         name="travelPreferences"
                     >
                         <CopilotBox collapsable={false}>
@@ -208,7 +232,7 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="Update your password securely."
-                        order={5}
+                        order={6}
                         name="changePassword"
                     >
                         <CopilotBox collapsable={false}>
@@ -231,12 +255,12 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="Explore all landmarks."
-                        order={6}
+                        order={7}
                         name="allLandmarks"
                     >
                         <CopilotBox collapsable={false}>
                             <TouchableOpacity
-                                onPress={() => router.push('/landmark/all')}
+                                onPress={() => router.navigate('/landmark/all')}
                                 className="flex-row items-center justify-between p-5 active:bg-background-100"
                             >
                                 <View className="flex-row items-center gap-4">
@@ -254,12 +278,12 @@ function MoreTabContent() {
 
                     <CopilotStep
                         text="View application information."
-                        order={7}
+                        order={8}
                         name="aboutLakad"
                     >
                         <CopilotBox collapsable={false}>
                             <TouchableOpacity
-                                onPress={() => router.push('/about')}
+                                onPress={() => router.navigate('/about')}
                                 className="flex-row items-center justify-between p-5 active:bg-background-100"
                             >
                                 <View className="flex-row items-center gap-4">
@@ -285,7 +309,7 @@ function MoreTabContent() {
                     <>
                         <CopilotStep
                             text="Access administrative tools."
-                            order={8}
+                            order={9}
                             name="adminMode"
                         >
                             <CopilotBox collapsable={false}>
@@ -306,7 +330,7 @@ function MoreTabContent() {
                 )}
                 <CopilotStep
                     text="Tap here to sign out of your account."
-                    order={9}
+                    order={10}
                     name="signOutButton"
                 >
                     <CopilotBox collapsable={false}>

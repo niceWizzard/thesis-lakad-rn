@@ -182,3 +182,47 @@ export async function fetchReviewByReviewId(reviewId: string): Promise<ReviewWit
 
     return { ...data, images: publicUrls, author_name };
 }
+
+export const fetchMyReviews = async (userId: string): Promise<(ReviewWithAuthor & { landmark: any })[]> => {
+    const { data: reviewsData, error } = await supabase
+        .from('landmark_reviews')
+        .select(`
+            *,
+            landmark:landmark_id (*)
+        `)
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching user reviews:', error);
+        throw error;
+    }
+
+    if (!reviewsData || reviewsData.length === 0) return [];
+
+    // Fetch user profile name (since it's their own review)
+    let author_name = "You";
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (profile?.full_name) {
+        author_name = profile.full_name;
+    }
+
+    return reviewsData.map(review => {
+        const publicUrls = (review.images || []).map((img: string) => {
+            if (img.includes('supabase.co')) return img;
+            return supabase.storage.from('images').getPublicUrl(img).data.publicUrl;
+        });
+
+        return {
+            ...review,
+            images: publicUrls,
+            author_name,
+            landmark: Array.isArray(review.landmark) ? review.landmark[0] : review.landmark,
+        };
+    }) as (ReviewWithAuthor & { landmark: any })[];
+};

@@ -18,6 +18,10 @@ const ProfileLayout = () => {
                     headerShown: true,
                 }}
             />
+            <Stack.Screen
+                name="my-reviews"
+                options={{ headerTitle: "My Reviews", headerShown: true }}
+            />
         </Stack>
     )
 }
