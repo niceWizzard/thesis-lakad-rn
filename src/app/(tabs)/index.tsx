@@ -387,12 +387,12 @@ const ExploreTab = () => {
                                     </Box>
 
                                     {/* Opening Hours */}
-                                    {selectedLandmark.landmark_opening_hours && selectedLandmark.landmark_opening_hours.length > 0 && (
+                                    {selectedLandmark.opening_hours && selectedLandmark.opening_hours.length > 0 && (
                                         <VStack space="xs">
                                             <HStack className="justify-between items-center">
                                                 <Text size="sm" className="font-bold text-typography-900 uppercase tracking-wider">Opening Hours</Text>
                                                 {(() => {
-                                                    const status = getOpeningStatus(selectedLandmark.landmark_opening_hours!);
+                                                    const status = getOpeningStatus(selectedLandmark.opening_hours!);
                                                     const colorMap = {
                                                         'success': 'bg-success-100 text-success-700 border-success-200',
                                                         'error': 'bg-error-100 text-error-700 border-error-200',
@@ -411,7 +411,7 @@ const ExploreTab = () => {
 
                                             <Box className="bg-background-50 p-4 rounded-2xl border border-outline-50">
                                                 <VStack space="sm" className='gap-2'>
-                                                    {selectedLandmark.landmark_opening_hours
+                                                    {selectedLandmark.opening_hours
                                                         .sort((a, b) => {
                                                             const dayA = a.day_of_week === 0 ? 7 : a.day_of_week;
                                                             const dayB = b.day_of_week === 0 ? 7 : b.day_of_week;

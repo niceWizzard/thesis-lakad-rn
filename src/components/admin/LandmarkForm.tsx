@@ -23,7 +23,7 @@ import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { Place, PlaceDistrict } from '@/src/model/places.types';
+import { PlaceDistrict, PlaceWithOpeningHours } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { parseTime } from '@/src/utils/dateUtils';
 import { useNavigation, useRouter } from 'expo-router';
@@ -34,7 +34,7 @@ import { OpeningHoursInput } from './OpeningHoursInput';
 type FormData = z.infer<typeof createAndEditLandmarkSchema>;
 
 interface PlaceFormProps {
-    initialData?: Place;
+    initialData?: PlaceWithOpeningHours;
     onSubmit: (data: FormData, pendingImage: { base64?: string; remoteUrl?: string } | null) => Promise<void>;
     isUpdating: boolean;
     submitLabel: string;
@@ -71,7 +71,7 @@ export function LandmarkForm({
             gmaps_rating: initialData.gmaps_rating.toString(),
             description: initialData.description || '',
             externalImageUrl: '',
-            opening_hours: (initialData.landmark_opening_hours && initialData.landmark_opening_hours.length > 0) ? initialData.landmark_opening_hours.map(h => ({
+            opening_hours: (initialData.opening_hours && initialData.opening_hours.length > 0) ? initialData.opening_hours.map(h => ({
                 day_of_week: h.day_of_week,
                 opens_at: parseTime(h.opens_at),
                 closes_at: parseTime(h.closes_at),
