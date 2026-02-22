@@ -287,7 +287,7 @@ export default function AdminLandmarkDetailScreen() {
             <VStack className="gap-3">
               <Heading size="sm" className="ml-1">Opening Hours</Heading>
               <Box className="bg-background-50 p-5 rounded-3xl border border-outline-100 gap-3">
-                {landmark.landmark_opening_hours && landmark.landmark_opening_hours.length > 0 ? (
+                {landmark.opening_hours && landmark.opening_hours.length > 0 ? (
                   [0, 1, 2, 3, 4, 5, 6].map((dayCode) => {
                     const schedule = landmark.opening_hours.find(h => h.day_of_week === dayCode);
                     const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayCode];
