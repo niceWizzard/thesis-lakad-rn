@@ -1,9 +1,12 @@
+import * as Application from 'expo-application';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
+import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
@@ -22,12 +25,33 @@ import { supabase } from '../utils/supabase';
 
 const LakadSplashImage = require("@/assets/images/lakad-cover.png")
 
+const GITHUB_REPO = 'godotengine/godot';
+const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
+const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+
+/**
+ * Compare two semver strings (e.g. "1.2.3" and "1.3.0").
+ * Returns true if `current` is strictly less than `latest`.
+ */
+function isOutdated(current: string, latest: string): boolean {
+    const parse = (v: string) =>
+        v.replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0);
+
+    const [cMaj, cMin, cPat] = parse(current);
+    const [lMaj, lMin, lPat] = parse(latest);
+
+    if (lMaj !== cMaj) return lMaj > cMaj;
+    if (lMin !== cMin) return lMin > cMin;
+    return lPat > cPat;
+}
+
 const LoadingSplashScreen = () => {
     const router = useRouter();
     const { setAuth } = useAuthStore();
     const initialURL = Linking.useLinkingURL();
     const [networkState, setNetworkState] = useState<NetworkState | null>(null);
     const [loadingError, setLoadingError] = useState<Error | null | undefined>()
+    const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
     const queryClient = useQueryClient();
 
@@ -59,9 +83,26 @@ const LoadingSplashScreen = () => {
                     throw new Error("No internet connection. Please try again later.")
                 }
 
+                // 2. Check for app updates against GitHub releases
+                try {
+                    const response = await fetch(GITHUB_API_URL);
+                    if (response.ok) {
+                        const releaseData = await response.json();
+                        const latestTag: string = releaseData.tag_name ?? '';
+                        const currentVersion = Application.nativeApplicationVersion ?? '0.0.0';
+
+                        if (latestTag && isOutdated(currentVersion, latestTag)) {
+                            setShowUpdateDialog(true);
+                            return; // Block further loading
+                        }
+                    }
+                } catch {
+                    // Non-fatal: if the version check fails, allow the app to continue
+                }
 
 
-                // 2. Check Onboarding Status
+
+                // 3. Check Onboarding Status
                 const haveOnboarded = mmkvStorage.getBoolean(StorageKey.HaveOnboarded) ?? false;
                 if (!haveOnboarded) {
                     return router.replace('/(onboarding)');
@@ -69,7 +110,7 @@ const LoadingSplashScreen = () => {
 
 
 
-                // 3. Check Session with Supabase
+                // 4. Check Session with Supabase
                 const { data: { session }, error } = await supabase.auth.getSession();
 
                 if (error) throw error;
@@ -94,7 +135,7 @@ const LoadingSplashScreen = () => {
 
 
                 const userType = await fetchUserType(session.user.id);
-                // 4. Set global auth state and enter the app
+                // 5. Set global auth state and enter the app
                 setAuth(session, userType);
 
                 await queryClient.prefetchQuery({
@@ -163,6 +204,30 @@ const LoadingSplashScreen = () => {
                     </Center>
                 )
             }
+
+            {/* Update Required Dialog */}
+            <AlertDialog isOpen={showUpdateDialog} onClose={() => { /* intentionally non-dismissible */ }}>
+                <AlertDialogBackdrop />
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <Heading size="md" className="text-typography-950">
+                            Update Required
+                        </Heading>
+                    </AlertDialogHeader>
+                    <AlertDialogBody className="mt-3 mb-4">
+                        <Text size="md">
+                            A new version of Lakad is available. Please update the app to continue using it.
+                        </Text>
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <Button
+                            onPress={() => WebBrowser.openBrowserAsync(GITHUB_RELEASES_URL)}
+                        >
+                            <ButtonText>Update Now</ButtonText>
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
         </View>
     );
