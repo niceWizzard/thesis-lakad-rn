@@ -15,7 +15,6 @@ import { VStack } from '@/components/ui/vstack';
 
 // Logic & Utils
 import LoadingModal from '@/src/components/LoadingModal';
-import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { calculateDistanceMatrix } from '@/src/utils/distance/calculateDistanceMatrix';
 import { supabase } from '@/src/utils/supabase';
@@ -23,12 +22,26 @@ import { supabase } from '@/src/utils/supabase';
 const ManageDistanceMatrix = () => {
     const queryClient = useQueryClient();
     const { showToast } = useToastNotification();
-    const { landmarks, isLoading: loadingLandmarks } = useQueryLandmarks();
     const [status, setStatus] = useState<'idle' | 'fetching' | 'saving'>('idle')
     const [queryProgress, setQueryProgress] = useState(0)
 
+    const { data: places, isLoading: loadingPlaces, error: placesError } = useQuery({
+        queryKey: ['places'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('places')
+                .select('*')
+                .eq('is_verified', true)
+                .is('deleted_at', null);
+
+            if (error) throw error;
+            if (!data) return [];
+            return data;
+        }
+    })
+
     // Fetch existing stats from the distances table
-    const { data: stats, isLoading: loadingStats } = useQuery({
+    const { data: stats, isLoading: loadingStats, error: statsError } = useQuery({
         queryKey: ['distance-stats'],
         queryFn: async () => {
             const { count, error } = await supabase
@@ -36,13 +49,14 @@ const ManageDistanceMatrix = () => {
                 .select(`
                 source,
                 destination,
-                source_ref:landmark!source!inner(deleted_at),
-                dest_ref:landmark!destination!inner(deleted_at)
+                source_ref:places!source!inner(deleted_at),
+                dest_ref:places!destination!inner(deleted_at)
             `, { count: 'exact', head: true })
                 .is('source_ref.deleted_at', null)
                 .is('dest_ref.deleted_at', null);
 
             if (error) throw error;
+            if (!count) return { totalRows: 0 };
             return { totalRows: count || 0 };
         },
     });
@@ -50,10 +64,10 @@ const ManageDistanceMatrix = () => {
     const { mutate, isPending } = useMutation({
         mutationFn: async () => {
             setStatus('fetching');
-            if (!landmarks || landmarks.length < 2) throw new Error("Need at least 2 landmarks.");
+            if (!places || places.length < 2) throw new Error("Need at least 2 landmarks.");
 
             const distanceMatrix = await calculateDistanceMatrix({
-                waypointsWithIds: landmarks.map(v => ({
+                waypointsWithIds: places.map(v => ({
                     coords: [v.longitude, v.latitude],
                     id: v.id.toString(),
                 })),
@@ -93,16 +107,24 @@ const ManageDistanceMatrix = () => {
         }
     });
 
-    const totalLandmarks = landmarks?.length || 0;
+    const totalLandmarks = places?.length || 0;
     // Math: Total pairs in a matrix (excluding self-to-self) is n * (n - 1)
     const expectedPairs = totalLandmarks * (totalLandmarks - 1);
 
-    if (loadingLandmarks || loadingStats) {
+    if (loadingPlaces || loadingStats) {
         return (
             <Box className="flex-1 justify-center items-center bg-background-0">
                 <ActivityIndicator size="large" color="#0891b2" />
             </Box>
         );
+    }
+
+    if (placesError || statsError) {
+        return (
+            <Box className="flex-1 justify-center items-center bg-background-0">
+                <Text size="md" className="text-typography-500">Something went wrong</Text>
+            </Box>
+        )
     }
 
     const getLoadingText = () => {
