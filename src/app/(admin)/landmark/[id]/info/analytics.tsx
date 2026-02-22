@@ -7,7 +7,7 @@ import { VStack } from '@/components/ui/vstack';
 import { useLandmarkAnalytics } from '@/src/hooks/useLandmarkAnalytics';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useGlobalSearchParams } from 'expo-router';
-import { Activity, Map, TrendingUp } from 'lucide-react-native';
+import { Activity, Map, MessageSquare, Star, TrendingUp } from 'lucide-react-native';
 import React from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
@@ -53,6 +53,54 @@ const LandmarkAnalyticsScreen = () => {
                     cardClassName="bg-secondary-50 border-secondary-200"
                 />
             </View>
+
+            {/* Review Cards */}
+            <View className="flex-row flex-wrap gap-3 mb-8 justify-between">
+                <SummaryCard
+                    title="Total Reviews"
+                    value={data?.totalReviews || 0}
+                    icon={MessageSquare}
+                    iconClassName="text-info-600"
+                    cardClassName="bg-info-50 border-info-200"
+                />
+                <SummaryCard
+                    title="Avg Rating"
+                    value={data?.averageRating ? Number(data.averageRating.toFixed(1)) : 0}
+                    icon={Star}
+                    iconClassName="text-warning-600"
+                    cardClassName="bg-warning-50 border-warning-200"
+                />
+            </View>
+
+            {/* Rating Distribution */}
+            <VStack className="gap-4 mb-8">
+                <HStack className="items-center gap-3">
+                    <Icon as={Star} className="text-warning-600" />
+                    <Heading size="lg" className="text-typography-900">Rating Distribution</Heading>
+                </HStack>
+
+                <Card className="p-4 bg-background-50 border border-outline-100 rounded-xl">
+                    {data?.ratingDistribution ? (
+                        <VStack className="gap-2">
+                            {data.ratingDistribution.map((item) => (
+                                <HStack key={item.rating} className="items-center gap-2">
+                                    <Text className="text-typography-600 w-4">{item.rating}</Text>
+                                    <Icon as={Star} size="xs" className="text-warning-500" />
+                                    <View className="flex-1 h-3 bg-outline-100 rounded-full overflow-hidden">
+                                        <View
+                                            className="h-full bg-warning-500 rounded-full"
+                                            style={{ width: `${data.totalReviews ? (item.count / data.totalReviews) * 100 : 0}%` }}
+                                        />
+                                    </View>
+                                    <Text className="text-typography-500 text-xs w-8 text-right">{item.count}</Text>
+                                </HStack>
+                            ))}
+                        </VStack>
+                    ) : (
+                        <Text className="text-typography-500 italic">No rating data available.</Text>
+                    )}
+                </Card>
+            </VStack>
 
             {/* Monthly Trends */}
             <VStack className="gap-4">
@@ -114,9 +162,7 @@ const SummaryCard = ({
 }) => (
     <Card className={`flex-1 p-4 rounded-xl shadow-sm border ${cardClassName}`}>
         <View className="flex-row items-center justify-between mb-2">
-            <View className={`p-2 rounded-full bg-white/50`}>
-                <Icon as={icon} size="md" className={iconClassName} />
-            </View>
+            <Icon as={icon} size="md" className={iconClassName} />
         </View>
         <Heading size="xl" className="text-typography-900">{value}</Heading>
         <Text className="text-xs font-medium text-typography-600 uppercase tracking-wider">{title}</Text>

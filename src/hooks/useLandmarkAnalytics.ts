@@ -5,6 +5,9 @@ export interface LandmarkAnalyticsData {
     totalVisits: number;
     distinctItineraries: number;
     monthlyVisits: { month: string; count: number }[];
+    totalReviews: number;
+    averageRating: number;
+    ratingDistribution: { rating: number; count: number }[];
 }
 
 export const useLandmarkAnalytics = (landmarkId: string): UseQueryResult<LandmarkAnalyticsData, Error> => {
@@ -63,10 +66,46 @@ export const useLandmarkAnalytics = (landmarkId: string): UseQueryResult<Landmar
                 count
             }));
 
+            // 4. Review Analytics
+            const { data: reviews, error: reviewsError } = await supabase
+                .from("landmark_reviews")
+                .select("rating")
+                .eq("landmark_id", id);
+
+            if (reviewsError) throw reviewsError;
+
+            let totalReviews = 0;
+            let averageRating = 0;
+            const ratingDistribution = [
+                { rating: 5, count: 0 },
+                { rating: 4, count: 0 },
+                { rating: 3, count: 0 },
+                { rating: 2, count: 0 },
+                { rating: 1, count: 0 },
+            ];
+
+            if (reviews && reviews.length > 0) {
+                const validReviews = reviews.filter(r => r.rating !== null);
+                totalReviews = validReviews.length;
+                let sum = 0;
+                validReviews.forEach(r => {
+                    sum += r.rating!;
+                    const indexStar = Math.max(1, Math.min(5, Math.round(r.rating!)));
+                    const distIndex = 5 - indexStar;
+                    ratingDistribution[distIndex].count++;
+                });
+                if (totalReviews > 0) {
+                    averageRating = sum / totalReviews;
+                }
+            }
+
             return {
                 totalVisits: totalVisits || 0,
                 distinctItineraries: distinctItineraries || 0,
-                monthlyVisits
+                monthlyVisits,
+                totalReviews,
+                averageRating,
+                ratingDistribution
             };
         },
         enabled: !!landmarkId,
