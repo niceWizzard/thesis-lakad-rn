@@ -57,7 +57,7 @@ export default function AdminPasalubongDetailScreen() {
     const toggleArchiveMutation = useMutation({
         mutationFn: async (shouldRestore: boolean = false) => {
             const { error } = await supabase
-                .from('pasalubong_centers')
+                .from('places')
                 .update({
                     deleted_at: shouldRestore ? null : new Date().toISOString(),
                 })

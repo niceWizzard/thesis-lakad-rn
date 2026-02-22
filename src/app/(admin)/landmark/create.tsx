@@ -7,11 +7,11 @@ import * as z from 'zod';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { Landmark } from '@/src/model/landmark.types';
+import { Place } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { calculateIncrementalMatrix } from '@/src/utils/distance/calculateIncrementalMatrix';
 import { fetchLandmarks } from '@/src/utils/landmark/fetchLandmarks';
-import { createLandmark } from '@/src/utils/landmark/insertLandmark';
+import { createPlace } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -56,7 +56,7 @@ export default function AdminLandmarkCreateScreen() {
 
             const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
 
-            const id = await createLandmark({
+            const id = await createPlace({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),
@@ -72,7 +72,7 @@ export default function AdminLandmarkCreateScreen() {
             // Insert Opening Hours
             if (formData.opening_hours) {
                 const hoursToInsert = formData.opening_hours.map(h => ({
-                    landmark_id: id,
+                    place_id: id,
                     day_of_week: h.day_of_week,
                     opens_at: formatTime(h.opens_at) || null,
                     closes_at: formatTime(h.closes_at) || null,
@@ -80,7 +80,7 @@ export default function AdminLandmarkCreateScreen() {
                 }));
 
                 const { error: hoursError } = await supabase
-                    .from('landmark_opening_hours')
+                    .from('opening_hours')
                     .insert(hoursToInsert);
 
                 if (hoursError) throw hoursError;
@@ -88,7 +88,7 @@ export default function AdminLandmarkCreateScreen() {
 
             // Create distance matrix for new landmark
 
-            const landmarks = await queryClient.fetchQuery<Landmark[]>({ queryKey: ['landmarks'] })
+            const landmarks = await queryClient.fetchQuery<Place[]>({ queryKey: ['landmarks'] })
 
             const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
                 newWaypoint: {

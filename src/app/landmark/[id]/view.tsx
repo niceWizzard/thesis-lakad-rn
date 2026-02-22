@@ -38,7 +38,7 @@ import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
 import { formatTime } from '@/src/utils/landmark/getOpeningStatus';
-import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { insertPlaceToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -78,14 +78,14 @@ export default function LandmarkViewerScreen() {
         isPending: isAddingStop,
         mutate: addStopMutation
     } = useMutation({
-        mutationFn: async (landmarkId: number) => {
+        mutationFn: async (placeId: number) => {
             if (currentCountNum >= 50) {
                 throw new Error("Itinerary limit reached (50 stops max)");
             }
-            return insertLandmarkToItinerary({
+            return insertPlaceToItinerary({
                 currentCount: currentCount.toString(),
                 itineraryId: itineraryId.toString(),
-                landmarkId: landmarkId.toString(),
+                placeId: placeId.toString(),
             });
         },
         onSuccess: () => {
@@ -114,9 +114,9 @@ export default function LandmarkViewerScreen() {
         queryFn: async () => {
             if (!userId || !id) return null;
             const { data, error } = await supabase
-                .from('landmark_reviews')
+                .from('reviews')
                 .select('*')
-                .eq('landmark_id', Number(id))
+                .eq('place_id', Number(id))
                 .eq('user_id', userId)
                 .maybeSingle();
 
@@ -201,8 +201,8 @@ export default function LandmarkViewerScreen() {
         }
     };
 
-    const handleAddToExistingItinerary = async ({ currentCount, name, itineraryId, landmarkId }: {
-        itineraryId: string, currentCount: string, landmarkId: string,
+    const handleAddToExistingItinerary = async ({ currentCount, name, itineraryId, placeId }: {
+        itineraryId: string, currentCount: string, placeId: string,
         name: string,
     }) => {
         setPendingAction('add')
@@ -211,10 +211,10 @@ export default function LandmarkViewerScreen() {
                 throw new Error("Itinerary limit reached (50 stops max)");
             }
 
-            await insertLandmarkToItinerary({
+            await insertPlaceToItinerary({
                 currentCount,
                 itineraryId,
-                landmarkId,
+                placeId,
             })
             setShowNoItineraryAlert(false);
             showToast({ title: `Added to ${name}`, action: "success" });
@@ -237,7 +237,7 @@ export default function LandmarkViewerScreen() {
         handleAddToExistingItinerary({
             currentCount: selectedItinerary.stopCount.toString(),
             itineraryId: selectedItinerary.id,
-            landmarkId: landmark.id.toString(),
+            placeId: landmark.id.toString(),
             name: selectedItinerary.name
         });
     };
@@ -511,7 +511,7 @@ export default function LandmarkViewerScreen() {
                                             const isToday = hour.day_of_week === new Date().getDay();
 
                                             return (
-                                                <HStack key={`${hour.landmark_id}-${hour.day_of_week}`} className="justify-between items-center">
+                                                <HStack key={`${hour.place_id}-${hour.day_of_week}`} className="justify-between items-center">
                                                     <Text size="sm" className={`font-medium w-24 ${isToday ? "text-primary-600 font-bold" : "text-typography-600"}`}>
                                                         {days[hour.day_of_week]} {isToday && "(Today)"}
                                                     </Text>

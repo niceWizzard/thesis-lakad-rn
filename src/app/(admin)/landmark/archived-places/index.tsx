@@ -38,7 +38,7 @@ import { Badge, BadgeText } from '@/components/ui/badge';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
+import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchArchivedLandmarks } from '@/src/utils/landmark/fetchLandmarks';
 import { useQuery } from '@tanstack/react-query';
@@ -66,7 +66,7 @@ export default function AdminArchivedLandmarksScreen() {
         isLoading,
         isRefetching,
         refetch
-    } = useQuery<Landmark[]>({
+    } = useQuery<Place[]>({
         queryKey: ['archived-landmarks'],
         queryFn: fetchArchivedLandmarks,
         enabled: !!userId,
@@ -76,7 +76,7 @@ export default function AdminArchivedLandmarksScreen() {
     const processedLandmarks = useMemo(() => {
         let result = landmarks.filter(landmark => {
             const matchesSearch = landmark.name.toLowerCase().includes(searchString.toLowerCase());
-            const matchesType = selectedTypes.length === 0 || selectedTypes.includes(landmark.type)
+            const matchesType = selectedTypes.length === 0 || landmark.type && selectedTypes.includes(landmark.type)
             const matchesDistrict = !selectedDistrict || landmark.district === selectedDistrict;
             const matchesMuni = !selectedMunicipality || landmark.municipality === selectedMunicipality;
 
@@ -289,7 +289,7 @@ export default function AdminArchivedLandmarksScreen() {
                                         <VStack className="gap-2 mt-2">
                                             <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
                                             <View className="flex-row flex-wrap gap-2">
-                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict].map(muni => (
+                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as PlaceDistrict].map(muni => (
                                                     <TouchableOpacity
                                                         key={muni}
                                                         onPress={() => setSelectedMunicipality(prev => prev === muni ? null : muni)}

@@ -66,7 +66,7 @@ export default function AdminReviewsScreen() {
     } = useInfiniteQuery(
         ['admin-landmark-reviews', id],
         ({ pageParam = 1 }) => fetchFilterableReviews({
-            landmarkId: id as string,
+            placeId: id as string,
             pageNumber: pageParam,
             pageSize: PAGE_SIZE,
             sortColumn: 'created_at',
@@ -147,7 +147,7 @@ export default function AdminReviewsScreen() {
             }
 
             const { error: deleteError } = await supabase
-                .from('landmark_reviews')
+                .from('reviews')
                 .delete()
                 .eq('id', reviewToDelete.id);
 

@@ -16,7 +16,7 @@ import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 
-type LandmarkFormData = z.infer<typeof createAndEditPasalubongCenterSchema>;
+type PlaceFormData = z.infer<typeof createAndEditPasalubongCenterSchema>;
 
 export default function AdminLandmarkEditScreen() {
     const { id } = useLocalSearchParams();
@@ -35,7 +35,7 @@ export default function AdminLandmarkEditScreen() {
 
 
     const updateMutation = useMutation({
-        mutationFn: async ({ formData, pendingImageData }: { formData: LandmarkFormData, pendingImageData: { base64?: string, remoteUrl?: string } | null }) => {
+        mutationFn: async ({ formData, pendingImageData }: { formData: PlaceFormData, pendingImageData: { base64?: string, remoteUrl?: string } | null }) => {
             let finalImageUrl = landmark?.image_url;
             if (pendingImageData) {
                 let arrayBuffer: ArrayBuffer;
@@ -68,7 +68,7 @@ export default function AdminLandmarkEditScreen() {
                 }
             }
 
-            const { error } = await supabase.from('pasalubong_centers').update({
+            const { error } = await supabase.from('places').update({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),

@@ -61,7 +61,7 @@ export default function AdminLandmarkDetailScreen() {
   const toggleArchiveMutation = useMutation({
     mutationFn: async (shouldRestore: boolean = false) => {
       const { error } = await supabase
-        .from('landmark')
+        .from('places')
         .update({
           deleted_at: shouldRestore ? null : new Date().toISOString(),
         })

@@ -38,14 +38,14 @@ export type Database = {
             foreignKeyName: "distances_destination_fkey"
             columns: ["destination"]
             isOneToOne: false
-            referencedRelation: "landmark"
+            referencedRelation: "places"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "distances_source_fkey"
             columns: ["source"]
             isOneToOne: false
-            referencedRelation: "landmark"
+            referencedRelation: "places"
             referencedColumns: ["id"]
           },
         ]
@@ -64,7 +64,7 @@ export type Database = {
           deleted_at?: string | null
           distance?: number
           id?: number
-          name?: string
+          name: string
           user_id: string
         }
         Update: {
@@ -77,7 +77,42 @@ export type Database = {
         }
         Relationships: []
       }
-      landmark: {
+      opening_hours: {
+        Row: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          is_closed: boolean
+          opens_at: string | null
+          place_id: number
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string
+          day_of_week?: number
+          is_closed?: boolean
+          opens_at?: string | null
+          place_id: number
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string
+          day_of_week?: number
+          is_closed?: boolean
+          opens_at?: string | null
+          place_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landmark_opening_hours_landmark_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      places: {
         Row: {
           created_at: string
           creation_type: Database["public"]["Enums"]["LandmarkCreationType"]
@@ -88,11 +123,12 @@ export type Database = {
           id: number
           image_credits: string | null
           image_url: string | null
+          is_verified: boolean
           latitude: number
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
           name: string
-          type: Database["public"]["Enums"]["landmark_type2"]
+          type: Database["public"]["Enums"]["landmark_type2"] | null
           updated_at: string
         }
         Insert: {
@@ -105,11 +141,12 @@ export type Database = {
           id?: number
           image_credits?: string | null
           image_url?: string | null
+          is_verified?: boolean
           latitude: number
           longitude: number
           municipality: Database["public"]["Enums"]["municipality"]
           name: string
-          type?: Database["public"]["Enums"]["landmark_type2"]
+          type?: Database["public"]["Enums"]["landmark_type2"] | null
           updated_at?: string
         }
         Update: {
@@ -122,135 +159,12 @@ export type Database = {
           id?: number
           image_credits?: string | null
           image_url?: string | null
+          is_verified?: boolean
           latitude?: number
           longitude?: number
           municipality?: Database["public"]["Enums"]["municipality"]
           name?: string
-          type?: Database["public"]["Enums"]["landmark_type2"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      landmark_opening_hours: {
-        Row: {
-          closes_at: string | null
-          created_at: string
-          day_of_week: number
-          is_closed: boolean
-          landmark_id: number
-          opens_at: string | null
-        }
-        Insert: {
-          closes_at?: string | null
-          created_at?: string
-          day_of_week?: number
-          is_closed?: boolean
-          landmark_id: number
-          opens_at?: string | null
-        }
-        Update: {
-          closes_at?: string | null
-          created_at?: string
-          day_of_week?: number
-          is_closed?: boolean
-          landmark_id?: number
-          opens_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "landmark_opening_hours_landmark_id_fkey"
-            columns: ["landmark_id"]
-            isOneToOne: false
-            referencedRelation: "landmark"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      landmark_reviews: {
-        Row: {
-          content: string
-          created_at: string
-          id: number
-          images: string[]
-          landmark_id: number | null
-          rating: number | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: number
-          images: string[]
-          landmark_id?: number | null
-          rating?: number | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: number
-          images?: string[]
-          landmark_id?: number | null
-          rating?: number | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "landmark_reviews_landmark_id_fkey"
-            columns: ["landmark_id"]
-            isOneToOne: false
-            referencedRelation: "landmark"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      pasalubong_centers: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          description: string | null
-          district: Database["public"]["Enums"]["district"]
-          gmaps_rating: number
-          id: number
-          image_credits: string | null
-          image_url: string | null
-          latitude: number
-          longitude: number
-          municipality: Database["public"]["Enums"]["municipality"]
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          description?: string | null
-          district: Database["public"]["Enums"]["district"]
-          gmaps_rating?: number
-          id?: number
-          image_credits?: string | null
-          image_url?: string | null
-          latitude: number
-          longitude: number
-          municipality: Database["public"]["Enums"]["municipality"]
-          name?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          description?: string | null
-          district?: Database["public"]["Enums"]["district"]
-          gmaps_rating?: number
-          id?: number
-          image_credits?: string | null
-          image_url?: string | null
-          latitude?: number
-          longitude?: number
-          municipality?: Database["public"]["Enums"]["municipality"]
-          name?: string
+          type?: Database["public"]["Enums"]["landmark_type2"] | null
           updated_at?: string
         }
         Relationships: []
@@ -318,7 +232,48 @@ export type Database = {
             foreignKeyName: "review_reports_review_id_fkey"
             columns: ["review_id"]
             isOneToOne: false
-            referencedRelation: "landmark_reviews"
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          content: string
+          created_at: string
+          id: number
+          images: string[]
+          place_id: number | null
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: number
+          images: string[]
+          place_id?: number | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: number
+          images?: string[]
+          place_id?: number | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landmark_reviews_landmark_id_fkey"
+            columns: ["place_id"]
+            isOneToOne: false
+            referencedRelation: "places"
             referencedColumns: ["id"]
           },
         ]
@@ -328,7 +283,7 @@ export type Database = {
           created_at: string
           id: number
           itinerary_id: number
-          landmark_id: number
+          place_id: number
           visit_duration: number
           visit_order: number
           visited_at: string | null
@@ -337,7 +292,7 @@ export type Database = {
           created_at?: string
           id?: number
           itinerary_id: number
-          landmark_id: number
+          place_id: number
           visit_duration?: number
           visit_order?: number
           visited_at?: string | null
@@ -346,7 +301,7 @@ export type Database = {
           created_at?: string
           id?: number
           itinerary_id?: number
-          landmark_id?: number
+          place_id?: number
           visit_duration?: number
           visit_order?: number
           visited_at?: string | null
@@ -361,9 +316,9 @@ export type Database = {
           },
           {
             foreignKeyName: "poi_landmark_id_fkey"
-            columns: ["landmark_id"]
+            columns: ["place_id"]
             isOneToOne: false
-            referencedRelation: "landmark"
+            referencedRelation: "places"
             referencedColumns: ["id"]
           },
         ]
@@ -373,22 +328,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_full_itinerary:
-        | {
-            Args: { p_distance: number; p_landmark_list: Json; p_name: string }
-            Returns: number
-          }
-        | { Args: { p_landmark_list: Json; p_name: string }; Returns: number }
-        | {
-            Args: { p_landmark_list: Json; p_name: string; p_user_id: string }
-            Returns: number
-          }
+      create_full_itinerary: {
+        Args: { p_distance: number; p_name: string; p_place_list: Json }
+        Returns: number
+      }
       get_filterable_reviews: {
         Args: {
           ignore_user_id?: string
-          landmark_id_input: number
           page_number?: number
           page_size?: number
+          place_id_input: number
           rating_filter?: number
           sort_column?: string
           sort_descending?: boolean
@@ -399,13 +348,13 @@ export type Database = {
           created_at: string
           id: number
           images: string[]
-          landmark_id: number
+          place_id: number
           rating: number
           updated_at: string
           user_id: string
         }[]
       }
-      get_landmarks_with_stats: {
+      get_places_with_stats: {
         Args: { target_id?: number }
         Returns: {
           average_rating: number
@@ -428,23 +377,17 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_landmarks_with_stats_json: {
-        Args: { target_id?: number }
-        Returns: {
-          avg_rating: number
-          landmark_data: Json
-          total_reviews: number
-        }[]
-      }
-      get_recent_reviews_by_landmark: {
-        Args: { landmark_id_input: number; limit_input?: number }
+      get_recent_reviews_by_place: {
+        Args: { limit_input?: number; place_id_input: number }
         Returns: {
           author_name: string
           content: string
           created_at: string
           id: number
           images: string[]
+          place_id: number
           rating: number
+          updated_at: string
           user_id: string
         }[]
       }
@@ -454,7 +397,7 @@ export type Database = {
           created_at: string
           details: string
           id: number
-          landmark_name: string
+          place_name: string
           reason: string
           reporter_id: string
           reporter_name: string
@@ -472,7 +415,7 @@ export type Database = {
           created_at: string
           details: string
           id: number
-          landmark_name: string
+          place_name: string
           reason: string
           reporter_id: string
           reporter_name: string
@@ -484,11 +427,11 @@ export type Database = {
           status: Database["public"]["Enums"]["review_report_status"]
         }[]
       }
-      submit_landmark_review: {
+      submit_place_review: {
         Args: {
           content_input: string
           images_input: string[]
-          landmark_id_input: number
+          place_id_input: number
           rating_input: number
         }
         Returns: {
@@ -496,14 +439,14 @@ export type Database = {
           created_at: string
           id: number
           images: string[]
-          landmark_id: number | null
+          place_id: number | null
           rating: number | null
           updated_at: string
           user_id: string | null
         }[]
         SetofOptions: {
           from: "*"
-          to: "landmark_reviews"
+          to: "reviews"
           isOneToOne: false
           isSetofReturn: true
         }

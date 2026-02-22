@@ -86,16 +86,16 @@ export default function ReviewDetailScreen() {
             }
 
             const { error: deleteError } = await supabase
-                .from('landmark_reviews')
+                .from('reviews')
                 .delete()
                 .eq('id', review.id);
 
             if (deleteError) throw deleteError;
 
             // Invalidate parent queries related to reviews
-            if (review.landmark_id) {
-                await queryClient.invalidateQueries({ queryKey: ['admin-landmark-reviews', review.landmark_id.toString()] });
-                await queryClient.invalidateQueries({ queryKey: ['landmark-analytics', review.landmark_id.toString()] });
+            if (review.place_id) {
+                await queryClient.invalidateQueries({ queryKey: ['admin-landmark-reviews', review.place_id.toString()] });
+                await queryClient.invalidateQueries({ queryKey: ['landmark-analytics', review.place_id.toString()] });
             }
             await queryClient.invalidateQueries({ queryKey: ['reviews'] });
             await queryClient.invalidateQueries({ queryKey: ['landmark-review'] });

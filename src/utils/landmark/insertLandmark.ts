@@ -1,4 +1,5 @@
 import { Database } from "@/database.types";
+import { PlaceInsert } from "@/src/model/places.types";
 import { supabase } from "../supabase";
 
 
@@ -20,17 +21,17 @@ import { supabase } from "../supabase";
  * currentCount: 2
  * }); // Adds landmark 101 as the 3rd stop in itinerary 5.
  */
-export const insertLandmarkToItinerary = async ({
+export const insertPlaceToItinerary = async ({
     currentCount,
-    landmarkId,
+    placeId,
     itineraryId,
 }: {
-    landmarkId: string | number,
+    placeId: string | number,
     itineraryId: string | number,
     currentCount: string | number,
 }) => {
-    if (typeof landmarkId === 'string' && Number.isNaN(Number.parseInt(landmarkId))) {
-        throw new Error("Invalid Landmark ID. Must be a number.")
+    if (typeof placeId === 'string' && Number.isNaN(Number.parseInt(placeId))) {
+        throw new Error("Invalid Place ID. Must be a number.")
     }
 
     if (typeof itineraryId === 'string' && Number.isNaN(Number.parseInt(itineraryId))) {
@@ -46,7 +47,7 @@ export const insertLandmarkToItinerary = async ({
         .from('stops')
         .select('id')
         .eq('itinerary_id', Number(itineraryId))
-        .eq('landmark_id', Number(landmarkId))
+        .eq('place_id', Number(placeId))
         .limit(1)
         .maybeSingle();
 
@@ -69,7 +70,7 @@ export const insertLandmarkToItinerary = async ({
     const nextOrder = Number(currentCount) + 1;
     const { error } = await supabase.from('stops').insert({
         itinerary_id: Number(itineraryId),
-        landmark_id: Number(landmarkId),
+        place_id: Number(placeId),
         visit_order: nextOrder,
     });
     if (error) throw error;
@@ -91,43 +92,17 @@ export const insertLandmarkToItinerary = async ({
  * creation_type: "TOURIST_ATTRACTION"
  * });
  */
-export const createLandmark = async (data: Database['public']['Tables']['landmark']['Insert']) => {
+export const createPlace = async (data: PlaceInsert): Promise<number> => {
     const { error: dbError, data: dbData } = await supabase
-        .from('landmark')
+        .from('places')
         .insert([{
             ...data,
-            created_at: new Date().toISOString(),
         }])
         .select('id')
         .single();
 
     if (dbError) throw dbError;
     if (!dbData)
-        throw new Error("Landmark was not created.")
-    return dbData.id
-}
-
-/**
- * Creates a new pasalubong center entry in the global database.
- * * @param {Database['public']['Tables']['pasalubong_centers']['Insert']} data - The pasalubong center data
- * conforming to the Supabase schema.
- * * @returns {Promise<number>} The ID of the newly created pasalubong center.
- * * @throws {PostgrestError} If the database prevents the creation.
- * @throws {Error} If the insertion completes but no ID is returned.
- */
-export const createPasalubongCenter = async (data: Database['public']['Tables']['pasalubong_centers']['Insert']) => {
-    const { error: dbError, data: dbData } = await supabase
-        .from('pasalubong_centers')
-        .insert([{
-            ...data,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-        }])
-        .select('id')
-        .single();
-
-    if (dbError) throw dbError;
-    if (!dbData)
-        throw new Error("Pasalubong Center was not created.")
+        throw new Error("Place was not created.")
     return dbData.id
 }

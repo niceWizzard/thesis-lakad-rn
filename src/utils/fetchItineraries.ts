@@ -15,8 +15,8 @@ export async function fetchItinerariesOfUser(userId: string) {
         visited_at,
         visit_order,
         itinerary_id,
-        landmark_id,
-        landmark (
+        place_id,
+        place:places (
           id,
           name,
           longitude,
@@ -38,7 +38,7 @@ export async function fetchItinerariesOfUser(userId: string) {
 
   if (error) throw error
 
-  return data as unknown as ItineraryWithStops[]
+  return data as ItineraryWithStops[]
 }
 
 export async function fetchArchivedItineraries(userId: string) {
@@ -57,8 +57,8 @@ export async function fetchArchivedItineraries(userId: string) {
           visit_order,
           visit_duration,
           itinerary_id,
-          landmark_id,
-          landmark (
+          place_id,
+          place:places (
             id,
             name,
             longitude,
@@ -125,8 +125,8 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
         visit_order,
         visit_duration,
         itinerary_id,
-        landmark_id,
-        landmark (
+        place_id,
+        place:places (
           id,
           name,
           longitude,
@@ -143,7 +143,7 @@ export async function fetchItineraryById(userId: string, itineraryId: number) {
     .eq('user_id', userId)
     .eq('id', itineraryId)
     .order('visit_order', { referencedTable: 'stops', ascending: true })
-    .single()
+    .maybeSingle()
 
   if (error) throw error
 
@@ -157,7 +157,7 @@ export async function createItinerary({ itineraryName, poiIds, distance }: { iti
   const { data: newId, error } = await supabase.rpc('create_full_itinerary', {
     p_name: itineraryName ?? `Adventure ${dateStr}`,
     p_distance: distance,
-    p_landmark_list: poiIds, // Our updated RPC handles the flat list and order
+    p_place_list: poiIds, // Our updated RPC handles the flat list and order
   });
 
   if (error) throw error

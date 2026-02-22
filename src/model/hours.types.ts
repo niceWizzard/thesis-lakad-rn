@@ -1,3 +1,3 @@
 import { Database } from "@/database.types";
 
-export type OpeningHours = Database['public']['Tables']['landmark_opening_hours']['Row']
+export type OpeningHours = Database['public']['Tables']['opening_hours']['Row']

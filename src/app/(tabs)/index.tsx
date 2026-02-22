@@ -31,18 +31,18 @@ import LandmarkMapView from '@/src/components/LandmarkMapView';
 import { useQueryLandmarks } from '@/src/hooks/useQueryLandmarks';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { LandmarkWithStats } from '@/src/model/landmark.types';
+import { PlaceWithStats } from '@/src/model/places.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { createItinerary, fetchItinerariesOfUser } from '@/src/utils/fetchItineraries';
 import { formatTime, getOpeningStatus } from '@/src/utils/landmark/getOpeningStatus';
-import { insertLandmarkToItinerary } from '@/src/utils/landmark/insertLandmark';
+import { insertPlaceToItinerary } from '@/src/utils/landmark/insertLandmark';
 import { fetchRecentReviewsByLandmarkId } from '@/src/utils/review/fetchReview';
 import { supabase } from '@/src/utils/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const ExploreTab = () => {
 
-    const [selectedLandmark, setSelectedLandmark] = useState<LandmarkWithStats | null>(null);
+    const [selectedLandmark, setSelectedLandmark] = useState<PlaceWithStats | null>(null);
     const [showImageCredits, setShowImageCredits] = useState(false);
     const router = useRouter();
     const camera = useRef<any>(null);
@@ -92,9 +92,9 @@ const ExploreTab = () => {
             if (!userId || !selectedLandmark?.id) return null;
 
             const { data } = await supabase
-                .from('landmark_reviews')
+                .from('reviews')
                 .select('*')
-                .eq('landmark_id', selectedLandmark.id)
+                .eq('place_id', selectedLandmark.id)
                 .eq('user_id', userId)
                 .maybeSingle();
 
@@ -153,10 +153,10 @@ const ExploreTab = () => {
         if (!selectedItinerary || !selectedLandmark) return;
         setPendingAction('add');
         try {
-            await insertLandmarkToItinerary({
+            await insertPlaceToItinerary({
                 currentCount: selectedItinerary.stopCount.toString(),
                 itineraryId: selectedItinerary.id,
-                landmarkId: selectedLandmark.id.toString(),
+                placeId: selectedLandmark.id.toString(),
             });
             setShowNoItineraryAlert(false);
             showToast({ title: `Added to ${selectedItinerary.name}`, action: "success" });
@@ -411,7 +411,7 @@ const ExploreTab = () => {
                                                             const isToday = hour.day_of_week === new Date().getDay();
 
                                                             return (
-                                                                <HStack key={`${hour.landmark_id}-${hour.day_of_week}`} className="justify-between items-center">
+                                                                <HStack key={`${hour.place_id}-${hour.day_of_week}`} className="justify-between items-center">
                                                                     <Text size="sm" className={`font-medium w-24 ${isToday ? "text-primary-600 font-bold" : "text-typography-600"}`}>
                                                                         {days[hour.day_of_week]} {isToday && "(Today)"}
                                                                     </Text>

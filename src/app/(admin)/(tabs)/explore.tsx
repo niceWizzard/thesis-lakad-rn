@@ -8,7 +8,7 @@ import { VStack } from '@/components/ui/vstack';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
-import { LandmarkWithStats } from '@/src/model/landmark.types';
+import { PlaceWithStats } from '@/src/model/places.types';
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import { Info, MapPin, Star } from 'lucide-react-native';
 
 const AdminExploreTab = () => {
-    const [selectedLandmark, setSelectedLandmark] = useState<LandmarkWithStats | null>(null);
+    const [selectedLandmark, setSelectedLandmark] = useState<PlaceWithStats | null>(null);
     const router = useRouter();
     const camera = useRef<Camera | null>(null)
     const sheetRef = useRef<BottomSheet>(null);

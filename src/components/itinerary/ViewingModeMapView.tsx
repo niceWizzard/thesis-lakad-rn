@@ -1,11 +1,11 @@
 import LandmarkMarker from '@/src/components/LandmarkMarker';
-import { StopWithLandmark } from '@/src/model/stops.types';
+import { StopWithPlace } from '@/src/model/stops.types';
 import React from 'react';
 
 interface ViewingModeMapViewProps {
     show: boolean;
-    stops: StopWithLandmark[];
-    onStopPress: (stop: StopWithLandmark) => void;
+    stops: StopWithPlace[];
+    onStopPress: (stop: StopWithPlace) => void;
 }
 
 export function ViewingModeMapView({ show, stops, onStopPress }: ViewingModeMapViewProps) {
@@ -15,7 +15,7 @@ export function ViewingModeMapView({ show, stops, onStopPress }: ViewingModeMapV
         <>
             {stops.map(stop => (
                 <LandmarkMarker
-                    landmark={stop.landmark}
+                    landmark={stop.place}
                     key={stop.id}
                     allowOverlap
                     handleMarkerPress={() => onStopPress(stop)}

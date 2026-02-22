@@ -1,6 +1,6 @@
 import { useToastNotification } from '@/src/hooks/useToastNotification';
-import { Landmark } from '@/src/model/landmark.types';
-import { StopWithLandmark } from '@/src/model/stops.types';
+import { Place } from '@/src/model/places.types';
+import { StopWithPlace } from '@/src/model/stops.types';
 import { getDistanceToSegment } from '@/src/utils/distance/getDistanceToSegment';
 import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
 import { formatDistance } from '@/src/utils/format/distance';
@@ -20,9 +20,9 @@ interface UseNavigationLogicProps {
     navigationRoute: MapboxRoute[];
     setNavigationRoute: (route: MapboxRoute[]) => void;
     switchMode: (mode: Mode) => void;
-    nextUnvisitedStop: StopWithLandmark | null;
+    nextUnvisitedStop: StopWithPlace | null;
     refetchItinerary: () => Promise<any>;
-    pasalubongs: Landmark[] | undefined;
+    pasalubongs: Place[] | undefined;
     cameraRef: React.RefObject<Camera | null>;
     navigationProfile: 'driving' | 'walking' | 'cycling';
     avoidTolls: boolean;
@@ -79,7 +79,7 @@ export const useNavigationLogic = ({
     // -------------------------------------------------------------------------
     // 1. Logic for Completing Navigation (Arrival)
     // -------------------------------------------------------------------------
-    const finishedNavigating = useCallback(async (visitedStop: StopWithLandmark) => {
+    const finishedNavigating = useCallback(async (visitedStop: StopWithPlace) => {
         if (isProcessingArrival.current) return;
         isProcessingArrival.current = true;
 
@@ -119,7 +119,7 @@ export const useNavigationLogic = ({
             // A. Check Arrival (Distance to destination < 10m)
             const distanceToDestination = getHaversineDistance(
                 userLocation,
-                [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                [nextUnvisitedStop.place.longitude, nextUnvisitedStop.place.latitude]
             );
 
             if (distanceToDestination <= 20 || currentLeg.distance <= 10) {
@@ -178,7 +178,7 @@ export const useNavigationLogic = ({
                                 const data = await fetchDirections({
                                     waypoints: [
                                         userLocation,
-                                        [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                                        [nextUnvisitedStop.place.longitude, nextUnvisitedStop.place.latitude]
                                     ],
                                     profile: navigationProfile,
                                     exclude: (avoidTolls && navigationProfile === 'driving') ? ['toll'] : [],
@@ -248,7 +248,7 @@ export const useNavigationLogic = ({
                     const data = await fetchDirections({
                         waypoints: [
                             currentLocation,
-                            [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                            [nextUnvisitedStop.place.longitude, nextUnvisitedStop.place.latitude]
                         ],
                         profile: navigationProfile,
                         exclude: (avoidTolls && navigationProfile === 'driving') ? ['toll'] : [],
@@ -303,7 +303,7 @@ export const useNavigationLogic = ({
             const data = await fetchDirections({
                 waypoints: [
                     startLocation,
-                    [nextUnvisitedStop.landmark.longitude, nextUnvisitedStop.landmark.latitude]
+                    [nextUnvisitedStop.place.longitude, nextUnvisitedStop.place.latitude]
                 ],
                 profile: navigationProfile,
                 exclude: getExclude(),

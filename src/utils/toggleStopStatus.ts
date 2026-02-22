@@ -1,7 +1,7 @@
 import { Stop } from "../model/stops.types";
 import { supabase } from "./supabase";
 
-export async function toggleStopStatus(stop : Stop) {
+export async function toggleStopStatus(stop: Stop) {
     const isMarkingAsVisited = !stop.visited_at;
     const newVisitedAt = isMarkingAsVisited ? new Date().toISOString() : null;
     const { error: updateError } = await supabase
@@ -30,7 +30,7 @@ export async function toggleStopStatus(stop : Stop) {
     const updates = sortedPois.map((item, index) => ({
         id: item.id,
         itinerary_id: item.itinerary_id,
-        landmark_id: item.landmark_id,
+        place_id: item.place_id,
         visit_order: index + 1,
         visited_at: item.visited_at
     }));

@@ -22,13 +22,13 @@ export const useAnalytics = () => {
                 .select("*", { count: "exact", head: true });
 
             const activeLandmarksCount = await supabase
-                .from("landmark")
+                .from("places")
                 .select("*", { count: "exact", head: true })
                 .eq("creation_type", "TOURIST_ATTRACTION")
                 .is("deleted_at", null);
 
             const archivedLandmarksCount = await supabase
-                .from("landmark")
+                .from("places")
                 .select("*", { count: "exact", head: true })
                 .eq("creation_type", "TOURIST_ATTRACTION")
                 .not("deleted_at", "is", null);
@@ -48,15 +48,15 @@ export const useAnalytics = () => {
             // Optimization: Create a view or RPC in the future.
             const { data: stops } = await supabase
                 .from("stops")
-                .select("landmark_id, landmark(name)");
+                .select("place_id, places(name)");
 
             const landmarkCounts: Record<string, number> = {};
             const landmarkNames: Record<string, string> = {};
 
             stops?.forEach((stop: any) => {
-                if (stop.landmark_id && stop.landmark?.name) {
-                    landmarkCounts[stop.landmark_id] = (landmarkCounts[stop.landmark_id] || 0) + 1;
-                    landmarkNames[stop.landmark_id] = stop.landmark.name;
+                if (stop.place_id && stop.places?.name) {
+                    landmarkCounts[stop.place_id] = (landmarkCounts[stop.place_id] || 0) + 1;
+                    landmarkNames[stop.place_id] = stop.places.name;
                 }
             });
 
@@ -68,7 +68,7 @@ export const useAnalytics = () => {
 
             // 4. Fetch Category Distribution
             const { data: landmarks } = await supabase
-                .from("landmark")
+                .from("places")
                 .select("id, name, type")
                 .eq("creation_type", "TOURIST_ATTRACTION");
 
@@ -89,19 +89,19 @@ export const useAnalytics = () => {
 
             // 5. Fetch Highest Rated Landmarks
             const { data: reviewsData } = await supabase
-                .from("landmark_reviews")
-                .select("landmark_id, rating, landmark(name)")
+                .from("reviews")
+                .select("place_id, rating, places(name)")
                 .not("rating", "is", null);
 
             const ratingStats: Record<string, { sum: number; count: number; name: string }> = {};
 
-            reviewsData?.forEach((review: any) => {
-                if (review.landmark_id && review.rating !== null && review.landmark?.name) {
-                    if (!ratingStats[review.landmark_id]) {
-                        ratingStats[review.landmark_id] = { sum: 0, count: 0, name: review.landmark.name };
+            reviewsData?.forEach((review) => {
+                if (review.place_id && review.rating !== null && review.places?.name) {
+                    if (!ratingStats[review.place_id]) {
+                        ratingStats[review.place_id] = { sum: 0, count: 0, name: review.places.name };
                     }
-                    ratingStats[review.landmark_id].sum += review.rating;
-                    ratingStats[review.landmark_id].count += 1;
+                    ratingStats[review.place_id].sum += review.rating;
+                    ratingStats[review.place_id].count += 1;
                 }
             });
 

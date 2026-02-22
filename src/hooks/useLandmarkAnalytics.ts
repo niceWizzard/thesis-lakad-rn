@@ -23,7 +23,7 @@ export const useLandmarkAnalytics = (landmarkId: string): UseQueryResult<Landmar
             const { count: totalVisits, error: visitsError } = await supabase
                 .from("stops")
                 .select("*", { count: "exact", head: true })
-                .eq("landmark_id", id);
+                .eq("place_id", id);
 
             if (visitsError) throw visitsError;
 
@@ -31,7 +31,7 @@ export const useLandmarkAnalytics = (landmarkId: string): UseQueryResult<Landmar
             const { data: stops, error: stopsError } = await supabase
                 .from("stops")
                 .select("itinerary_id, created_at")
-                .eq("landmark_id", id);
+                .eq("place_id", id);
 
             if (stopsError) throw stopsError;
 
@@ -68,9 +68,9 @@ export const useLandmarkAnalytics = (landmarkId: string): UseQueryResult<Landmar
 
             // 4. Review Analytics
             const { data: reviews, error: reviewsError } = await supabase
-                .from("landmark_reviews")
+                .from("reviews")
                 .select("rating")
-                .eq("landmark_id", id);
+                .eq("place_id", id);
 
             if (reviewsError) throw reviewsError;
 

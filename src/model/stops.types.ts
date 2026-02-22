@@ -1,8 +1,8 @@
 import { Database } from "@/database.types";
-import { Landmark } from "./landmark.types";
+import { Place } from "./places.types";
 
 export type Stop = Database['public']['Tables']['stops']['Row']
-export type StopWithLandmark = Stop & {
-    landmark: Landmark
+export type StopWithPlace = Stop & {
+    place: Place
 }
 

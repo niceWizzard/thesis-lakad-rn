@@ -1,13 +1,13 @@
-import { Landmark } from "@/src/model/landmark.types";
+import { Place } from "@/src/model/places.types";
 import { supabase } from "../supabase";
 
 /**
  * Fetches all active pasalubong centers from the database.
- * @returns {Promise<Landmark[]>} Array of active pasalubong centers, sorted by most recently updated.
+ * @returns {Promise<Place[]>} Array of active pasalubong centers, sorted by most recently updated.
  */
-export const fetchPasalubongCenters = async (): Promise<Landmark[]> => {
+export const fetchPasalubongCenters = async (): Promise<Place[]> => {
     const { data, error } = await supabase
-        .from('pasalubong_centers')
+        .from('places')
         .select('*')
         .is('deleted_at', null)
         .order('updated_at', { ascending: false });
@@ -16,20 +16,20 @@ export const fetchPasalubongCenters = async (): Promise<Landmark[]> => {
         throw error;
     }
 
-    // Map to Landmark type with defaults for UI compatibility
+    // Map to Place type with defaults for UI compatibility
     return data.map((item: any) => ({
         ...item,
         type: 'Pasalubong Center'
-    })) as Landmark[];
+    })) as Place[];
 }
 
 /**
  * Fetches all archived or "soft-deleted" pasalubong centers.
- * @returns {Promise<Landmark[]>} Array of deleted pasalubong centers.
+ * @returns {Promise<Place[]>} Array of deleted pasalubong centers.
  */
-export const fetchArchivedPasalubongCenters = async (): Promise<Landmark[]> => {
+export const fetchArchivedPasalubongCenters = async (): Promise<Place[]> => {
     const { data, error } = await supabase
-        .from('pasalubong_centers')
+        .from('places')
         .select('*')
         .not('deleted_at', 'is', null)
         .order('updated_at', { ascending: false });
@@ -41,21 +41,21 @@ export const fetchArchivedPasalubongCenters = async (): Promise<Landmark[]> => {
     return data.map((item: any) => ({
         ...item,
         type: 'Pasalubong Center'
-    })) as Landmark[];
+    })) as Place[];
 }
 
 /**
  * Retrieves a single pasalubong center record by its unique identifier.
  * @param {number | string} id - The unique ID of the pasalubong center.
- * @returns {Promise<Landmark>} A single pasalubong center object.
+ * @returns {Promise<Place>} A single pasalubong center object.
  */
-export const fetchPasalubongCenterById = async (id: number | string): Promise<Landmark> => {
+export const fetchPasalubongCenterById = async (id: number | string): Promise<Place> => {
     if (typeof id === 'string' && Number.isNaN(Number.parseInt(id))) {
         throw new Error("Invalid ID. Must be a number.")
     }
     const parsedId = Number(id)
     const { data, error } = await supabase
-        .from('pasalubong_centers')
+        .from('places')
         .select('*')
         .eq('id', parsedId)
         .maybeSingle();
@@ -67,5 +67,5 @@ export const fetchPasalubongCenterById = async (id: number | string): Promise<La
     return {
         ...data,
         type: 'Pasalubong Center'
-    } as unknown as Landmark;
+    } as unknown as Place;
 }

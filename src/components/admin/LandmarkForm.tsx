@@ -23,7 +23,7 @@ import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { LANDMARK_TYPES } from '@/src/constants/type';
-import { Landmark, LandmarkDistrict } from '@/src/model/landmark.types';
+import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { parseTime } from '@/src/utils/dateUtils';
 import { useNavigation, useRouter } from 'expo-router';
@@ -33,8 +33,8 @@ import { OpeningHoursInput } from './OpeningHoursInput';
 
 type FormData = z.infer<typeof createAndEditLandmarkSchema>;
 
-interface LandmarkFormProps {
-    initialData?: Landmark;
+interface PlaceFormProps {
+    initialData?: Place;
     onSubmit: (data: FormData, pendingImage: { base64?: string; remoteUrl?: string } | null) => Promise<void>;
     isUpdating: boolean;
     submitLabel: string;
@@ -49,7 +49,7 @@ export function LandmarkForm({
     isUpdating,
     disregardDiscardDialog,
 }:
-    LandmarkFormProps) {
+    PlaceFormProps) {
     const [uploadMode, setUploadMode] = useState<'file' | 'url'>('file');
     const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image_url || null);
     const [pendingImageData, setPendingImageData] = useState<{ base64?: string, remoteUrl?: string } | null>(null);
@@ -65,6 +65,7 @@ export function LandmarkForm({
         mode: "onChange",
         defaultValues: initialData ? {
             ...initialData,
+            type: initialData.type ?? undefined,
             latitude: initialData.latitude.toString(),
             longitude: initialData.longitude.toString(),
             gmaps_rating: initialData.gmaps_rating.toString(),
@@ -310,7 +311,7 @@ export function LandmarkForm({
                                                     <SelectIcon className="mr-3" as={ChevronDown} />
                                                 </SelectTrigger>
                                                 <SelectPortal><SelectBackdrop /><SelectContent><SelectDragIndicatorWrapper><SelectDragIndicator /></SelectDragIndicatorWrapper>
-                                                    {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict] || []).map((m) => (
+                                                    {(DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as PlaceDistrict] || []).map((m) => (
                                                         <SelectItem key={m} label={m} value={m} />
                                                     ))}
                                                 </SelectContent></SelectPortal>

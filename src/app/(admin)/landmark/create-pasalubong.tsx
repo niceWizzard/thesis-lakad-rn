@@ -8,7 +8,7 @@ import { PasalubongCenterForm } from '@/src/components/admin/CommercialForm';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { createAndEditPasalubongCenterSchema } from '@/src/schema/pasalubong';
 import { fetchPasalubongCenters } from '@/src/utils/landmark/fetchPasalubongCenters';
-import { createPasalubongCenter } from '@/src/utils/landmark/insertLandmark';
+import { createPlace } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -53,7 +53,7 @@ export default function AdminLandmarkCreateScreen() {
 
             const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
 
-            await createPasalubongCenter({
+            await createPlace({
                 name: formData.name,
                 description: formData.description,
                 latitude: parseFloat(formData.latitude),

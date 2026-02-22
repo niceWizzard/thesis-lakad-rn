@@ -38,7 +38,7 @@ import { Fab, FabIcon, FabLabel } from '@/components/ui/fab';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
 import { useQueryPasalubongCenters } from '@/src/hooks/useQueryPasalubongs';
-import { LandmarkDistrict } from '@/src/model/landmark.types';
+import { PlaceDistrict } from '@/src/model/places.types';
 
 // --- Updated SortKey Type ---
 type SortKey = 'id' | 'name' | 'rating';
@@ -273,7 +273,7 @@ export default function AdminPasalubongCenterScreens() {
                                         <VStack className="gap-2 mt-2">
                                             <Text size="xs" className="font-bold text-typography-400">MUNICIPALITY</Text>
                                             <View className="flex-row flex-wrap gap-2">
-                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as LandmarkDistrict].map(muni => (
+                                                {DISTRICT_TO_MUNICIPALITY_MAP[selectedDistrict as PlaceDistrict].map(muni => (
                                                     <TouchableOpacity
                                                         key={muni}
                                                         onPress={() => setSelectedMunicipality(prev => prev === muni ? null : muni)}

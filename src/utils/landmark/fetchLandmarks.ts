@@ -1,4 +1,4 @@
-import { Landmark, LandmarkWithStats } from "@/src/model/landmark.types";
+import { Place, PlaceWithStats } from "@/src/model/places.types";
 import { supabase } from "../supabase";
 /**
  * Fetches all active tourist attractions from the database.
@@ -9,15 +9,15 @@ import { supabase } from "../supabase";
  * sorted by most recently created.
  * @throws {PostgrestError} If the Supabase query fails.
  */
-export const fetchLandmarks = async (): Promise<LandmarkWithStats[]> => {
+export const fetchLandmarks = async (): Promise<PlaceWithStats[]> => {
     const { data, error } = await supabase
-        .rpc('get_landmarks_with_stats')
+        .rpc('get_places_with_stats')
 
     if (error) {
         throw error;
     }
 
-    return (data ?? []) as LandmarkWithStats[];
+    return (data ?? []) as PlaceWithStats[];
 }
 
 /**
@@ -28,9 +28,9 @@ export const fetchLandmarks = async (): Promise<LandmarkWithStats[]> => {
  * * @returns {Promise<Landmark[]>} A promise resolving to an array of deleted landmarks.
  * @throws {PostgrestError} If the Supabase query fails.
  */
-export const fetchArchivedLandmarks = async (): Promise<Landmark[]> => {
+export const fetchArchivedLandmarks = async (): Promise<Place[]> => {
     const { data, error } = await supabase
-        .from('landmark')
+        .from('places')
         .select('*')
         .eq('creation_type', "TOURIST_ATTRACTION")
         .not('deleted_at', 'is', null)
@@ -63,12 +63,12 @@ export const fetchLandmarkById = async (id: number | string) => {
     const parsedId = Number(id)
 
     let { data, error } = await supabase
-        .rpc('get_landmarks_with_stats', {
+        .rpc('get_places_with_stats', {
             target_id: parsedId
         })
 
     if (error) {
         throw error;
     }
-    return data ? (data[0] as LandmarkWithStats) : null;
+    return data ? (data[0] as PlaceWithStats) : null;
 }

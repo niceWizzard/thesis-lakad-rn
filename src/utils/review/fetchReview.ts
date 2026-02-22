@@ -1,14 +1,15 @@
+import { Place } from "@/src/model/places.types";
 import { ReviewWithAuthor } from "@/src/model/review.types";
 import { supabase } from "../supabase";
 
-export const fetchReviewById = async (landmarkId: string | number, userId: string): Promise<ReviewWithAuthor | null> => {
-    if (typeof landmarkId !== 'number') {
-        landmarkId = Number(landmarkId);
+export const fetchReviewById = async (placeId: string | number, userId: string): Promise<ReviewWithAuthor | null> => {
+    if (typeof placeId !== 'number') {
+        placeId = Number(placeId);
     }
     const { data } = await supabase
-        .from('landmark_reviews')
+        .from('reviews')
         .select('*')
-        .eq('landmark_id', landmarkId)
+        .eq('place_id', placeId)
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -55,8 +56,8 @@ export const fetchRecentReviewsByLandmarkId = async (landmarkId: string | number
         landmarkId = Number(landmarkId);
     }
 
-    const { data: reviewsData, error } = await supabase.rpc('get_recent_reviews_by_landmark', {
-        landmark_id_input: landmarkId,
+    const { data: reviewsData, error } = await supabase.rpc('get_recent_reviews_by_place', {
+        place_id_input: landmarkId,
         limit_input: limit,
     });
 
@@ -72,18 +73,16 @@ export const fetchRecentReviewsByLandmarkId = async (landmarkId: string | number
             if (img.includes('supabase.co')) return img;
             return supabase.storage.from('images').getPublicUrl(img).data.publicUrl;
         });
-
         return {
             ...review,
             images: publicUrls,
-            landmark_id: typeof landmarkId === 'number' ? landmarkId : Number(landmarkId),
-            updated_at: review.created_at,
-        } as ReviewWithAuthor;
+        };
     });
 };
 
+
 export const fetchFilterableReviews = async ({
-    landmarkId,
+    placeId,
     pageNumber = 1,
     pageSize = 10,
     ratingFilter,
@@ -91,7 +90,7 @@ export const fetchFilterableReviews = async ({
     sortDescending = true,
     ignoreUserId = undefined,
 }: {
-    landmarkId: string | number;
+    placeId: string | number;
     pageNumber?: number;
     pageSize?: number;
     ratingFilter?: number;
@@ -99,13 +98,13 @@ export const fetchFilterableReviews = async ({
     sortDescending?: boolean;
     ignoreUserId?: string;
 }): Promise<ReviewWithAuthor[]> => {
-    if (typeof landmarkId !== 'number') {
-        landmarkId = Number(landmarkId);
+    if (typeof placeId !== 'number') {
+        placeId = Number(placeId);
     }
 
     // Prepare arguments, explicitly pass undefined for optional params if not provided
     const args: any = {
-        landmark_id_input: landmarkId,
+        place_id_input: placeId,
         page_number: pageNumber,
         page_size: pageSize,
         sort_column: sortColumn,
@@ -144,7 +143,7 @@ export const fetchFilterableReviews = async ({
 
 export async function fetchReviewByReviewId(reviewId: string): Promise<ReviewWithAuthor | null> {
     const { data, error } = await supabase
-        .from('landmark_reviews')
+        .from('reviews')
         .select('*')
         .eq('id', Number(reviewId!))
         .single();
@@ -183,12 +182,12 @@ export async function fetchReviewByReviewId(reviewId: string): Promise<ReviewWit
     return { ...data, images: publicUrls, author_name };
 }
 
-export const fetchMyReviews = async (userId: string): Promise<(ReviewWithAuthor & { landmark: any })[]> => {
+export const fetchMyReviews = async (userId: string): Promise<(ReviewWithAuthor & { place: Place })[]> => {
     const { data: reviewsData, error } = await supabase
-        .from('landmark_reviews')
+        .from('reviews')
         .select(`
             *,
-            landmark:landmark_id (*)
+            place:places(*)
         `)
         .eq('user_id', userId)
         .order('updated_at', { ascending: false });
@@ -222,7 +221,7 @@ export const fetchMyReviews = async (userId: string): Promise<(ReviewWithAuthor 
             ...review,
             images: publicUrls,
             author_name,
-            landmark: Array.isArray(review.landmark) ? review.landmark[0] : review.landmark,
+            place: Array.isArray(review.place) ? review.place[0] : review.place,
         };
-    }) as (ReviewWithAuthor & { landmark: any })[];
+    }) as (ReviewWithAuthor & { place: Place })[];
 };
