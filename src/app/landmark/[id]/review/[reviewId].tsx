@@ -1,22 +1,38 @@
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { Star, User } from 'lucide-react-native';
-import React from 'react';
-import { ActivityIndicator, Image, ScrollView } from 'react-native';
+import { Flag, Star, User } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView } from 'react-native';
 
+import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Box } from '@/components/ui/box';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
+import { ChevronDownIcon, Icon } from '@/components/ui/icon';
+import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
+import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { VStack } from '@/components/ui/vstack';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
+import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchReviewByReviewId } from '@/src/utils/review/fetchReview';
-
+import { supabase } from '@/src/utils/supabase';
 
 
 export default function ReviewDetailScreen() {
     const { reviewId } = useLocalSearchParams<{ reviewId: string }>();
     const { primary } = useThemeConfig();
+    const { session } = useAuthStore();
+    const { showToast } = useToastNotification();
+
+    const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+    // new states for the report form
+    const [reportReason, setReportReason] = useState<string>('');
+    const [reportDetails, setReportDetails] = useState<string>('');
 
     const { data: review, isLoading, isError } = useQuery({
         queryKey: ['review_detail', reviewId],
@@ -42,9 +58,77 @@ export default function ReviewDetailScreen() {
         );
     }
 
+    const handleReportReview = async () => {
+        if (!session?.user?.id) return;
+
+        if (!reportReason) {
+            showToast({
+                title: "Missing Reason",
+                description: "Please select a reason for reporting.",
+                action: "info",
+            });
+            return;
+        }
+
+        setIsSubmittingReport(true);
+        try {
+            const { error } = await supabase.from('review_reports').insert({
+                review_id: Number(reviewId),
+                reporter_id: session.user.id,
+                reason: reportReason,
+                details: reportDetails
+            } as any);
+
+            // Handle unique constraint error (usually indicates already reported)
+            if (error?.code === '23505') {
+                showToast({
+                    title: "Notice",
+                    description: "You have already reported this review.",
+                    action: "info",
+                });
+                return;
+            } else if (error) {
+                throw error;
+            }
+
+            // Success
+            showToast({
+                title: "Report Submitted",
+                description: "Thank you for letting us know. We will review this shortly.",
+                action: "success",
+            });
+            setIsReportDialogOpen(false);
+            setReportReason('');
+            setReportDetails('');
+        } catch (error) {
+            console.error('Error reporting review:', error);
+            showToast({
+                title: "Error",
+                description: "Failed to submit report. Please try again.",
+                action: "error",
+            });
+        } finally {
+            setIsSubmittingReport(false);
+        }
+    };
+
+    const isOwnReview = session?.user?.id === review.user_id;
+
     return (
         <Box className="flex-1 bg-background-50">
-            <Stack.Screen options={{ title: 'Review' }} />
+            <Stack.Screen
+                options={{
+                    title: 'Review',
+                    headerRight: () => session?.user?.id && !isOwnReview ? (
+                        <Pressable
+                            onPress={() => setIsReportDialogOpen(true)}
+                            className="p-2 -mr-2 active:opacity-50"
+                        >
+                            <Icon as={Flag} size="md" className="text-typography-500" />
+                        </Pressable>
+                    ) : undefined
+                }}
+            />
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
                 <VStack space="lg" className="bg-background-0 rounded-3xl border border-outline-100 p-5">
 
@@ -116,6 +200,89 @@ export default function ReviewDetailScreen() {
                     )}
                 </VStack>
             </ScrollView>
+
+            <AlertDialog
+                isOpen={isReportDialogOpen}
+                onClose={() => {
+                    if (!isSubmittingReport) setIsReportDialogOpen(false);
+                }}
+            >
+                <AlertDialogBackdrop />
+                <AlertDialogContent className='rounded-3xl p-2'>
+                    <AlertDialogHeader className="px-5 pt-5 pb-2">
+                        <Heading size="xl" className="text-typography-950 font-bold">Report Review</Heading>
+                    </AlertDialogHeader>
+                    <AlertDialogBody className="px-5 pb-5">
+                        <VStack space="xl">
+                            <Text size="sm" className="text-typography-500 leading-snug">
+                                Help us maintain a safe community. Please let us know why this review should be removed.
+                            </Text>
+
+                            <VStack space="xs">
+                                <HStack className="items-center">
+                                    <Text size="sm" className="font-semibold text-typography-900">Reason</Text>
+                                    <Text size="xs" className="text-error-500 ml-1">*</Text>
+                                </HStack>
+                                <Select onValueChange={setReportReason} selectedValue={reportReason}>
+                                    <SelectTrigger variant="outline" size="md" className="rounded-xl border-outline-200 focus:border-primary-500">
+                                        <SelectInput placeholder="Select an option" className="text-typography-900" />
+                                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                                    </SelectTrigger>
+                                    <SelectPortal>
+                                        <SelectBackdrop />
+                                        <SelectContent className="rounded-t-3xl pb-8">
+                                            <SelectDragIndicatorWrapper>
+                                                <SelectDragIndicator />
+                                            </SelectDragIndicatorWrapper>
+                                            <VStack className="w-full px-2" space="sm">
+                                                <SelectItem label="Spam or misleading" value="Spam" className="rounded-lg" />
+                                                <SelectItem label="Inappropriate or offensive content" value="Inappropriate Content" className="rounded-lg" />
+                                                <SelectItem label="Harassment or bullying" value="Harassment" className="rounded-lg" />
+                                                <SelectItem label="Not relevant (Off-topic)" value="Off-topic" className="rounded-lg" />
+                                            </VStack>
+                                        </SelectContent>
+                                    </SelectPortal>
+                                </Select>
+                            </VStack>
+
+                            <VStack space="xs">
+                                <Text size="sm" className="font-semibold text-typography-900">Additional Details (Optional)</Text>
+                                <Textarea className="w-full rounded-xl border-outline-200 focus:border-primary-500 min-h-[100px]">
+                                    <TextareaInput
+                                        placeholder="Provide more details about your report..."
+                                        value={reportDetails}
+                                        onChangeText={setReportDetails}
+                                        className="text-typography-900 text-sm p-3"
+                                        textAlignVertical="top"
+                                    />
+                                </Textarea>
+                            </VStack>
+                        </VStack>
+                    </AlertDialogBody>
+                    <AlertDialogFooter className="px-5 pb-5 pt-0">
+                        <Button
+                            variant="outline"
+                            action="secondary"
+                            onPress={() => setIsReportDialogOpen(false)}
+                            size="md"
+                            isDisabled={isSubmittingReport}
+                            className="rounded-xl flex-1 mr-3 border-outline-200"
+                        >
+                            <ButtonText className="text-typography-600 font-medium">Cancel</ButtonText>
+                        </Button>
+                        <Button
+                            size="md"
+                            action="negative"
+                            onPress={handleReportReview}
+                            isDisabled={isSubmittingReport}
+                            className="rounded-xl flex-1 bg-error-600"
+                        >
+                            {isSubmittingReport && <ButtonSpinner color="white" />}
+                            <ButtonText className="font-semibold text-white">Report Review</ButtonText>
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Box>
     );
 }

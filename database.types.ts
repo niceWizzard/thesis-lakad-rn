@@ -285,6 +285,44 @@ export type Database = {
         }
         Relationships: []
       }
+      review_reports: {
+        Row: {
+          created_at: string
+          details: string
+          id: number
+          reason: string
+          reporter_id: string | null
+          review_id: number | null
+          status: Database["public"]["Enums"]["review_report_status"]
+        }
+        Insert: {
+          created_at?: string
+          details?: string
+          id?: number
+          reason?: string
+          reporter_id?: string | null
+          review_id?: number | null
+          status?: Database["public"]["Enums"]["review_report_status"]
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          id?: number
+          reason?: string
+          reporter_id?: string | null
+          review_id?: number | null
+          status?: Database["public"]["Enums"]["review_report_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "landmark_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stops: {
         Row: {
           created_at: string
@@ -497,6 +535,7 @@ export type Database = {
         | "Norzagaray"
         | "Santa Maria"
         | "SJDM"
+      review_report_status: "PENDING" | "ACTION_TAKEN" | "DISMISSED"
       user_type: "Regular" | "Admin" | "SuperAdmin"
     }
     CompositeTypes: {
@@ -690,6 +729,7 @@ export const Constants = {
         "Santa Maria",
         "SJDM",
       ],
+      review_report_status: ["PENDING", "ACTION_TAKEN", "DISMISSED"],
       user_type: ["Regular", "Admin", "SuperAdmin"],
     },
   },
