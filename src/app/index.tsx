@@ -25,7 +25,7 @@ import { supabase } from '../utils/supabase';
 
 const LakadSplashImage = require("@/assets/images/lakad-cover.png")
 
-const GITHUB_REPO = 'godotengine/godot';
+const GITHUB_REPO = 'niceWizzard/thesis-lakad-rn';
 const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
 const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 
