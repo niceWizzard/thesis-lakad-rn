@@ -3,8 +3,10 @@ import { useRouter } from 'expo-router';
 import {
     ArrowDownUp,
     Clock,
+    ListCheck,
     Navigation,
     PlusCircle,
+    Ruler,
     SquareStack
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -197,11 +199,23 @@ export function ViewingModeBottomSheet({
                 <HStack className='justify-between items-center px-4'>
                     <VStack className='flex-1'>
                         <Heading size='xl'>{itinerary.name}</Heading>
-                        <HStack space='sm' className='items-center'>
-                            <Icon as={Clock} size='xs' className='text-typography-400' />
-                            <Text size='sm' className='text-typography-500'>
-                                {itinerary.stops.length} Stops • {formatDistance(itinerary.distance)} • {formatDuration(totalDuration)}
+                        <HStack space='sm' className='items-center flex-wrap'>
+                            <Icon as={ListCheck} size='sm' className='text-typography-400' />
+                            <Text size='md' className='text-typography-500'>
+                                {itinerary.stops.length} Stops
                             </Text>
+                            <HStack className='items-center' space='xs'>
+                                <Icon as={Ruler} size='sm' className='text-typography-400' />
+                                <Text size='md' className='text-typography-500'>
+                                    Distance: {formatDistance(itinerary.distance)}
+                                </Text>
+                            </HStack>
+                            <HStack className='items-center' space='xs'>
+                                <Icon as={Clock} size='sm' className='text-typography-400' />
+                                <Text size='md' className='text-typography-500'>
+                                    Duration: {formatDuration(totalDuration)}
+                                </Text>
+                            </HStack>
                         </HStack>
                     </VStack>
                     <Button
