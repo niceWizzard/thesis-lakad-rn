@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import {
     AlertCircle,
     ArrowLeft,
+    ArrowRight,
     Info,
     MapPin,
     Share2,
@@ -13,7 +14,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Share, TouchableOpacit
 
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Box } from '@/components/ui/box';
-import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Button, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Divider } from '@/components/ui/divider';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
@@ -487,7 +488,8 @@ export default function LandmarkViewerScreen() {
                                 className="h-8 self-start -ml-1"
                                 onPress={() => router.push({ pathname: '/place/[id]/review/all' as any, params: { id: landmark.id.toString() } })}
                             >
-                                <ButtonText className="text-primary-600 font-semibold">See all reviews →</ButtonText>
+                                <ButtonText className="text-primary-600 font-semibold">See all reviews</ButtonText>
+                                <ButtonIcon as={ArrowRight} size="sm" className="text-primary-600" />
                             </Button>
                         )}
                     </VStack>
