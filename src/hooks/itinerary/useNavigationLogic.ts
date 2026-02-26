@@ -86,7 +86,6 @@ export const useNavigationLogic = ({
         try {
             await toggleStopStatus(visitedStop);
             await refetchItinerary();
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
             switchMode(Mode.Viewing);
             showToast({
                 title: "You have arrived!",
@@ -103,7 +102,7 @@ export const useNavigationLogic = ({
         } finally {
             isProcessingArrival.current = false;
         }
-    }, [refetchItinerary, showToast, switchMode, queryClient, isVoiceEnabled]);
+    }, [refetchItinerary, showToast, switchMode, isVoiceEnabled]);
 
 
     // -------------------------------------------------------------------------

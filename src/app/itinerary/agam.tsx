@@ -41,9 +41,11 @@ import AlgorithmModule from '@/modules/algorithm-module/src/AlgorithmModule';
 import LoadingModal from '@/src/components/LoadingModal';
 import { DISTRICT_TO_MUNICIPALITY_MAP, MUNICIPALITIES } from '@/src/constants/jurisdictions';
 import { StorageKey } from '@/src/constants/Key';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { PlaceDistrict, PlaceMunicipality } from '@/src/model/places.types';
+import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchDistanceMatrix } from '@/src/utils/distance/fetchDistanceMatrix';
 import { createItinerary } from '@/src/utils/fetchItineraries';
 import { fetchVerifiedPlaces } from '@/src/utils/landmark/fetchLandmarks';
@@ -97,10 +99,12 @@ enum GeneratingState {
 const CreateWithAgamScreenContent = () => {
     const router = useRouter();
     const { data: landmarks } = useQuery({
-        queryKey: ['landmarks'],
+        queryKey: [QueryKey.VERIFIED_LANDMARKS],
         queryFn: fetchVerifiedPlaces,
         initialData: [],
     })
+    const { session } = useAuthStore();
+    const userId = session?.user?.id;
     const queryClient = useQueryClient();
     const preferredTypes = useTypePreferences();
     const [state, setState] = useState(GeneratingState.Idle)
@@ -256,7 +260,7 @@ const CreateWithAgamScreenContent = () => {
                 distance
             });
 
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] });
             router.replace({ pathname: '/itinerary/[id]', params: { id: newId, autoOpenCardView: 'true', } });
         } catch (err: any) {
             console.log(err)

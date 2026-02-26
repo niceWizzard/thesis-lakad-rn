@@ -15,6 +15,7 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
+import { QueryKey } from '@/src/constants/QueryKey';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { fetchFilterableReviews } from '@/src/utils/review/fetchReview';
@@ -154,7 +155,7 @@ export default function AdminReviewsScreen() {
             if (deleteError) throw deleteError;
 
             await queryClient.invalidateQueries({ queryKey: ['admin-landmark-reviews', id] });
-            await queryClient.invalidateQueries({ queryKey: ['landmark-analytics', id] }); // invalidate analytics to refresh counts
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_ANALYTICS_BY_ID, id] }); // invalidate analytics to refresh counts
 
             showToast({
                 title: "Success",

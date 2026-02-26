@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import { QueryKey } from "../constants/QueryKey"
 import { fetchLandmarks } from "../utils/landmark/fetchLandmarks"
 
 export const useQueryUnverifiedPlaces = () => {
@@ -9,7 +10,7 @@ export const useQueryUnverifiedPlaces = () => {
         refetch,
         ...rest
     } = useQuery({
-        queryKey: ['pasalubong-centers'],
+        queryKey: [QueryKey.UNVERIFIED_LANDMARKS],
         queryFn: () => fetchLandmarks(false),
         initialData: [],
     })

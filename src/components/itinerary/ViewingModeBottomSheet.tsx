@@ -32,6 +32,8 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import LoadingModal from '@/src/components/LoadingModal';
 import StopListItem from '@/src/components/StopListItem';
+import { QueryKey } from '@/src/constants/QueryKey';
+import { useAuthStore } from '@/src/stores/useAuth';
 import { EditDurationModal } from './EditDurationModal';
 
 interface ViewingModeBottomSheetProps {
@@ -65,6 +67,8 @@ export function ViewingModeBottomSheet({
     const [isUpdating, setIsUpdating] = useState(false);
     const [editingStop, setEditingStop] = useState<StopWithPlace | null>(null);
     const queryClient = useQueryClient();
+    const { session } = useAuthStore()
+    const userId = session?.user.id;
 
     // Auto-scroll to top when sheet opens
     useEffect(() => {
@@ -110,7 +114,8 @@ export function ViewingModeBottomSheet({
         try {
             await toggleStopStatus(stop);
             await refetch();
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, itinerary.id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId] });
         } catch (e: any) {
             console.error("Error updating status:", e.message);
             showToast({
@@ -154,7 +159,8 @@ export function ViewingModeBottomSheet({
         try {
             await updateStopDuration(editingStop.id, duration);
             await refetch();
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, itinerary.id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId] });
             showToast({
                 title: "Duration updated",
                 description: `Visit duration for ${editingStop.place.name} updated.`,

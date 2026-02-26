@@ -10,6 +10,7 @@ import * as z from 'zod';
 import { Box } from '@/components/ui/box';
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Place } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
@@ -30,7 +31,7 @@ export default function AdminLandmarkEditScreen() {
 
 
     const { data: landmark, isLoading } = useQuery({
-        queryKey: ['landmark', id],
+        queryKey: [QueryKey.LANDMARK_BY_ID, id],
         queryFn: () => fetchLandmarkById(id.toString()),
         enabled: !!id,
     });
@@ -108,8 +109,10 @@ export default function AdminLandmarkEditScreen() {
             }
 
             const hasLocationChanged = formData.latitude !== landmark?.latitude.toString() || formData.longitude !== landmark?.longitude.toString();
+
+            // TODO: Make sure is_verified first
             if (hasLocationChanged) {
-                const landmarks = await queryClient.fetchQuery<Place[]>({ queryKey: ['landmarks'] })
+                const landmarks = await queryClient.fetchQuery<Place[]>({ queryKey: [QueryKey.ALL_LANDMARKS] })
                 const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
                     newWaypoint: {
                         id: id.toString(),
@@ -157,10 +160,12 @@ export default function AdminLandmarkEditScreen() {
 
             }
 
-            await queryClient.refetchQueries({ queryKey: ['landmarks'], });
+            await queryClient.refetchQueries({ queryKey: [QueryKey.ALL_LANDMARKS], });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_BY_ID, id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_ANALYTICS_BY_ID, id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ADMIN_ANALYTICS] });
         },
         onSuccess: async () => {
-            queryClient.invalidateQueries({ queryKey: ['landmark', id] });
             showToast({
                 title: "Landmark Updated!",
             })

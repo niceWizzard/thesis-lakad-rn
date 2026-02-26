@@ -6,6 +6,7 @@ import * as z from 'zod';
 
 
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { Place } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
@@ -88,7 +89,7 @@ export default function AdminLandmarkCreateScreen() {
 
             // Create distance matrix for new landmark
 
-            const landmarks = await queryClient.fetchQuery<Place[]>({ queryKey: ['landmarks'] })
+            const landmarks = await queryClient.fetchQuery<Place[]>({ queryKey: [QueryKey.ALL_LANDMARKS] })
 
             const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
                 newWaypoint: {
@@ -136,7 +137,7 @@ export default function AdminLandmarkCreateScreen() {
             }
 
 
-            await queryClient.fetchQuery({ queryKey: ['landmarks'] });
+            await queryClient.fetchQuery({ queryKey: [QueryKey.ALL_LANDMARKS] });
         },
         onSuccess: () => {
             showToast({

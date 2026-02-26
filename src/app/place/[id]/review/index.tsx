@@ -18,6 +18,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { VStack } from '@/components/ui/vstack';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchReviewById } from '@/src/utils/review/fetchReview';
@@ -45,7 +46,7 @@ export default function ReviewScreen() {
     const queryClient = useQueryClient();
 
     const { data: existingReview, isLoading: isLoadingReview, error: reviewError } = useQuery({
-        queryKey: ['landmark_review', id],
+        queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, id],
         queryFn: async () => {
             if (!session?.user?.id) return null;
 
@@ -140,9 +141,10 @@ export default function ReviewScreen() {
 
             if (deleteError) throw deleteError;
 
-            await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-            await queryClient.invalidateQueries({ queryKey: ['landmarks'] });
-            await queryClient.invalidateQueries({ queryKey: ['landmark_review', id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_BY_ID, id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ALL_LANDMARKS] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.VERIFIED_LANDMARKS] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, id] });
 
             showToast({
                 title: "Success",
@@ -241,9 +243,9 @@ export default function ReviewScreen() {
 
                 if (reviewError) throw reviewError;
             }
-            await queryClient.invalidateQueries({ queryKey: ['landmark_review', id] });
-            await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-            await queryClient.invalidateQueries({ queryKey: ['landmarks'] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_BY_ID, id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ALL_LANDMARKS] });
 
             reset();
             setIsSubmitting(false);

@@ -1,3 +1,4 @@
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useQueryUnverifiedPlaces } from '@/src/hooks/useQueryUnverified';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
@@ -16,7 +17,7 @@ export const useItineraryData = (id: string | number) => {
     const parsedId = Number(id);
 
     const { data: itinerary, isLoading, refetch } = useQuery({
-        queryKey: ['itinerary', id],
+        queryKey: [QueryKey.ITINERARY_BY_ID, id],
         enabled: !!userId && !!id && !isNaN(parsedId),
         queryFn: async () => fetchItineraryById(userId!, parsedId)
     });

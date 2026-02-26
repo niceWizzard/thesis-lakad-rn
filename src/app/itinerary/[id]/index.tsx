@@ -35,8 +35,10 @@ import StopoverCardSwiper from '@/src/components/itinerary/StopoverCardSwiper';
 import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 import LoadingModal from '@/src/components/LoadingModal';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { StopWithPlace } from '@/src/model/stops.types';
+import { useAuthStore } from '@/src/stores/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 
 
@@ -50,6 +52,8 @@ export default function ItineraryView() {
     const [isCardViewOpened, setIsCardViewOpened] = useState(false)
     const [localStops, setLocalStops] = useState<ItineraryWithStops['stops']>([])
     const queryClient = useQueryClient()
+    const { session } = useAuthStore();
+    const userId = session?.user?.id;
 
 
     // 1. Data Hooks
@@ -198,7 +202,7 @@ export default function ItineraryView() {
                         stops={localStops}
                         refetch={async () => {
                             await refetch()
-                            await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+                            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] })
                         }}
                         showToast={showToast}
                     />

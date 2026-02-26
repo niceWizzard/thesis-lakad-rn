@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { Place } from '@/src/model/places.types';
 import { ReviewWithAuthor } from '@/src/model/review.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -49,7 +50,7 @@ export default function MyReviewsScreen() {
 
 
     const { data: reviews = [], isLoading } = useQuery({
-        queryKey: ['my_reviews', session?.user?.id],
+        queryKey: [QueryKey.REVIEWS_BY_USER_ID, session?.user?.id],
         queryFn: () => fetchMyReviews(session!.user.id),
         enabled: !!session?.user?.id,
     });
@@ -57,7 +58,7 @@ export default function MyReviewsScreen() {
     useFocusEffect(
         useCallback(() => {
             if (session?.user?.id) {
-                queryClient.invalidateQueries({ queryKey: ['my_reviews', session.user.id] });
+                queryClient.invalidateQueries({ queryKey: [QueryKey.REVIEWS_BY_USER_ID, session.user.id] });
             }
         }, [session?.user?.id, queryClient])
     );

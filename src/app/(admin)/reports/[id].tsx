@@ -23,6 +23,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { deleteReviewAndResolveReport, dismissReport, fetchReportById } from '@/src/utils/admin/reports';
 
@@ -44,7 +45,7 @@ export default function ReportDetailScreen() {
     const [confirmAction, setConfirmAction] = useState<'dismiss' | 'delete' | null>(null);
 
     const { data: report, isLoading, isError } = useQuery({
-        queryKey: ['admin-report-detail', id],
+        queryKey: [QueryKey.ADMIN_REPORT_DETAIL, id],
         queryFn: () => fetchReportById(id!),
         enabled: !!id,
     });
@@ -54,8 +55,8 @@ export default function ReportDetailScreen() {
             await dismissReport(report!.id);
         },
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
-            await queryClient.invalidateQueries({ queryKey: ['admin-report-detail', id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ADMIN_REPORTS] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ADMIN_REPORT_DETAIL, id] });
             showToast({ title: 'Report Dismissed', description: 'The report has been dismissed.', action: 'info' });
             router.back();
         },
@@ -73,7 +74,7 @@ export default function ReportDetailScreen() {
             await deleteReviewAndResolveReport(report.review_id, report.id, report.review_images ?? []);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin-reports'] });
+            queryClient.invalidateQueries({ queryKey: [QueryKey.ADMIN_REPORTS] });
             showToast({ title: 'Review Deleted', description: 'The review has been removed and the report resolved.', action: 'success' });
             router.back();
         },

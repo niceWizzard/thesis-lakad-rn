@@ -1,5 +1,6 @@
 import { supabase } from "@/src/utils/supabase";
 import { useQuery } from "@tanstack/react-query";
+import { QueryKey } from "../constants/QueryKey";
 
 export interface AnalyticsData {
     totalItineraries: number;
@@ -14,7 +15,7 @@ export interface AnalyticsData {
 
 export const useAnalytics = () => {
     return useQuery({
-        queryKey: ["admin-analytics"],
+        queryKey: [QueryKey.ADMIN_ANALYTICS],
         queryFn: async (): Promise<AnalyticsData> => {
             // 1. Fetch Counts
             const itinerariesCount = await supabase

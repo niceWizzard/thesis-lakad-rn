@@ -15,10 +15,10 @@ import { Text } from '@/components/ui/text';
 import { useQueryClient } from '@tanstack/react-query';
 import { addNetworkStateListener, getNetworkStateAsync, NetworkState } from 'expo-network';
 import { StorageKey } from '../constants/Key';
+import { QueryKey } from '../constants/QueryKey';
 import { useAuthStore } from '../stores/useAuth';
 import { fetchAdminStatus as fetchUserType } from '../utils/fetchAdminStatus';
 import { fetchItinerariesOfUser } from '../utils/fetchItineraries';
-import { fetchLandmarks } from '../utils/landmark/fetchLandmarks';
 import { mmkvStorage } from '../utils/mmkv';
 import { supabase } from '../utils/supabase';
 
@@ -138,15 +138,9 @@ const LoadingSplashScreen = () => {
                 // 5. Set global auth state and enter the app
                 setAuth(session, userType);
 
-                await queryClient.prefetchQuery({
-                    queryKey: ['landmarks'],
-                    queryFn: () => fetchLandmarks(),
-                    staleTime: 1000 * 60 * 2,
-                    initialData: [],
-                })
 
                 await queryClient.fetchQuery({
-                    queryKey: ['itineraries'],
+                    queryKey: [QueryKey.ITINERARIES, session.user.id],
                     queryFn: () => fetchItinerariesOfUser(session.user.id),
                     staleTime: 1000 * 60 * 2, // Consider it fresh for 5 minutes
                 });

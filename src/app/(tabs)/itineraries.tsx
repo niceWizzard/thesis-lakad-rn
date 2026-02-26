@@ -18,6 +18,7 @@ import { VStack } from '@/components/ui/vstack';
 import ExpandableFab from '@/src/components/ExpandableFAB';
 import { ItineraryItem } from '@/src/components/ItineraryItem';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -45,7 +46,7 @@ export default function ItinerariesScreen() {
         isRefetching,
         refetch
     } = useQuery<ItineraryWithStops[]>({
-        queryKey: ['itineraries', userId],
+        queryKey: [QueryKey.ITINERARIES, userId],
         queryFn: () => fetchItinerariesOfUser(userId!),
         enabled: !!userId,
     });

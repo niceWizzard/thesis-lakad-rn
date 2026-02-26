@@ -12,6 +12,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { QueryKey } from '@/src/constants/QueryKey';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { fetchAdminReports, ReportWithDetails, ReviewReportStatus } from '@/src/utils/admin/reports';
 
@@ -24,7 +25,7 @@ export default function AdminReportsScreen() {
     const [statusFilter, setStatusFilter] = useState<ReviewReportStatus>('PENDING');
 
     const { data: reports, isLoading, isError, refetch, isRefetching } = useQuery({
-        queryKey: ['admin-reports', statusFilter],
+        queryKey: [QueryKey.ADMIN_REPORTS, statusFilter],
         queryFn: () => fetchAdminReports(statusFilter),
     });
 

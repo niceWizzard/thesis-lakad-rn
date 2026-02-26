@@ -28,6 +28,7 @@ import { Center } from '@/components/ui/center';
 import { Divider } from '@/components/ui/divider';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import PlacesMapView from '@/src/components/PlacesMapView';
+import { QueryKey } from '@/src/constants/QueryKey';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { PlaceWithStats } from '@/src/model/places.types';
@@ -54,12 +55,13 @@ const ExploreTab = () => {
     const snapPoints = useMemo(() => ["30%", "80%",], []);
 
     const { data: landmarks } = useQuery({
-        queryKey: ['landmarks'],
+        queryKey: [QueryKey.ALL_LANDMARKS],
         queryFn: async () => {
             const { data, error } = await supabase.rpc('get_places_with_stats')
             if (error) {
                 throw error;
             }
+            if (data === null) return [];
             return data as PlaceWithStats[];
         },
         initialData: [],
@@ -91,13 +93,13 @@ const ExploreTab = () => {
     const { showToast } = useToastNotification();
 
     const { data: itineraries, isLoading: isLoadingItineraries } = useQuery({
-        queryKey: ['itineraries', userId!],
+        queryKey: [QueryKey.ITINERARIES, userId!],
         queryFn: async () => fetchItinerariesOfUser(userId!),
         enabled: !!userId && showNoItineraryAlert,
     });
 
     const { data: existingReview, isLoading: isLoadingReview } = useQuery({
-        queryKey: ['landmark_review', selectedLandmark?.id?.toString()],
+        queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, selectedLandmark?.id?.toString()],
         queryFn: async () => {
             if (!userId || !selectedLandmark?.id) return null;
 
@@ -124,7 +126,7 @@ const ExploreTab = () => {
     });
 
     const { data: recentReviews } = useQuery({
-        queryKey: ['recent_reviews', selectedLandmark?.id?.toString()],
+        queryKey: [QueryKey.RECENT_REVIEWS, selectedLandmark?.id?.toString()],
         queryFn: async () => {
             if (!selectedLandmark?.id) return [];
             return fetchRecentReviewsByLandmarkId(selectedLandmark.id);
@@ -144,7 +146,7 @@ const ExploreTab = () => {
                 distance: 0,
                 poiIds: [selectedLandmark.id],
             });
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] });
             setShowNoItineraryAlert(false); // Close the modal
             router.navigate({ pathname: '/itinerary/[id]', params: { id: newId } });
             setSelectedLandmark(null); // Close sheet
@@ -170,7 +172,7 @@ const ExploreTab = () => {
             });
             setShowNoItineraryAlert(false);
             showToast({ title: `Added to ${selectedItinerary.name}`, action: "success" });
-            await queryClient.invalidateQueries({ queryKey: ['itinerary', selectedItinerary.id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, selectedItinerary.id] });
 
             router.navigate({
                 pathname: '/itinerary/[id]',

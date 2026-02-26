@@ -32,6 +32,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { formatTimeDisplay } from '@/src/utils/dateUtils';
 import { fetchLandmarkById } from '@/src/utils/landmark/fetchLandmarks';
@@ -48,7 +49,7 @@ export default function AdminLandmarkDetailScreen() {
 
   // --- DATA FETCHING ---
   const { data: landmark, isLoading, error } = useQuery({
-    queryKey: ['landmark', id],
+    queryKey: [QueryKey.LANDMARK_BY_ID, id],
     queryFn: async () => fetchLandmarkById(id as string),
     enabled: !!id,
   });
@@ -68,9 +69,10 @@ export default function AdminLandmarkDetailScreen() {
         .eq('id', id as any);
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ['landmark', id] });
-      await queryClient.invalidateQueries({ queryKey: ['landmarks'] })
-      await queryClient.invalidateQueries({ queryKey: ['archived-landmarks'] })
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_BY_ID, id] });
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.VERIFIED_LANDMARKS] })
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.ALL_LANDMARKS] })
+      await queryClient.invalidateQueries({ queryKey: [QueryKey.ARCHIVED_LANDMARKS] })
     },
     onSuccess: (_, isRestoring) => {
       showToast({
@@ -84,7 +86,7 @@ export default function AdminLandmarkDetailScreen() {
   if (error) {
     return <Box className="flex-1 justify-center">
       <Text className="text-center">Error fetching landmark</Text>
-      <Button onPress={() => queryClient.invalidateQueries({ queryKey: ['landmark', id] })}>
+      <Button onPress={() => queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_BY_ID, id] })}>
         <ButtonText>Retry</ButtonText>
       </Button>
     </Box>;

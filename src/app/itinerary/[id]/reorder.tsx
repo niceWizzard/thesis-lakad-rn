@@ -22,6 +22,7 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import LoadingModal from '@/src/components/LoadingModal';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
 import { Place } from '@/src/model/places.types';
@@ -57,7 +58,7 @@ const ReorderScreen = () => {
     const [loadingModalMode, setLoadingModalMode] = useState(LoadingMode.Hidden);
 
     const { data: itinerary, isLoading, refetch, } = useQuery({
-        queryKey: ['itinerary', id],
+        queryKey: [QueryKey.ITINERARY_BY_ID, id],
         enabled: !!userId && !!id,
         queryFn: () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
     });

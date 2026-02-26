@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus, Wand2 } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { QueryKey } from '../constants/QueryKey';
 import { useAuthStore } from '../stores/useAuth';
 import { createItineraryOnly } from '../utils/fetchItineraries';
 
@@ -16,8 +17,10 @@ const ExpandableFab = () => {
     const router = useRouter();
     const { session } = useAuthStore()
     const queryClient = useQueryClient()
+    const userId = session?.user.id;
 
     const handleClose = () => setShowMenu(false);
+
 
     const handleManual = async () => {
         try {
@@ -25,7 +28,7 @@ const ExpandableFab = () => {
                 userId: session!.user.id,
                 distance: 0,
             })
-            await queryClient.invalidateQueries({ queryKey: ['itineraries'] })
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId] })
             router.navigate({
                 pathname: '/itinerary/[id]',
                 params: { id }

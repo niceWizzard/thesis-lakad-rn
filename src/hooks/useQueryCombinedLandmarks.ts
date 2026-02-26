@@ -9,7 +9,7 @@ export const useQueryCombinedLandmarks = () => {
         refetch,
         ...rest
     } = useQuery({
-        queryKey: ['combined-landmarks'],
+        queryKey: ['landmark-search'],
         queryFn: fetchCombinedLandmarks,
         initialData: [],
     })

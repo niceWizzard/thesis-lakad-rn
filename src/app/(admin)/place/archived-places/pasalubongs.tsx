@@ -35,6 +35,7 @@ import { VStack } from '@/components/ui/vstack';
 
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchArchivedUnverifiedPlaces } from '@/src/utils/landmark/fetchUnverifiedPlaces';
@@ -62,7 +63,7 @@ export default function AdminArchivedCommercialLandmarksScreen() {
         isRefetching,
         refetch
     } = useQuery<Place[]>({
-        queryKey: ['archived-pasalubong-centers'],
+        queryKey: [QueryKey.ARCHIVED_UNVERIFIED_LANDMARKS],
         queryFn: fetchArchivedUnverifiedPlaces,
         enabled: !!userId,
     });

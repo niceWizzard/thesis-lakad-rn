@@ -37,6 +37,7 @@ import { VStack } from '@/components/ui/vstack';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { LANDMARK_TYPES } from '@/src/constants/type';
 import { Place, PlaceDistrict } from '@/src/model/places.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -67,7 +68,7 @@ export default function AdminArchivedLandmarksScreen() {
         isRefetching,
         refetch
     } = useQuery<Place[]>({
-        queryKey: ['archived-landmarks'],
+        queryKey: [QueryKey.ARCHIVED_LANDMARKS],
         queryFn: fetchArchivedLandmarks,
         enabled: !!userId,
     });

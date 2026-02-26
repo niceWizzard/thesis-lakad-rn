@@ -14,6 +14,7 @@ import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragI
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { VStack } from '@/components/ui/vstack';
+import { QueryKey } from '@/src/constants/QueryKey';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -40,7 +41,7 @@ export default function ReviewDetailScreen() {
     const [reportDetails, setReportDetails] = useState<string>('');
 
     const { data: review, isLoading, isError } = useQuery({
-        queryKey: ['review_detail', reviewId],
+        queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, reviewId],
         queryFn: () => fetchReviewByReviewId(reviewId!),
         enabled: !!reviewId,
     });
@@ -97,8 +98,8 @@ export default function ReviewDetailScreen() {
                 await queryClient.invalidateQueries({ queryKey: ['admin-landmark-reviews', review.place_id.toString()] });
                 await queryClient.invalidateQueries({ queryKey: ['landmark-analytics', review.place_id.toString()] });
             }
-            await queryClient.invalidateQueries({ queryKey: ['reviews'] });
-            await queryClient.invalidateQueries({ queryKey: ['landmark-review'] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.REVIEWS] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, review.place_id?.toString()] });
 
             showToast({
                 title: "Success",

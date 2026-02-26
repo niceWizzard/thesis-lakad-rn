@@ -18,6 +18,7 @@ import { Modal, ModalBackdrop, ModalBody, ModalContent, ModalFooter, ModalHeader
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { supabase } from '@/src/utils/supabase';
@@ -43,7 +44,7 @@ const AccountSettingsScreen = () => {
 
     // 1. Fetch Profile Data
     const { data: userProfile, isLoading } = useQuery({
-        queryKey: ['profile', userId],
+        queryKey: [QueryKey.PROFILE, userId],
         enabled: !!userId,
         queryFn: async () => {
             const { error, data } = await supabase.from("profiles").select("*").eq("user_id", userId!).single();
@@ -77,7 +78,7 @@ const AccountSettingsScreen = () => {
 
             if (error) throw error;
 
-            await queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.PROFILE, userId] });
             reset({ name: form.name });
             showToast({
                 title: "Itinerary updated!",

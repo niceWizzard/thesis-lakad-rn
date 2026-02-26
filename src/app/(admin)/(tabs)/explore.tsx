@@ -13,6 +13,7 @@ import { PlaceWithStats } from '@/src/model/places.types';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import PlacesMapView from '@/src/components/PlacesMapView';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { supabase } from '@/src/utils/supabase';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { Camera } from '@rnmapbox/maps';
@@ -30,7 +31,7 @@ const AdminExploreTab = () => {
 
 
     const { data: landmarks } = useQuery({
-        queryKey: ['landmarks'],
+        queryKey: [QueryKey.ALL_LANDMARKS],
         queryFn: async () => {
             const { data, error } = await supabase.rpc('get_places_with_stats')
             if (error) {

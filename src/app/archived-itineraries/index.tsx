@@ -8,6 +8,7 @@ import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import ItinerarySkeleton from '@/src/components/ItinerarySkeleton';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -40,7 +41,7 @@ export default function ArchivedItinerariesScreen() {
         isRefetching,
         refetch
     } = useQuery<ItineraryWithStops[]>({
-        queryKey: ['archived_itineraries', userId],
+        queryKey: [QueryKey.ARCHIVED_ITINERARIES, userId],
         queryFn: () => fetchArchivedItineraries(userId!),
         enabled: !!userId,
     });
@@ -70,7 +71,7 @@ export default function ArchivedItinerariesScreen() {
                 description: "It is now back in your main list.",
             });
             refetch();
-            queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] });
         } catch (e: any) {
             showToast({
                 title: "Error restoring itinerary",

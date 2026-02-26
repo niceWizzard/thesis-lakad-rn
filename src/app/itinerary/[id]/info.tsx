@@ -20,6 +20,7 @@ import { VStack } from '@/components/ui/vstack';
 
 // Helpers
 import { Center } from '@/components/ui/center';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
 import { fetchItineraryById } from '@/src/utils/fetchItineraries';
@@ -44,7 +45,7 @@ const ItineraryInfoScreen = () => {
     const { showToast } = useToastNotification()
 
     const { data: itinerary, isLoading } = useQuery({
-        queryKey: ['itinerary', id],
+        queryKey: [QueryKey.ITINERARY_BY_ID, id],
         enabled: !!userId && !!id,
         queryFn: () => fetchItineraryById(userId!, Number.parseInt(id.toString()))
     });
@@ -88,8 +89,8 @@ const ItineraryInfoScreen = () => {
 
             if (error) throw error;
 
-            await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
-            await queryClient.invalidateQueries({ queryKey: ['itinerary', id] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, id] });
 
             reset({ name: form.name }); // Mark as pristine again
             showToast({
@@ -121,7 +122,7 @@ const ItineraryInfoScreen = () => {
                 title: "Itinerary moved to trash",
                 description: "You can restore it from Archived Itineraries.",
             })
-            await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] });
             router.dismissTo('/(tabs)/itineraries')
         } catch (e: any) {
             showToast({

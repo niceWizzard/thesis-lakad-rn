@@ -33,6 +33,7 @@ import {
 import { Center } from '@/components/ui/center';
 import ImageCreditModal from '@/src/components/ImageCreditModal';
 import PlaceSkeleton from '@/src/components/PlaceSkeleton';
+import { QueryKey } from '@/src/constants/QueryKey';
 import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useAuthStore } from '@/src/stores/useAuth';
@@ -68,7 +69,7 @@ export default function LandmarkViewerScreen() {
 
 
     const { data: landmark, isError, error, isLoading } = useQuery({
-        queryKey: ['landmark', id],
+        queryKey: [QueryKey.LANDMARK_BY_ID, id],
         queryFn: () => {
             return fetchLandmarkById(Number.parseInt(id!.toString()));
         },
@@ -91,7 +92,7 @@ export default function LandmarkViewerScreen() {
         },
         onSuccess: () => {
             // Invalidate queries so the itinerary refreshes when we go back
-            queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
+            queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, itineraryId] });
             showToast({ title: "Added to Itinerary", action: "success" });
             router.dismissAll()
             router.navigate({
@@ -105,13 +106,13 @@ export default function LandmarkViewerScreen() {
     });
 
     const { data: itineraries, isLoading: isLoadingItineraries } = useQuery({
-        queryKey: ['itineraries', userId!],
+        queryKey: [QueryKey.ITINERARIES, userId!],
         queryFn: async () => fetchItinerariesOfUser(userId!),
         enabled: !!userId && showNoItineraryAlert,
     });
 
     const { data: existingReview } = useQuery({
-        queryKey: ['landmark_review', id],
+        queryKey: [QueryKey.LANDMARK_REVIEW_BY_ID, id],
         queryFn: async () => {
             if (!userId || !id) return null;
             const { data, error } = await supabase
@@ -189,7 +190,7 @@ export default function LandmarkViewerScreen() {
                 poiIds: [landmark.id],
             });
             setShowNoItineraryAlert(false); // Close the modal
-            await queryClient.invalidateQueries({ queryKey: ['itineraries'] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARIES, userId!] });
             router.replace({ pathname: '/itinerary/[id]', params: { id: newId } });
         } catch (e: any) {
             showToast({
@@ -219,7 +220,7 @@ export default function LandmarkViewerScreen() {
             })
             setShowNoItineraryAlert(false);
             showToast({ title: `Added to ${name}`, action: "success" });
-            await queryClient.invalidateQueries({ queryKey: ['itinerary', itineraryId] });
+            await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, itineraryId] });
             router.dismissAll()
             router.navigate({
                 pathname: '/itinerary/[id]',

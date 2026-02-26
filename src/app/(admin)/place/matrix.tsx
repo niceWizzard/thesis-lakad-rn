@@ -15,6 +15,7 @@ import { VStack } from '@/components/ui/vstack';
 
 // Logic & Utils
 import LoadingModal from '@/src/components/LoadingModal';
+import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { calculateDistanceMatrix } from '@/src/utils/distance/calculateDistanceMatrix';
 import { supabase } from '@/src/utils/supabase';
@@ -26,7 +27,7 @@ const ManageDistanceMatrix = () => {
     const [queryProgress, setQueryProgress] = useState(0)
 
     const { data: places, isLoading: loadingPlaces, error: placesError } = useQuery({
-        queryKey: ['places'],
+        queryKey: [QueryKey.VERIFIED_LANDMARKS],
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('places')
@@ -42,7 +43,7 @@ const ManageDistanceMatrix = () => {
 
     // Fetch existing stats from the distances table
     const { data: stats, isLoading: loadingStats, error: statsError } = useQuery({
-        queryKey: ['distance-stats'],
+        queryKey: [QueryKey.DISTANCE_STATS],
         queryFn: async () => {
             const { count, error } = await supabase
                 .from('distances')
