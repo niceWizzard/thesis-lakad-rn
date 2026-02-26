@@ -222,7 +222,7 @@ export default function ReviewDetailScreen() {
                                 <Text className="font-semibold text-typography-900">
                                     {review.author_name || 'Lakbay User'}
                                 </Text>
-                                <Text size="xs" className="text-typography-500">
+                                <Text size="sm" className="text-typography-500">
                                     {new Date(review.updated_at).toLocaleDateString(undefined, {
                                         year: 'numeric', month: 'long', day: 'numeric',
                                         hour: '2-digit',
@@ -260,7 +260,7 @@ export default function ReviewDetailScreen() {
                     {/* Images */}
                     {review.images && review.images.length > 0 && (
                         <VStack space="sm">
-                            <Text size="xs" className="font-bold text-typography-500 uppercase tracking-wider">
+                            <Text size="sm" className="font-bold text-typography-500 uppercase tracking-wider">
                                 Photos ({review.images.length})
                             </Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -294,14 +294,14 @@ export default function ReviewDetailScreen() {
                     </AlertDialogHeader>
                     <AlertDialogBody className="px-5 pb-5">
                         <VStack space="xl">
-                            <Text size="sm" className="text-typography-500 leading-snug">
+                            <Text size="md" className="text-typography-500 leading-snug">
                                 Help us maintain a safe community. Please let us know why this review should be removed.
                             </Text>
 
                             <VStack space="xs">
                                 <HStack className="items-center">
-                                    <Text size="sm" className="font-semibold text-typography-900">Reason</Text>
-                                    <Text size="xs" className="text-error-500 ml-1">*</Text>
+                                    <Text size="md" className="font-semibold text-typography-900">Reason</Text>
+                                    <Text size="sm" className="text-error-500 ml-1">*</Text>
                                 </HStack>
                                 <Select onValueChange={setReportReason} selectedValue={reportReason}>
                                     <SelectTrigger variant="outline" size="md" className="rounded-xl border-outline-200 focus:border-primary-500">
@@ -326,13 +326,13 @@ export default function ReviewDetailScreen() {
                             </VStack>
 
                             <VStack space="xs">
-                                <Text size="sm" className="font-semibold text-typography-900">Additional Details (Optional)</Text>
+                                <Text size="md" className="font-semibold text-typography-900">Additional Details (Optional)</Text>
                                 <Textarea className="w-full rounded-xl border-outline-200 focus:border-primary-500 min-h-[100px]">
                                     <TextareaInput
                                         placeholder="Provide more details about your report..."
                                         value={reportDetails}
                                         onChangeText={setReportDetails}
-                                        className="text-typography-900 text-sm p-3"
+                                        className="text-typography-900 p-3"
                                         textAlignVertical="top"
                                     />
                                 </Textarea>
@@ -346,7 +346,7 @@ export default function ReviewDetailScreen() {
                             onPress={() => setIsReportDialogOpen(false)}
                             size="md"
                             isDisabled={isSubmittingReport}
-                            className="rounded-xl flex-1 mr-3 border-outline-200"
+                            className="rounded-xl border-outline-200"
                         >
                             <ButtonText className="text-typography-600 font-medium">Cancel</ButtonText>
                         </Button>
@@ -355,10 +355,10 @@ export default function ReviewDetailScreen() {
                             action="negative"
                             onPress={handleReportReview}
                             isDisabled={isSubmittingReport}
-                            className="rounded-xl flex-1 bg-error-600"
+                            className="rounded-xl bg-error-600"
                         >
                             {isSubmittingReport && <ButtonSpinner color="white" />}
-                            <ButtonText className="font-semibold text-white">Report Review</ButtonText>
+                            <ButtonText className="font-semibold">Report Review</ButtonText>
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
