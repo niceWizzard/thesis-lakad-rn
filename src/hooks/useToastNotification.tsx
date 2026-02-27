@@ -23,7 +23,7 @@ export const useToastNotification = () => {
         const { Icon } = getIconConfig();
 
         toast.show({
-            placement: "bottom",
+            placement: "top",
             duration: 2000,
             render: ({ id }) => {
                 const toastId = "toast-" + id
