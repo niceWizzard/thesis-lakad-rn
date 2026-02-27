@@ -9,7 +9,6 @@ data class InternalPOI(
     val id: String,
     val interestValue: Double, // User interest score [cite: 791, 812]
     val rating: Double,        // Google Maps/User rating [cite: 819, 831]
-    val popularity: Int = 1    // Default popularity if not provided [cite: 821]
 )
 
 data class Itinerary(
@@ -44,7 +43,7 @@ class AGAMOptimizer(
 
     /**
      * Calculates fitness score using the weighted multi-objective function[cite: 788].
-     * Z = w1(Interest) + w2(Total N) + w3(Rating) + w4(Popularity)[cite: 788, 790].
+     * Z = w1(Interest) + w2(Total N) + w3(Rating)[cite: 788, 790].
      */
     private fun calculateFitness(itinerary: Itinerary) {
         if (itinerary.pois.isEmpty()) {
@@ -54,12 +53,10 @@ class AGAMOptimizer(
         val fInterest = itinerary.pois.sumOf { it.interestValue }
         val fTotalN = itinerary.pois.size.toDouble() / allPOIs.size
         val fRating = itinerary.pois.sumOf { it.rating } / (allPOIs.size * 5.0)
-        val fPopularity = itinerary.pois.sumOf { it.popularity.toDouble() } // Simplified [cite: 821]
 
         itinerary.fitness = (weights[0] * fInterest) +
                 (weights[1] * fTotalN) +
-                (weights[2] * fRating) +
-                (weights[3] * (fPopularity / allPOIs.size))
+                (weights[2] * fRating)
     }
 
     /**
