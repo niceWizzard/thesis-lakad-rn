@@ -23,7 +23,7 @@ import { Switch } from '@/components/ui/switch';
 import { Text } from '@/components/ui/text';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
 import { DISTRICT_TO_MUNICIPALITY_MAP } from '@/src/constants/jurisdictions';
-import { LANDMARK_TYPES } from '@/src/constants/type';
+import { LANDMARK_TYPES, UNVERIFIED_PLACES_TYPES } from '@/src/constants/type';
 import { PlaceDistrict, PlaceWithOpeningHours } from '@/src/model/places.types';
 import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { parseTime } from '@/src/utils/dateUtils';
@@ -66,7 +66,8 @@ export function LandmarkForm({
         mode: "onChange",
         defaultValues: initialData ? {
             ...initialData,
-            type: initialData.type ?? undefined,
+            type: initialData.type || undefined,
+            unverified_type: initialData.unverified_type || undefined,
             latitude: initialData.latitude.toString(),
             longitude: initialData.longitude.toString(),
             gmaps_rating: initialData.gmaps_rating.toString(),
@@ -87,6 +88,7 @@ export function LandmarkForm({
         } : {
             name: '',
             type: undefined,
+            unverified_type: undefined,
             district: undefined,
             municipality: undefined,
             description: '', latitude: '', longitude: '', gmaps_rating: '0', externalImageUrl: '',
@@ -103,6 +105,7 @@ export function LandmarkForm({
     const latitude = watch('latitude');
     const longitude = watch('longitude');
     const selectedDistrict = watch('district');
+    const isVerified = watch('is_verified');
 
     const hasUnsavedChanges = isDirty || !!pendingImageData;
 
@@ -337,29 +340,47 @@ export function LandmarkForm({
                                 <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.gmaps_rating?.message}</FormControlErrorText></FormControlError>
                             </FormControl>
 
-                            <FormControl isInvalid={!!errors.type}>
+                            <FormControl isInvalid={isVerified ? !!errors.type : !!errors.unverified_type}>
                                 <FormControlLabel className="mb-1">
                                     <HStack className="items-center gap-2">
                                         <Icon as={Tag} size="xs" />
-                                        <FormControlLabelText size="xs" className="uppercase font-bold">Types</FormControlLabelText>
+                                        <FormControlLabelText size="xs" className="uppercase font-bold">Category</FormControlLabelText>
                                     </HStack>
                                 </FormControlLabel>
                                 <Box className="bg-background-50 p-4 rounded-2xl border border-outline-100">
-                                    <Controller control={control} name="type" render={({ field: { onChange, value } }) => (
-                                        <RadioGroup value={value} onChange={onChange}>
-                                            <VStack className="gap-3">{LANDMARK_TYPES.map((type) => (
-                                                <Radio key={type} value={type} size="md" aria-label={type}>
-                                                    <RadioIndicator>
-                                                        <RadioIcon as={CircleIcon} />
-                                                    </RadioIndicator>
-                                                    <RadioLabel className="ml-2">
-                                                        {type}
-                                                    </RadioLabel>
-                                                </Radio>
-                                            ))}</VStack>
-                                        </RadioGroup>
-                                    )} />
+                                    {isVerified ? (
+                                        <Controller control={control} name="type" render={({ field: { onChange, value } }) => (
+                                            <RadioGroup value={value} onChange={onChange}>
+                                                <VStack className="gap-3">{LANDMARK_TYPES.map((type) => (
+                                                    <Radio key={type} value={type} size="md" aria-label={type}>
+                                                        <RadioIndicator>
+                                                            <RadioIcon as={CircleIcon} />
+                                                        </RadioIndicator>
+                                                        <RadioLabel className="ml-2">
+                                                            {type}
+                                                        </RadioLabel>
+                                                    </Radio>
+                                                ))}</VStack>
+                                            </RadioGroup>
+                                        )} />
+                                    ) : (
+                                        <Controller control={control} name="unverified_type" render={({ field: { onChange, value } }) => (
+                                            <RadioGroup value={value} onChange={onChange}>
+                                                <VStack className="gap-3">{UNVERIFIED_PLACES_TYPES.map((type) => (
+                                                    <Radio key={type} value={type} size="md" aria-label={type}>
+                                                        <RadioIndicator>
+                                                            <RadioIcon as={CircleIcon} />
+                                                        </RadioIndicator>
+                                                        <RadioLabel className="ml-2">
+                                                            {type}
+                                                        </RadioLabel>
+                                                    </Radio>
+                                                ))}</VStack>
+                                            </RadioGroup>
+                                        )} />
+                                    )}
                                 </Box>
+                                <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{isVerified ? errors.type?.message : errors.unverified_type?.message}</FormControlErrorText></FormControlError>
                             </FormControl>
 
                             <FormControl isInvalid={!!errors.is_verified}>

@@ -358,7 +358,7 @@ const ExploreTab = () => {
                                         <Badge
                                             action="info" variant="solid" className="rounded-lg bg-primary-50 border-none">
                                             <BadgeText className="text-[10px] text-primary-700 uppercase font-bold">
-                                                {selectedLandmark.is_verified ? selectedLandmark.type : "Pasalubong Center"}
+                                                {selectedLandmark.is_verified ? selectedLandmark.type : selectedLandmark.unverified_type!}
                                             </BadgeText>
                                         </Badge>
                                     </HStack>

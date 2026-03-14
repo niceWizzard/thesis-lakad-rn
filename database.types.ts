@@ -129,6 +129,9 @@ export type Database = {
           municipality: Database["public"]["Enums"]["municipality"]
           name: string
           type: Database["public"]["Enums"]["phacto_type"] | null
+          unverified_type:
+            | Database["public"]["Enums"]["unverified_types"]
+            | null
           updated_at: string
         }
         Insert: {
@@ -147,6 +150,9 @@ export type Database = {
           municipality: Database["public"]["Enums"]["municipality"]
           name: string
           type?: Database["public"]["Enums"]["phacto_type"] | null
+          unverified_type?:
+            | Database["public"]["Enums"]["unverified_types"]
+            | null
           updated_at?: string
         }
         Update: {
@@ -165,6 +171,9 @@ export type Database = {
           municipality?: Database["public"]["Enums"]["municipality"]
           name?: string
           type?: Database["public"]["Enums"]["phacto_type"] | null
+          unverified_type?:
+            | Database["public"]["Enums"]["unverified_types"]
+            | null
           updated_at?: string
         }
         Relationships: []
@@ -374,7 +383,7 @@ export type Database = {
           name: string
           opening_hours: Json
           review_count: number
-          type: Database["public"]["Enums"]["landmark_type2"]
+          type: Database["public"]["Enums"]["phacto_type"]
           updated_at: string
         }[]
       }
@@ -398,7 +407,7 @@ export type Database = {
           name: string
           opening_hours: Json
           review_count: number
-          type: Database["public"]["Enums"]["landmark_type2"]
+          type: Database["public"]["Enums"]["phacto_type"]
           updated_at: string
         }[]
       }
@@ -548,6 +557,7 @@ export type Database = {
         | "Landmark"
         | "Sports & Recreation"
       review_report_status: "PENDING" | "ACTION_TAKEN" | "DISMISSED"
+      unverified_types: "Pasalubong Center" | "Accomodation"
       user_type: "Regular" | "Admin" | "SuperAdmin"
     }
     CompositeTypes: {
@@ -751,6 +761,7 @@ export const Constants = {
         "Sports & Recreation",
       ],
       review_report_status: ["PENDING", "ACTION_TAKEN", "DISMISSED"],
+      unverified_types: ["Pasalubong Center", "Accomodation"],
       user_type: ["Regular", "Admin", "SuperAdmin"],
     },
   },

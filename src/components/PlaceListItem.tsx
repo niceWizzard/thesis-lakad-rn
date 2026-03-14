@@ -31,7 +31,7 @@ export const PlaceListItem = ({ place, onPress }: { place: PlaceWithStats, onPre
                         <HStack className="flex-wrap gap-1 flex-1">
                             <Badge action="info" variant="outline" className="rounded-md px-1">
                                 <BadgeText className="text-[9px] uppercase font-bold">
-                                    {place.is_verified ? place.type : "Pasalubong Center"}
+                                    {place.is_verified ? place.type : place.unverified_type!}
                                 </BadgeText>
                             </Badge>
                         </HStack>

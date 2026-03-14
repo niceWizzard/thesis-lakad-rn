@@ -207,7 +207,7 @@ export default function AdminLandmarkDetailScreen() {
                       </HStack>
                       <HStack space="xs" className="flex-wrap">
                         <Badge size="sm" variant="outline" action='info' className="rounded-lg">
-                          <BadgeText>{landmark.type}</BadgeText>
+                          <BadgeText>{landmark.is_verified ? landmark.type : landmark.unverified_type}</BadgeText>
                         </Badge>
                       </HStack>
                     </VStack>

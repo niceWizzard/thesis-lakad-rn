@@ -1,4 +1,4 @@
-import { PlaceType } from "../model/places.types";
+import { PlaceType, PlaceUnverifiedType } from "../model/places.types";
 
 export const LANDMARK_TYPES = [
     'Historical',
@@ -9,3 +9,8 @@ export const LANDMARK_TYPES = [
     'Industrial Tourism',
     'Sports & Recreation',
 ] satisfies PlaceType[]
+
+export const UNVERIFIED_PLACES_TYPES = [
+    'Pasalubong Center',
+    'Accomodation'
+] satisfies PlaceUnverifiedType[]

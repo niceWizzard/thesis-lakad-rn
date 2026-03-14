@@ -385,7 +385,9 @@ export default function LandmarkViewerScreen() {
                     {/* Title & Tags */}
                     <VStack className="gap-2">
                         <Badge action="info" variant="outline" className="self-start rounded-lg border-primary-200">
-                            <BadgeText className="text-primary-600 font-bold uppercase text-[10px]">Historical Site</BadgeText>
+                            <BadgeText className="text-primary-600 font-bold uppercase text-[10px]">
+                                {landmark.is_verified ? landmark.type : landmark.unverified_type}
+                            </BadgeText>
                         </Badge>
                         <Heading size="2xl" className="text-typography-900 leading-tight">
                             {landmark.name}

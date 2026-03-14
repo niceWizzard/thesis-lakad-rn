@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { DISTRICT_TO_MUNICIPALITY_MAP, DISTRICTS, MUNICIPALITIES } from "../constants/jurisdictions";
-import { LANDMARK_TYPES } from "../constants/type";
+import { LANDMARK_TYPES, UNVERIFIED_PLACES_TYPES } from "../constants/type";
 import { PlaceDistrict } from "../model/places.types";
 
 export const createAndEditLandmarkSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters"),
-    type: z.enum(LANDMARK_TYPES, "Select at least one category"),
+    type: z.enum(LANDMARK_TYPES, "Select at least one category").optional(),
+    unverified_type: z.enum(UNVERIFIED_PLACES_TYPES, "Select at least one category").optional(),
     district: z.enum(DISTRICTS, "Please select a valid district"),
     municipality: z.enum(MUNICIPALITIES, "Please select a valid municipality"),
     description: z.string().min(10, "Description must be at least 10 characters"),
@@ -51,6 +52,22 @@ export const createAndEditLandmarkSchema = z.object({
             code: 'custom',
             message: `Municipality must be within District ${data.district}`,
             path: ["municipality"],
+        });
+    }
+
+    // Check type based on is_verified
+    const isVerified = data.is_verified ?? true; // defaults to true if not specified
+    if (isVerified && !data.type) {
+        ctx.addIssue({
+            code: 'custom',
+            message: "Select at least one category",
+            path: ["type"],
+        });
+    } else if (!isVerified && !data.unverified_type) {
+        ctx.addIssue({
+            code: 'custom',
+            message: "Select at least one category",
+            path: ["unverified_type"],
         });
     }
 });

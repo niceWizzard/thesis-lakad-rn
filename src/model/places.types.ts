@@ -15,5 +15,6 @@ export type PlaceWithStats = PlaceWithOpeningHours & {
 }
 
 export type PlaceType = Place['type']
+export type PlaceUnverifiedType = NonNullable<Place['unverified_type']>
 export type PlaceDistrict = Place['district']
 export type PlaceMunicipality = Place['municipality']
