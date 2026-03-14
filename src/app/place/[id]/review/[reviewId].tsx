@@ -213,12 +213,12 @@ export default function ReviewDetailScreen() {
                 <VStack space="lg" className="bg-background-0 rounded-3xl border border-outline-100 p-5">
 
                     {/* Author header */}
-                    <HStack className="justify-between items-start">
-                        <HStack className="items-center gap-3">
-                            <Box className="w-12 h-12 rounded-full bg-primary-100 items-center justify-center">
+                    <HStack className="justify-between items-start gap-2">
+                        <HStack className="items-center gap-3 flex-1">
+                            <Box className="w-12 h-12 rounded-full bg-primary-100 items-center justify-center shrink-0">
                                 <Icon as={User} size="md" className="text-primary-600" />
                             </Box>
-                            <VStack>
+                            <VStack className="flex-1">
                                 <Text className="font-semibold text-typography-900">
                                     {review.author_name || 'Lakbay User'}
                                 </Text>
@@ -233,7 +233,7 @@ export default function ReviewDetailScreen() {
                         </HStack>
 
                         {/* Star rating */}
-                        <HStack space="xs" className="items-center">
+                        <HStack space="xs" className="items-center shrink-0">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <Star
                                     key={star}
