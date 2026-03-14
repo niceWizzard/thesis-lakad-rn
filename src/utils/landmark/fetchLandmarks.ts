@@ -21,10 +21,9 @@ export const fetchLandmarks = async (isVerified: boolean = true): Promise<PlaceW
     return (data ?? []) as PlaceWithStats[];
 }
 
-export const fetchVerifiedPlaces = async (): Promise<Place[]> => {
+export const fetchVerifiedPlaces = async (): Promise<PlaceWithStats[]> => {
     const { data, error } = await supabase
-        .from('places')
-        .select('*')
+        .rpc('get_places_with_stats')
         .is('deleted_at', null)
         .eq('creation_type', "TOURIST_ATTRACTION")
         .eq('is_verified', true)

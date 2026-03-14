@@ -215,7 +215,9 @@ const CreateWithAgamScreenContent = () => {
 
             const pois = filteredLandmarks.reduce((obj, cur) => {
                 const interest = cur.type && preferredTypes.includes(cur.type) ? 1 : 0;
-                obj[cur.id] = { interest: interest, rating: cur.gmaps_rating / 5.0 };
+                console.log(cur.average_rating, cur.gmaps_rating)
+                const rating = cur.review_count > 0 ? cur.average_rating : cur.gmaps_rating;
+                obj[cur.id] = { interest: interest, rating: rating / 5.0 };
                 return obj;
             }, {} as any);
 

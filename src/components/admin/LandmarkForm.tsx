@@ -8,7 +8,7 @@ import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView } 
 
 import { Box } from '@/components/ui/box';
 import { Button, ButtonGroup, ButtonIcon, ButtonText } from '@/components/ui/button';
-import { FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlLabel, FormControlLabelText } from '@/components/ui/form-control';
+import { FormControl, FormControlError, FormControlErrorIcon, FormControlErrorText, FormControlHelper, FormControlHelperText, FormControlLabel, FormControlLabelText } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { CircleIcon, Icon } from '@/components/ui/icon';
@@ -338,6 +338,11 @@ export function LandmarkForm({
                                     <Input size="lg" className="rounded-xl"><InputSlot className="pl-3"><Icon as={Star} size="sm" className="text-warning-500" /></InputSlot><InputField value={value} onChangeText={onChange} keyboardType="numeric" /></Input>
                                 )} />
                                 <FormControlError><FormControlErrorIcon as={AlertCircle} /><FormControlErrorText>{errors.gmaps_rating?.message}</FormControlErrorText></FormControlError>
+                                <FormControlHelper>
+                                    <FormControlHelperText>
+                                        This is used as fallback rating if no Lakad reviews yet
+                                    </FormControlHelperText>
+                                </FormControlHelper>
                             </FormControl>
 
                             <FormControl isInvalid={isVerified ? !!errors.type : !!errors.unverified_type}>
