@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lakad",
     "slug": "thesis-lakad",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/lakad-icon.png",
     "scheme": "thesislakadrn",
@@ -40,7 +40,8 @@
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      ],
+      "versionCode": 2
     },
     "web": {
       "output": "static",
