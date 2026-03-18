@@ -81,7 +81,7 @@ const AccountSettingsScreen = () => {
             await queryClient.invalidateQueries({ queryKey: [QueryKey.PROFILE, userId] });
             reset({ name: form.name });
             showToast({
-                title: "Itinerary updated!",
+                title: "Display name updated!",
             })
         } catch (e: any) {
             showToast({
