@@ -46,6 +46,9 @@ const SearchResultsBox = ({
             const nameMatch = v.name?.toLowerCase().includes(query);
             if (nameMatch) return true;
 
+            const typeMatch = v.type?.toLowerCase().includes(query) || v.unverified_type?.toLowerCase().includes(query);
+            if (typeMatch) return true;
+
             // Special case: "pasalubong" search term
             // If the user searches for "pasalubong", we show all pasalubong centers.
             // We identify them by checking if they lack the `creation_type` property 

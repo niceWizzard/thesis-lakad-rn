@@ -13,6 +13,7 @@ None
 
 ### Added
 - Added password visibility toggle to signin, signup, change password screens
+- Added search by type of place in explore screen
 
 ### Changed
 - Removed "Lakad" heading in the More 
