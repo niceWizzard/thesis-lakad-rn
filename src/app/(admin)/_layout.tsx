@@ -32,6 +32,12 @@ const AdminRootLayout = () => {
                     headerTitle: "User Directory"
                 }}
             />
+            <Stack.Screen
+                name='users/[id]/edit'
+                options={{
+                    headerTitle: "Edit User"
+                }}
+            />
 
             <Stack.Screen
                 name='place/[id]/edit'

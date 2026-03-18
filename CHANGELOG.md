@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed color violet appearing in filter buttons
 - Fixed color violet on user profile on settings screen
 - Fixed version number on admin more screen to show actual version number
+- Fixed an issue where header title was defaulted to route on admin/users/[id]/edit
 
 ## [1.2.0](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.1.0...1.2.0)
 
