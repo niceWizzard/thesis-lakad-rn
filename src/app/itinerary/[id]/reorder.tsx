@@ -236,23 +236,6 @@ const ReorderScreen = () => {
                 )
             ]);
 
-            // 3. Get the optimized order (returns array of IDs)
-            setLoadingModalMode(LoadingMode.Optimizing)
-            let { distance, optimizedIds, failed } = await optimizeItinerary({
-                distanceMap: distanceMatrix,
-                itineraryDistance: itinerary.distance,
-            })
-
-            if (failed) {
-                showToast({
-                    title: "Already optimized",
-                    description: "The itinerary is already optimized and could not be optimized further.",
-                    action: "info"
-                })
-                return;
-            }
-
-
             let userDistanceMatrix: Record<string, Record<string, number>> = {};
             if (userLocation) {
                 const waypoints = [
@@ -268,26 +251,38 @@ const ReorderScreen = () => {
                     console.warn("Failed to calculate user distance matrix:", e);
                 }
             }
-            // Align the best route to start with the closest stop to the user
-            if (userLocation && userDistanceMatrix['user'] && optimizedIds.length > 0) {
-                let closestLandmarkId = optimizedIds[0];
+
+            let startNodeId: string | undefined = undefined;
+            if (userLocation && userDistanceMatrix['user'] && onGoingStops.length > 0) {
+                let closestLandmarkId = onGoingStops[0].place_id.toString();
                 let minDistanceToUser = Number.MAX_VALUE;
 
-                for (const idStr of optimizedIds) {
+                for (const stop of onGoingStops) {
+                    const idStr = stop.place_id.toString();
                     const stopDist = userDistanceMatrix['user'][idStr];
                     if (stopDist !== undefined && stopDist < minDistanceToUser) {
                         minDistanceToUser = stopDist;
                         closestLandmarkId = idStr;
                     }
                 }
+                startNodeId = closestLandmarkId;
+            }
 
-                const closestIndex = optimizedIds.indexOf(closestLandmarkId);
-                if (closestIndex !== -1) {
-                    optimizedIds = [
-                        ...optimizedIds.slice(closestIndex),
-                        ...optimizedIds.slice(0, closestIndex)
-                    ];
-                }
+            // 3. Get the optimized order (returns array of IDs)
+            setLoadingModalMode(LoadingMode.Optimizing)
+            let { distance, optimizedIds, failed } = await optimizeItinerary({
+                distanceMap: distanceMatrix,
+                currentRouteIds: onGoingStops.map(s => s.place_id.toString()),
+                startNodeId
+            })
+
+            if (failed) {
+                showToast({
+                    title: "Already optimized",
+                    description: "The itinerary is already optimized and could not be optimized further.",
+                    action: "info"
+                })
+                return;
             }
 
             // Calculate sequence path distance to be consistent with drag-and-drop
