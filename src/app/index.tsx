@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useState } from 'react';
 import { Image, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
 import { Button, ButtonText } from '@/components/ui/button';
@@ -172,42 +172,58 @@ const LoadingSplashScreen = () => {
         router.replace('/')
     }
 
+    const brandText = "LAKAD";
+
     return (
         <View className="flex-1 justify-center items-center">
-            <Animated.View
-                entering={FadeIn.duration(800)}
-                className="items-center"
-            >
-                {/* Brand Logo Placeholder */}
-                <View className="w-24 h-24 bg-background-0 rounded-3xl items-center justify-center mb-6 shadow-lg">
+            <View className="items-center">
+                {/* 1. Logo Popup (ZoomIn) */}
+                <Animated.View
+                    entering={ZoomIn.duration(600).springify()}
+                    className="w-28 h-28 bg-white rounded-3xl items-center justify-center mb-4 shadow-xl"
+                >
                     <Image
                         source={LakadSplashImage}
                         resizeMode="contain"
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                        }}
+                        className="w-full h-full"
                     />
+                </Animated.View>
+
+                {/* 2. Text Container sliding from bottom */}
+                <View className="flex-row">
+                    {brandText.split("").map((letter, index) => (
+                        <Animated.View
+                            key={index}
+                            entering={FadeInDown.delay(600 + (index * 100))
+                                .duration(600)
+                                .springify()
+                                .damping(12)}
+                            className="mx-0.5"
+                        >
+                            <Text className="text-4xl font-bold text-primary-600">
+                                {letter}
+                            </Text>
+                        </Animated.View>
+                    ))}
                 </View>
+            </View>
 
-            </Animated.View>
-
-            {/* Bottom Loader */}
-            {
-                loadingError ? (
-                    <Center className="w-[300px] h-[150px] mt-12">
+            {/* Bottom Loader / Error Logic */}
+            <View className="absolute bottom-20">
+                {loadingError ? (
+                    <Center className="w-[300px]">
                         <Heading className='text-error-700'>Something went wrong</Heading>
-                        <Text className='text-error-800'>{loadingError.message}</Text>
+                        <Text className='text-error-800 text-center'>{loadingError.message}</Text>
                         <Button className='mt-4' onPress={handleRetryPress}>
                             <ButtonText>Retry</ButtonText>
                         </Button>
                     </Center>
                 ) : (
-                    <Center className="w-[300px] h-[150px]">
+                    <Animated.View entering={FadeIn.delay(1200)}>
                         <Spinner size="large" />
-                    </Center>
-                )
-            }
+                    </Animated.View>
+                )}
+            </View>
 
             {/* Update Required Dialog */}
             <AlertDialog isOpen={showUpdateDialog} onClose={() => { /* intentionally non-dismissible */ }}>

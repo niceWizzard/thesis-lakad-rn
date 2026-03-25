@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added fullscreen mode in location selection dialog
 - Added a dialog that displays the changed distance and sequence after optimizing the itinerary
 - Added duplicate checker for adding places
+- Added animation to app loading splashscreen
 
 ### Changed
 - Changed edit duration modal to use a more ui coherent timer picker
