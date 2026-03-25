@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import * as z from 'zod';
 
-
 import { LandmarkForm } from '@/src/components/admin/LandmarkForm';
 import { QueryKey } from '@/src/constants/QueryKey';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -15,19 +14,19 @@ import { createPlace } from '@/src/utils/landmark/insertLandmark';
 import { supabase } from '@/src/utils/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-
 type CreateFormData = z.infer<typeof createAndEditLandmarkSchema>;
+
+const normalizeName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
 
 export default function AdminLandmarkCreateScreen() {
     const router = useRouter();
     const { showToast } = useToastNotification();
     const queryClient = useQueryClient();
-    const [disregardDiscardDialog, setDisregardDiscardDialog] = useState(false)
-
+    const [disregardDiscardDialog, setDisregardDiscardDialog] = useState(false);
 
     const createMutation = useMutation({
         mutationFn: async ({ formData, pendingImageData }: { formData: CreateFormData, pendingImageData: { base64?: string, remoteUrl?: string } | null }) => {
-            if (!pendingImageData) throw new Error("Please select an image first");
+            if (!pendingImageData) throw new Error('Please select an image first');
 
             let arrayBuffer: ArrayBuffer;
             let contentType: string;
@@ -56,6 +55,23 @@ export default function AdminLandmarkCreateScreen() {
 
             const { data: { publicUrl } } = supabase.storage.from('landmark_images').getPublicUrl(filePath);
 
+            // --- Duplicate name guard (non-soft-deleted places only) ---
+            const { data: activePlaces, error: nameCheckError } = await supabase
+                .from('places')
+                .select('id, name')
+                .is('deleted_at', null);
+
+            if (nameCheckError) throw nameCheckError;
+
+            const normalizedInput = normalizeName(formData.name);
+            const nameMatch = activePlaces?.find(p => normalizeName(p.name) === normalizedInput);
+
+            if (nameMatch) {
+                throw new Error(
+                    `A place named "${nameMatch.name}" already exists. Please use a different name.`
+                );
+            }
+
             const id = await createPlace({
                 name: formData.name,
                 description: formData.description,
@@ -69,7 +85,7 @@ export default function AdminLandmarkCreateScreen() {
                 image_url: publicUrl,
                 is_verified: formData.is_verified ?? true,
                 created_at: new Date().toISOString(),
-            })
+            });
 
             // Insert Opening Hours
             if (formData.opening_hours) {
@@ -78,21 +94,16 @@ export default function AdminLandmarkCreateScreen() {
                     day_of_week: h.day_of_week,
                     opens_at: formatTime(h.opens_at) || null,
                     closes_at: formatTime(h.closes_at) || null,
-                    is_closed: h.is_closed
+                    is_closed: h.is_closed,
                 }));
 
-                const { error: hoursError } = await supabase
-                    .from('opening_hours')
-                    .insert(hoursToInsert);
-
+                const { error: hoursError } = await supabase.from('opening_hours').insert(hoursToInsert);
                 if (hoursError) throw hoursError;
             }
 
             // Create distance matrix for new landmark
-
-            const landmarks = await queryClient.getQueryData<Place[]>([QueryKey.ALL_LANDMARKS])
-
-            if (!landmarks) throw new Error("No landmarks found")
+            const landmarks = await queryClient.getQueryData<Place[]>([QueryKey.ALL_LANDMARKS]);
+            if (!landmarks) throw new Error('No landmarks found');
 
             const { inbound, outbound, sourceId } = await calculateIncrementalMatrix({
                 newWaypoint: {
@@ -102,43 +113,35 @@ export default function AdminLandmarkCreateScreen() {
                 existingWaypoints: landmarks.map(v => ({
                     coords: [v.longitude, v.latitude],
                     id: v.id.toString(),
-                }))
+                })),
             });
 
-            // 1. Combine both directions into a single data array
             const dataToUpsert = [
-                // Outbound: New -> Others
                 ...Object.keys(outbound)
-                    .filter(destId => destId !== sourceId) // Avoid self-to-self
+                    .filter(destId => destId !== sourceId)
                     .map(destId => ({
                         source: Number(sourceId),
                         destination: Number(destId),
                         distance: outbound[destId],
                     })),
-                // Inbound: Others -> New
                 ...Object.keys(inbound)
-                    .filter(srcId => srcId !== sourceId) // Avoid self-to-self
+                    .filter(srcId => srcId !== sourceId)
                     .map(srcId => ({
                         source: Number(srcId),
                         destination: Number(sourceId),
                         distance: inbound[srcId],
-                    }))
+                    })),
             ];
 
-            // 2. Only proceed if there is data (prevents error on the first landmark)
             if (dataToUpsert.length > 0) {
                 const { error: upsertError } = await supabase
-                    .from("distances")
-                    .upsert(dataToUpsert, {
-                        onConflict: "source, destination"
-                    });
+                    .from('distances')
+                    .upsert(dataToUpsert, { onConflict: 'source, destination' });
 
                 if (upsertError) {
-                    console.error("Failed to update distance matrix:", upsertError);
                     throw upsertError;
                 }
             }
-
 
             await queryClient.invalidateQueries({ queryKey: [QueryKey.ALL_LANDMARKS] });
             if (formData.is_verified === false) {
@@ -146,20 +149,19 @@ export default function AdminLandmarkCreateScreen() {
             } else {
                 await queryClient.invalidateQueries({ queryKey: [QueryKey.VERIFIED_LANDMARKS] });
             }
-
         },
         onSuccess: () => {
-            showToast({
-                title: "Landmark Published!",
-            })
+            showToast({ title: 'Landmark Published!' });
             setDisregardDiscardDialog(true);
-            setTimeout(() => {
-                router.back();
-            }, 100)
+            setTimeout(() => { router.back(); }, 100);
         },
         onError: (error: any) => {
-            alert(error.message || "Failed to create landmark");
-        }
+            showToast({
+                title: 'Failed to create landmark',
+                description: error.message,
+                action: 'error',
+            });
+        },
     });
 
     return (
@@ -169,5 +171,5 @@ export default function AdminLandmarkCreateScreen() {
             submitLabel="Publish Landmark"
             disregardDiscardDialog={disregardDiscardDialog}
         />
-    )
+    );
 }

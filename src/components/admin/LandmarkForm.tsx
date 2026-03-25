@@ -36,7 +36,7 @@ type FormData = z.infer<typeof createAndEditLandmarkSchema>;
 
 interface PlaceFormProps {
     initialData?: PlaceWithOpeningHours;
-    onSubmit: (data: FormData, pendingImage: { base64?: string; remoteUrl?: string } | null) => Promise<void>;
+    onSubmit: (data: FormData, pendingImage: { base64?: string; remoteUrl?: string } | null) => Promise<void> | void;
     isUpdating: boolean;
     submitLabel: string;
     onDirtyChange?: (isDirty: boolean) => void;
