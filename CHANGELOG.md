@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.2.1...HEAD)
 
-None
+### Fixed
+- Fixed bug where optimize button doesn't optimize the itinerary
+
+
 
 ## [1.2.1](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.2.0...1.2.1)
 
