@@ -439,6 +439,7 @@ export function LandmarkForm({
                             </HStack>
                             <Button
                                 action='secondary'
+                                className='rounded-xl'
                                 onPress={() => setIsMapSelectionOpen(true)}
                             >
                                 <ButtonText>{longitude ? 'Change' : 'Select'} coordinate</ButtonText>
