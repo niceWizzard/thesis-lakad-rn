@@ -1,7 +1,8 @@
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from "@/components/ui/alert-dialog";
 import { Box } from "@/components/ui/box";
-import { Button, ButtonSpinner, ButtonText } from "@/components/ui/button"; // Added ButtonSpinner
+import { Button, ButtonIcon, ButtonSpinner, ButtonText } from "@/components/ui/button"; // Added ButtonSpinner
 import { Heading } from "@/components/ui/heading";
+import { Maximize, Minimize } from "lucide-react-native";
 import { HStack } from "@/components/ui/hstack";
 import { Input, InputField } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
@@ -11,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useToastNotification } from "../hooks/useToastNotification";
 import { isCoordinateNavigable } from "../utils/isCoordinateNavigable";
 import CustomMapView from "./CustomMapView";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function LocationDialogSelection({
     show, onClose,
@@ -24,6 +26,8 @@ export function LocationDialogSelection({
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [selectedLocation, setSelectedLocation] = useState<GeoJSON.Position | null>((initialLocation as GeoJSON.Position) ?? null);
     const [isVerifying, setIsVerifying] = useState(false); // New loading state
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const insets = useSafeAreaInsets();
 
     const [latInput, setLatInput] = useState<string>("");
     const [lngInput, setLngInput] = useState<string>("");
@@ -91,19 +95,25 @@ export function LocationDialogSelection({
             onClose()
         }}>
             <AlertDialogBackdrop />
-            <AlertDialogContent className="rounded-3xl">
-                <AlertDialogHeader>
-                    <VStack space="xs">
-                        <Heading size="lg"><Text>Select Location</Text></Heading>
-                        <Text size="sm" className="text-typography-500">
-                            <Text>Position the pin or enter coordinates manually.</Text>
-                        </Text>
-                    </VStack>
-                </AlertDialogHeader>
+            <AlertDialogContent className={isFullScreen ? "w-full h-full max-w-full m-0 p-0 rounded-none bg-background-0 overflow-hidden" : "rounded-3xl"}>
+                {!isFullScreen && (
+                    <AlertDialogHeader>
+                        <VStack space="xs">
+                            <Heading size="lg"><Text>Select Location</Text></Heading>
+                            <Text size="sm" className="text-typography-500">
+                                <Text>Position the pin or enter coordinates manually.</Text>
+                            </Text>
+                        </VStack>
+                    </AlertDialogHeader>
+                )}
 
-                <AlertDialogBody>
-                    <VStack space="md" className="py-4">
-                        <Box className={`h-64 w-full rounded-2xl overflow-hidden border border-outline-100 ${isVerifying ? 'opacity-50' : ''}`}>
+                <AlertDialogBody 
+                    className={isFullScreen ? "p-0 m-0 overflow-hidden" : ""}
+                    scrollEnabled={!isFullScreen}
+                    contentContainerStyle={isFullScreen ? { flexGrow: 1 } : undefined}
+                >
+                    <VStack space={isFullScreen ? undefined : "md"} className={isFullScreen ? "flex-1 h-full w-full" : "py-4"}>
+                        <Box className={isFullScreen ? `flex-1 w-full relative ${isVerifying ? 'opacity-50' : ''}` : `relative h-64 w-full rounded-2xl overflow-hidden border border-outline-100 ${isVerifying ? 'opacity-50' : ''}`}>
                             <CustomMapView
                                 cameraRef={cameraRef}
                                 cameraProps={{
@@ -134,10 +144,20 @@ export function LocationDialogSelection({
                                     </PointAnnotation>
                                 )}
                             </CustomMapView>
+                            <Box 
+                                className="absolute right-4 z-10" 
+                                pointerEvents="box-none"
+                                style={{ top: isFullScreen ? insets.top + 16 : 16 }}
+                            >
+                                <Button className="h-10 w-10 bg-background-0 rounded-full shadow-md elevation-5" variant="outline" action="secondary" onPress={() => setIsFullScreen(!isFullScreen)}>
+                                    <ButtonIcon as={isFullScreen ? Minimize : Maximize} />
+                                </Button>
+                            </Box>
                         </Box>
 
-                        <VStack space="md" className="w-full">
-                            <VStack className="flex-1" space="xs">
+                        {!isFullScreen && (
+                            <VStack space="md" className="w-full">
+                                <VStack className="flex-1" space="xs">
                                 <Text size="xs" className="font-bold uppercase text-typography-500"><Text>Latitude</Text></Text>
                                 <Input variant="outline" size="md" className="rounded-xl" isDisabled={isVerifying}>
                                     <InputField
@@ -159,23 +179,26 @@ export function LocationDialogSelection({
                                     />
                                 </Input>
                             </VStack>
-                        </VStack>
+                            </VStack>
+                        )}
                     </VStack>
                 </AlertDialogBody>
 
-                <AlertDialogFooter className="border-t border-outline-50 p-6">
-                    <HStack space="md" className="w-full">
-                        <Button variant="outline" action="secondary" className="flex-1 rounded-xl" onPress={onClose} isDisabled={isVerifying}>
-                            <ButtonText><Text>Cancel</Text></ButtonText>
-                        </Button>
-                        <Button action="primary" className="flex-1 rounded-xl" onPress={handleConfirm} isDisabled={!selectedLocation || isVerifying}>
-                            {isVerifying && <ButtonSpinner className="mr-2" />}
-                            <ButtonText>
-                                <Text>{isVerifying ? "Verifying..." : "Confirm"}</Text>
-                            </ButtonText>
-                        </Button>
-                    </HStack>
-                </AlertDialogFooter>
+                {!isFullScreen && (
+                    <AlertDialogFooter className="border-t border-outline-50 p-6">
+                        <HStack space="md" className="w-full">
+                            <Button variant="outline" action="secondary" className="flex-1 rounded-xl" onPress={onClose} isDisabled={isVerifying}>
+                                <ButtonText><Text>Cancel</Text></ButtonText>
+                            </Button>
+                            <Button action="primary" className="flex-1 rounded-xl" onPress={handleConfirm} isDisabled={!selectedLocation || isVerifying}>
+                                {isVerifying && <ButtonSpinner className="mr-2" />}
+                                <ButtonText>
+                                    <Text>{isVerifying ? "Verifying..." : "Confirm"}</Text>
+                                </ButtonText>
+                            </Button>
+                        </HStack>
+                    </AlertDialogFooter>
+                )}
             </AlertDialogContent>
         </AlertDialog>
     );

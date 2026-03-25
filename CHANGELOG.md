@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed bug where optimize button doesn't optimize the itinerary
 - Fixed coordinates text input too crowded due to accuracy
 
+### Added
+- Added fullscreen mode in location selection dialog
+
 ### Changed
 - Changed edit duration modal to use a more ui coherent timer picker
 
