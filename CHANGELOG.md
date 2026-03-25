@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed bug where optimize button doesn't optimize the itinerary
 
+### Changed
+- Changed edit duration modal to use a more ui coherent timer picker
 
 
 ## [1.2.1](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.2.0...1.2.1)
