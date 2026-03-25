@@ -17,7 +17,6 @@ import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragI
 import { VStack } from '@/components/ui/vstack';
 
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog';
-import { Modal, ModalBackdrop, ModalBody, ModalCloseButton, ModalContent, ModalHeader } from '@/components/ui/modal';
 import { Radio, RadioGroup, RadioIcon, RadioIndicator, RadioLabel } from '@/components/ui/radio';
 import { Switch } from '@/components/ui/switch';
 import { Text } from '@/components/ui/text';
@@ -29,6 +28,7 @@ import { createAndEditLandmarkSchema } from '@/src/schema/landmark';
 import { parseTime } from '@/src/utils/dateUtils';
 import { useNavigation, useRouter } from 'expo-router';
 import * as z from 'zod';
+import LoadingModal from '../LoadingModal';
 import { LocationDialogSelection } from '../LocationDialogSelection';
 import { OpeningHoursInput } from './OpeningHoursInput';
 
@@ -172,18 +172,10 @@ export function LandmarkForm({
                 </AlertDialogContent>
             </AlertDialog>
 
-            <Modal isOpen={isUpdating} >
-                <ModalBackdrop />
-                <ModalContent>
-                    <ModalHeader>
-                        <Heading>Saving changes...</Heading>
-                        <ModalCloseButton></ModalCloseButton>
-                    </ModalHeader>
-                    <ModalBody>
-                        <ActivityIndicator size="large" color="#0891b2" />
-                    </ModalBody>
-                </ModalContent>
-            </Modal>
+            <LoadingModal
+                isShown={isUpdating}
+                loadingText="Saving changes..."
+            />
             <LocationDialogSelection
                 show={isMapSelectionOpen}
                 onClose={() => setIsMapSelectionOpen(false)}
