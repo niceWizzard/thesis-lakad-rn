@@ -32,8 +32,8 @@ export function LocationDialogSelection({
 
     useEffect(() => {
         if (selectedLocation) {
-            setLngInput(selectedLocation[0].toString());
-            setLatInput(selectedLocation[1].toString());
+            setLngInput(prev => parseFloat(prev) === selectedLocation[0] ? prev : Number(selectedLocation[0].toFixed(6)).toString());
+            setLatInput(prev => parseFloat(prev) === selectedLocation[1] ? prev : Number(selectedLocation[1].toFixed(6)).toString());
         }
     }, [selectedLocation]);
 
@@ -136,7 +136,7 @@ export function LocationDialogSelection({
                             </CustomMapView>
                         </Box>
 
-                        <HStack space="md" className="w-full">
+                        <VStack space="md" className="w-full">
                             <VStack className="flex-1" space="xs">
                                 <Text size="xs" className="font-bold uppercase text-typography-500"><Text>Latitude</Text></Text>
                                 <Input variant="outline" size="md" className="rounded-xl" isDisabled={isVerifying}>
@@ -159,7 +159,7 @@ export function LocationDialogSelection({
                                     />
                                 </Input>
                             </VStack>
-                        </HStack>
+                        </VStack>
                     </VStack>
                 </AlertDialogBody>
 
