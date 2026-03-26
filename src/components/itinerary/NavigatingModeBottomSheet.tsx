@@ -11,7 +11,7 @@ import {
     Volume2
 } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { ScrollView, Switch } from 'react-native';
+import { ScrollView } from 'react-native';
 
 import {
     Actionsheet,
@@ -30,6 +30,7 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { Switch } from '@/components/ui/switch';
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
 import { StopWithPlace } from '@/src/model/stops.types';
 import { formatDistance } from '@/src/utils/format/distance';
@@ -228,8 +229,6 @@ export function NavigatingModeBottomSheet({
                                         <Switch
                                             value={avoidTolls}
                                             onValueChange={(val) => setAvoidTolls(val)}
-                                            trackColor={{ false: '#e2e8f0', true: '#3b82f6' }}
-                                            thumbColor={'#fff'}
                                         />
                                     </HStack>
                                 </>
@@ -246,8 +245,6 @@ export function NavigatingModeBottomSheet({
                                 <Switch
                                     value={isVoiceEnabled}
                                     onValueChange={(val) => setVoiceEnabled(val)}
-                                    trackColor={{ false: '#e2e8f0', true: '#3b82f6' }}
-                                    thumbColor={'#fff'}
                                 />
                             </HStack>
                         </VStack>

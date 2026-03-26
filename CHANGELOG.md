@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Changed the border radius of itinerary stop menu item to fit the rounded style of the app
-
+- Used gluestack switch instead of react native switch in navigating mode bottom sheet
 
 ## [1.3.0](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.2.1...1.3.0)
 
