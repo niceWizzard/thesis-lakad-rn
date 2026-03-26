@@ -180,12 +180,12 @@ const ReorderScreen = () => {
                     </Text>
                 </HStack>
                 <VStack space='xs' className='items-center'>
-                    <Text className='text-typography-400 text-center'>
-                        Loop Distance: {formatDistance(itinerary?.distance ?? 0)}
+                    <Text className='text-typography-400 text-center' size='lg'>
+                        Itinerary Distance: {formatDistance(itinerary?.distance ?? 0)}
                     </Text>
                     {distanceToNextStop > 0 && (
-                        <Text size='xs' className='text-typography-500 text-center italic'>
-                            Est. Route + First Stop: {formatDistance(totalDistanceWithUser)}
+                        <Text size='sm' className='text-typography-500 text-center italic'>
+                            Est. Route from Location: {formatDistance(totalDistanceWithUser)}
                         </Text>
                     )}
                 </VStack>
