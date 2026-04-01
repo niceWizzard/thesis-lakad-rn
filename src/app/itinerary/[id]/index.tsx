@@ -1,6 +1,7 @@
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import {
     Camera,
+    CircleLayer,
     Images,
     LineLayer,
     LocationPuck,
@@ -8,13 +9,15 @@ import {
     ShapeSource
 } from '@rnmapbox/maps';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Edit } from 'lucide-react-native';
+import { Bike, Car, Edit, Footprints, X } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 // UI Components
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon } from '@/components/ui/button';
+import { HStack } from '@/components/ui/hstack';
+import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import CustomBottomSheet from '@/src/components/CustomBottomSheet';
 import PlaceMarker from '@/src/components/PlaceMarker';
@@ -25,6 +28,8 @@ import { useNavigationLogic } from '@/src/hooks/itinerary/useNavigationLogic';
 import { Mode, useNavigationState } from '@/src/hooks/itinerary/useNavigationState';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
+
+import { useVisualization } from '@/src/hooks/itinerary/useVisualization';
 
 // Refactored Sub-components
 import { ItineraryInfoModal } from '@/src/components/itinerary/ItineraryInfoModal';
@@ -115,6 +120,21 @@ export default function ItineraryView() {
         avoidTolls,
         isVoiceEnabled,
         restartLocationUpdates
+    });
+
+    // 5. Visualization Logic
+    const {
+        isVisualizing,
+        isFetchingRoute: isFetchingVisualization,
+        visualizationProfile,
+        animatedRoute,
+        animatedMarker,
+        startVisualization,
+        stopVisualization,
+    } = useVisualization({
+        userLocation,
+        pendingStops,
+        cameraRef
     });
 
     // Auto-center camera on user location during navigation
@@ -221,6 +241,9 @@ export default function ItineraryView() {
                     attributionEnabled={false}
                     onPress={() => setIsSheetOpen(false)}
                     compassEnabled
+                    scrollEnabled={!isVisualizing}
+                    zoomEnabled={!isVisualizing}
+                    pitchEnabled={!isVisualizing}
                 >
                     <Camera
                         ref={cameraRef as any}
@@ -242,6 +265,36 @@ export default function ItineraryView() {
                                     lineWidth: 5,
                                     lineCap: 'round',
                                     lineJoin: 'round'
+                                }}
+                            />
+                        </ShapeSource>
+                    )}
+
+                    {/* Animated Visualization Route */}
+                    {isVisualizing && animatedRoute && (
+                        <ShapeSource id="animatedRouteSource" shape={animatedRoute}>
+                            <LineLayer
+                                id="animatedRouteLayer"
+                                style={{
+                                    lineColor: '#10b981', // green for visualization
+                                    lineWidth: 5,
+                                    lineCap: 'round',
+                                    lineJoin: 'round'
+                                }}
+                            />
+                        </ShapeSource>
+                    )}
+
+                    {/* Animated Visualization Marker */}
+                    {isVisualizing && animatedMarker && (
+                        <ShapeSource id="animatedMarkerSource" shape={animatedMarker}>
+                            <CircleLayer
+                                id="animatedMarkerLayer"
+                                style={{
+                                    circleColor: '#10b981',
+                                    circleRadius: 8,
+                                    circleStrokeColor: '#ffffff',
+                                    circleStrokeWidth: 3,
                                 }}
                             />
                         </ShapeSource>
@@ -309,6 +362,10 @@ export default function ItineraryView() {
                             completedStops={completedStops}
                             onCardViewOpen={openCardView}
                             onStopPress={onStopPress}
+                            onVisualize={() => {
+                                setIsSheetOpen(false);
+                                startVisualization();
+                            }}
                         />
                         <NavigatingModeBottomSheet
                             navigationRoute={navigationRoute}
@@ -335,6 +392,57 @@ export default function ItineraryView() {
                     loadingText="Starting navigation..."
                 />
                 <ReroutingIndicator visible={isCalculatingRoute && mode === Mode.Navigating} />
+                {isVisualizing && (
+                    <Box className="absolute bottom-10 self-center w-[90%] bg-background-50 p-4 rounded-3xl shadow-xl z-50 flex-col gap-4 border border-outline-100">
+                        <HStack className="justify-center gap-4">
+                            <Button
+                                size="sm"
+                                variant={visualizationProfile === 'driving' ? 'solid' : 'outline'}
+                                action="primary"
+                                className="rounded-full px-4"
+                                onPress={() => startVisualization('driving')}
+                            >
+                                <ButtonIcon as={Car} className="mr-2" />
+                                <Text className={visualizationProfile === 'driving' ? 'text-typography-0' : 'text-primary-600'}>Drive</Text>
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={visualizationProfile === 'cycling' ? 'solid' : 'outline'}
+                                action="primary"
+                                className="rounded-full px-4"
+                                onPress={() => startVisualization('cycling')}
+                            >
+                                <ButtonIcon as={Bike} className="mr-2" />
+                                <Text className={visualizationProfile === 'cycling' ? 'text-typography-0' : 'text-primary-600'}>Cycle</Text>
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant={visualizationProfile === 'walking' ? 'solid' : 'outline'}
+                                action="primary"
+                                className="rounded-full px-4"
+                                onPress={() => startVisualization('walking')}
+                            >
+                                <ButtonIcon as={Footprints} className="mr-2" />
+                                <Text className={visualizationProfile === 'walking' ? 'text-typography-0' : 'text-primary-600'}>Walk</Text>
+                            </Button>
+                        </HStack>
+
+                        <Button 
+                            action="negative" 
+                            variant="solid" 
+                            className="w-full rounded-2xl h-12"
+                            onPress={stopVisualization}
+                        >
+                            <ButtonIcon as={X} className="mr-2" />
+                            <Text className="text-typography-0 font-bold">Stop Visualization</Text>
+                        </Button>
+                    </Box>
+                )}
+
+                <LoadingModal
+                    isShown={isFetchingVisualization}
+                    loadingText="Generating visualization route..."
+                />
             </VStack>
         </>
     );

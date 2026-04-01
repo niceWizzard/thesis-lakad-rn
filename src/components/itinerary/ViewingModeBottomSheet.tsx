@@ -5,6 +5,7 @@ import {
     Clock,
     ListCheck,
     Navigation,
+    Play,
     PlusCircle,
     Ruler,
     SquareStack
@@ -46,8 +47,9 @@ interface ViewingModeBottomSheetProps {
     showToast: ReturnType<typeof useToastNotification>['showToast'];
     locatePOI: (longitude: number, latitude: number) => void;
     goNavigationMode: () => void;
-    onCardViewOpen: (a: boolean) => void,
-    onStopPress: (stop: StopWithPlace) => void,
+    onCardViewOpen: (a: boolean) => void;
+    onStopPress: (stop: StopWithPlace) => void;
+    onVisualize: () => void;
 }
 
 export function ViewingModeBottomSheet({
@@ -61,6 +63,7 @@ export function ViewingModeBottomSheet({
     goNavigationMode,
     onCardViewOpen,
     onStopPress,
+    onVisualize,
 }: ViewingModeBottomSheetProps) {
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
@@ -245,6 +248,12 @@ export function ViewingModeBottomSheet({
                             </Button>
                         )
                     }
+                    <Button action='secondary' className='rounded-2xl shadow-md' onPress={onVisualize}
+                        isDisabled={pendingStops.length < 1}
+                    >
+                        <ButtonIcon as={Play} className='mr-1' />
+                        <ButtonText>Visualize</ButtonText>
+                    </Button>
                     <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
                         isDisabled={pendingStops.length < 2}
                     >
