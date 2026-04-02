@@ -161,7 +161,7 @@ export default function ItineraryView() {
                 const ne = [maxX, maxY];
                 const sw = [minX, minY];
                 // Fit bounds with maxZoom and padding (bottom padding is higher to account for the overlay widget)
-                cameraRef.current.fitBounds(ne, sw, [80, 50, 280, 50], 1000); 
+                cameraRef.current.fitBounds(ne, sw, [80, 50, 280, 50], 300); 
                 // We add a setTimeout hack since fitbounds might not enforce strict maxZoom in some versions 
                 // but standard bounds automatically calculate best zoom.
             } catch (error) {
