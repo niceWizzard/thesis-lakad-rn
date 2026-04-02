@@ -23,8 +23,11 @@ import PlaceMarker from '@/src/components/PlaceMarker';
 import { useItineraryData } from '@/src/hooks/itinerary/useItineraryData';
 import { useNavigationLogic } from '@/src/hooks/itinerary/useNavigationLogic';
 import { Mode, useNavigationState } from '@/src/hooks/itinerary/useNavigationState';
+import { useVisualizationLogic } from '@/src/hooks/itinerary/useVisualizationLogic';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
+import useThemeConfig from '@/src/hooks/useThemeConfig';
+import { bbox } from '@turf/turf';
 
 // Refactored Sub-components
 import { ItineraryInfoModal } from '@/src/components/itinerary/ItineraryInfoModal';
@@ -35,6 +38,7 @@ import { ReroutingIndicator } from '@/src/components/itinerary/ReroutingIndicato
 import StopoverCardSwiper from '@/src/components/itinerary/StopoverCardSwiper';
 import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
+import { VisualizingFloatingWidget } from '@/src/components/itinerary/VisualizingFloatingWidget';
 import LoadingModal from '@/src/components/LoadingModal';
 import { QueryKey } from '@/src/constants/QueryKey';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
@@ -56,6 +60,7 @@ export default function ItineraryView() {
     const queryClient = useQueryClient()
     const { session } = useAuthStore();
     const userId = session?.user?.id;
+    const theme = useThemeConfig();
 
 
     // 1. Data Hooks
@@ -116,6 +121,25 @@ export default function ItineraryView() {
         isVoiceEnabled,
         restartLocationUpdates
     });
+    
+    // 5. Visualization Logic
+    const {
+        startVisualization,
+        cancelVisualization,
+        currentVisualizationLegIndex,
+        totalLegs,
+        nextLeg,
+        previousLeg,
+        visualizationProfile,
+        changeProfile,
+        currentLegGeometry,
+        currentLegDuration,
+        currentLegDistance,
+        currentLegStartName,
+        currentLegEndName,
+        isLoading: isVisualizationLoading,
+        isVisualizing
+    } = useVisualizationLogic(mode, switchMode, userLocation, pendingStops);
 
     // Auto-center camera on user location during navigation
     useEffect(() => {
@@ -126,6 +150,24 @@ export default function ItineraryView() {
             });
         }
     }, [userLocation, mode, cameraRef]);
+    
+    // Auto-bounds for visualization mode
+    useEffect(() => {
+        if (mode === Mode.Visualizing && currentLegGeometry && cameraRef.current) {
+            try {
+                // bbox returns [minX, minY, maxX, maxY] equivalent to [w, s, e, n]
+                const [minX, minY, maxX, maxY] = bbox(currentLegGeometry);
+                const ne = [maxX, maxY];
+                const sw = [minX, minY];
+                // Fit bounds with maxZoom and padding (bottom padding is higher to account for the overlay widget)
+                cameraRef.current.fitBounds(ne, sw, [80, 50, 280, 50], 1000); 
+                // We add a setTimeout hack since fitbounds might not enforce strict maxZoom in some versions 
+                // but standard bounds automatically calculate best zoom.
+            } catch (error) {
+                console.warn("Could not fit camera to visualization bounds", error);
+            }
+        }
+    }, [currentLegGeometry, mode, cameraRef]);
 
     const openCardView = useCallback(() => {
         if (!itinerary) return;
@@ -233,12 +275,27 @@ export default function ItineraryView() {
                     />
 
                     {/* Route Line */}
-                    {navigationRoute.length > 0 && (
-                        <ShapeSource id="routeSource" shape={mode === Mode.Navigating && routeLine ? routeLine : navigationRoute[0].geometry}>
+                    {navigationRoute.length > 0 && mode === Mode.Navigating && (
+                        <ShapeSource id="routeSource" shape={routeLine ? routeLine : navigationRoute[0].geometry}>
                             <LineLayer
                                 id="routeLayer"
                                 style={{
-                                    lineColor: mode === Mode.Navigating ? '#007AFF' : '#94a3b8',
+                                    lineColor: '#007AFF',
+                                    lineWidth: 5,
+                                    lineCap: 'round',
+                                    lineJoin: 'round'
+                                }}
+                            />
+                        </ShapeSource>
+                    )}
+                    
+                    {/* Visualization Line */}
+                    {mode === Mode.Visualizing && currentLegGeometry && (
+                        <ShapeSource id="visualizationSource" shape={currentLegGeometry as any}>
+                            <LineLayer
+                                id="visualizationLayer"
+                                style={{
+                                    lineColor: theme.primary[500],
                                     lineWidth: 5,
                                     lineCap: 'round',
                                     lineJoin: 'round'
@@ -266,9 +323,9 @@ export default function ItineraryView() {
                     />
 
                     <ViewingModeMapView
-                        stops={itinerary.stops}
-                        show={mode === Mode.Viewing}
-                        onStopPress={onStopPress}
+                        stops={mode === Mode.Visualizing ? pendingStops : itinerary.stops}
+                        show={mode === Mode.Viewing || mode === Mode.Visualizing}
+                        onStopPress={mode === Mode.Visualizing ? () => {} : onStopPress}
                     />
 
                     {/* Pasalubongs Centers along the route */}
@@ -305,6 +362,7 @@ export default function ItineraryView() {
                             showToast={showToast}
                             locatePOI={locatePOI}
                             goNavigationMode={startNavigation}
+                            startVisualization={startVisualization}
                             pendingStops={pendingStops}
                             completedStops={completedStops}
                             onCardViewOpen={openCardView}
@@ -331,10 +389,25 @@ export default function ItineraryView() {
 
                 {/* Loading States */}
                 <LoadingModal
-                    isShown={isStartingNavigation}
-                    loadingText="Starting navigation..."
+                    isShown={isStartingNavigation || isVisualizationLoading}
+                    loadingText={isVisualizationLoading ? "Calculating route..." : "Starting navigation..."}
                 />
                 <ReroutingIndicator visible={isCalculatingRoute && mode === Mode.Navigating} />
+                
+                <VisualizingFloatingWidget
+                    isVisible={mode === Mode.Visualizing && isVisualizing}
+                    currentLegIndex={currentVisualizationLegIndex}
+                    totalLegs={totalLegs}
+                    startName={currentLegStartName}
+                    endName={currentLegEndName}
+                    duration={currentLegDuration}
+                    distance={currentLegDistance}
+                    profile={visualizationProfile}
+                    onNext={nextLeg}
+                    onPrevious={previousLeg}
+                    onChangeProfile={changeProfile}
+                    onCancel={cancelVisualization}
+                />
             </VStack>
         </>
     );

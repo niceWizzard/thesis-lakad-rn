@@ -5,6 +5,7 @@ import {
     Clock,
     ListCheck,
     Navigation,
+    Eye,
     PlusCircle,
     Ruler,
     SquareStack
@@ -46,6 +47,7 @@ interface ViewingModeBottomSheetProps {
     showToast: ReturnType<typeof useToastNotification>['showToast'];
     locatePOI: (longitude: number, latitude: number) => void;
     goNavigationMode: () => void;
+    startVisualization: () => void;
     onCardViewOpen: (a: boolean) => void,
     onStopPress: (stop: StopWithPlace) => void,
 }
@@ -59,6 +61,7 @@ export function ViewingModeBottomSheet({
     showToast,
     locatePOI,
     goNavigationMode,
+    startVisualization,
     onCardViewOpen,
     onStopPress,
 }: ViewingModeBottomSheetProps) {
@@ -250,6 +253,12 @@ export function ViewingModeBottomSheet({
                     >
                         <ButtonIcon as={ArrowDownUp} className='mr-2' />
                         <ButtonText>Reorder</ButtonText>
+                    </Button>
+                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={startVisualization}
+                        isDisabled={pendingStops.length < 1}
+                    >
+                        <ButtonIcon as={Eye} className='mr-2' />
+                        <ButtonText>Visualize</ButtonText>
                     </Button>
                     <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={pendingStops.length < 1}>
                         <ButtonIcon as={Navigation} className='mr-2' />

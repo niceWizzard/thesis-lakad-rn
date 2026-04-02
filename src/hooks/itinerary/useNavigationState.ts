@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export enum Mode {
     Viewing,
     Navigating,
+    Visualizing,
 }
 
 /**
@@ -57,6 +58,10 @@ export const useNavigationState = (userLocation: [number, number] | null, autoOp
             case Mode.Navigating:
                 setMode(Mode.Navigating);
                 setIsSheetOpen(true);
+                return;
+            case Mode.Visualizing:
+                setIsSheetOpen(false);
+                setMode(Mode.Visualizing);
                 return;
             default:
                 return;
