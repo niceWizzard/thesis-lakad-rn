@@ -21,6 +21,7 @@ export const useVisualizationLogic = (
     // Store full route and waypoints
     const [visualizationRoute, setVisualizationRoute] = useState<MapboxRoute | null>(null);
     const [visualizationNames, setVisualizationNames] = useState<string[]>([]); // To track names of each waypoint
+    const [visualizationStopIds, setVisualizationStopIds] = useState<(string | number | null)[]>([]); // To track stop IDs
     
     // Core state
     const [currentVisualizationLegIndex, setCurrentVisualizationLegIndex] = useState(0);
@@ -42,19 +43,23 @@ export const useVisualizationLogic = (
 
         let waypoints: [number, number][] = [];
         let finalNames: string[] = [];
+        let finalStopIds: (string | number | null)[] = [];
 
         if (userLocation) {
             const distanceKM = getHaversineDistance(userLocation, stopsCoords[0]) / 1000;
             if (distanceKM > MAX_USER_DISTANCE_KM) {
                 waypoints = [...stopsCoords];
                 finalNames = [...names];
+                finalStopIds = pendingStops.map(s => s.id);
             } else {
                 waypoints = [userLocation, ...stopsCoords];
                 finalNames = ["Your Location", ...names];
+                finalStopIds = [null, ...pendingStops.map(s => s.id)];
             }
         } else {
             waypoints = [...stopsCoords];
             finalNames = [...names];
+            finalStopIds = pendingStops.map(s => s.id);
         }
 
         // Just in case it's 1 point (doesn't make sense for MapBox Directions)
@@ -74,6 +79,7 @@ export const useVisualizationLogic = (
             if (data.routes && data.routes.length > 0) {
                 setVisualizationRoute(data.routes[0]);
                 setVisualizationNames(finalNames);
+                setVisualizationStopIds(finalStopIds);
                 setCurrentVisualizationLegIndex(0);
                 setIsVisualizing(true);
                 switchMode(Mode.Visualizing);
@@ -102,19 +108,23 @@ export const useVisualizationLogic = (
 
         let waypoints: [number, number][] = [];
         let finalNames: string[] = [];
+        let finalStopIds: (string | number | null)[] = [];
 
         if (staticUserLocation) {
             const distanceKM = getHaversineDistance(staticUserLocation, stopsCoords[0]) / 1000;
             if (distanceKM > MAX_USER_DISTANCE_KM) {
                 waypoints = [...stopsCoords];
                 finalNames = [...names];
+                finalStopIds = pendingStops.map(s => s.id);
             } else {
                 waypoints = [staticUserLocation, ...stopsCoords];
                 finalNames = ["Your Location", ...names];
+                finalStopIds = [null, ...pendingStops.map(s => s.id)];
             }
         } else {
             waypoints = [...stopsCoords];
             finalNames = [...names];
+            finalStopIds = pendingStops.map(s => s.id);
         }
 
         try {
@@ -127,6 +137,7 @@ export const useVisualizationLogic = (
             if (data.routes && data.routes.length > 0) {
                 setVisualizationRoute(data.routes[0]);
                 setVisualizationNames(finalNames);
+                setVisualizationStopIds(finalStopIds);
                 // Keep the current leg index if possible, otherwise reset
                 if (currentVisualizationLegIndex >= data.routes[0].legs.length) {
                      setCurrentVisualizationLegIndex(0);
@@ -155,6 +166,7 @@ export const useVisualizationLogic = (
         setIsVisualizing(false);
         setVisualizationRoute(null);
         setVisualizationNames([]);
+        setVisualizationStopIds([]);
         setCurrentVisualizationLegIndex(0);
         switchMode(Mode.Viewing);
     }, [switchMode]);
@@ -180,9 +192,12 @@ export const useVisualizationLogic = (
     const currentLegDuration = currentLeg ? currentLeg.duration : 0;
     const currentLegDistance = currentLeg ? currentLeg.distance : 0;
     
-    // Mapbox legs exactly matches N-1 for N waypoints.
     const currentLegStartName = visualizationNames[currentVisualizationLegIndex] || "Unknown";
     const currentLegEndName = visualizationNames[currentVisualizationLegIndex + 1] || "Unknown";
+    const currentLegStopIds = [
+        visualizationStopIds[currentVisualizationLegIndex],
+        visualizationStopIds[currentVisualizationLegIndex + 1]
+    ].filter(id => id !== null && id !== undefined) as (string | number)[];
 
     const totalLegs = visualizationRoute ? visualizationRoute.legs.length : 0;
 
@@ -201,6 +216,7 @@ export const useVisualizationLogic = (
         currentLegDuration,
         currentLegDistance,
         currentLegStartName,
-        currentLegEndName
+        currentLegEndName,
+        currentLegStopIds
     };
 };

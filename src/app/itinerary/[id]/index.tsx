@@ -137,6 +137,7 @@ export default function ItineraryView() {
         currentLegDistance,
         currentLegStartName,
         currentLegEndName,
+        currentLegStopIds,
         isLoading: isVisualizationLoading,
         isVisualizing
     } = useVisualizationLogic(mode, switchMode, userLocation, pendingStops);
@@ -353,6 +354,7 @@ export default function ItineraryView() {
                         stops={mode === Mode.Visualizing ? pendingStops : itinerary.stops}
                         show={mode === Mode.Viewing || mode === Mode.Visualizing}
                         onStopPress={mode === Mode.Visualizing ? () => {} : onStopPress}
+                        selectedStopIds={mode === Mode.Visualizing ? currentLegStopIds : undefined}
                     />
 
                     {/* Pasalubongs Centers along the route */}
