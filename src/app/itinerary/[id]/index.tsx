@@ -7,10 +7,10 @@ import {
     MapView,
     ShapeSource
 } from '@rnmapbox/maps';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Edit } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, BackHandler } from 'react-native';
 
 // UI Components
 import { Box } from '@/components/ui/box';
@@ -176,11 +176,11 @@ export default function ItineraryView() {
         setIsCardViewOpened(true);
     }, [itinerary, setIsSheetOpen])
 
-    const closeCardView = () => {
+    const closeCardView = useCallback(() => {
         setLocalStops([])
         setIsSheetOpen(true);
         setIsCardViewOpened(false);
-    }
+    }, [setIsSheetOpen]);
 
     useEffect(() => {
         if (autoOpenCardView && itinerary) {
@@ -189,6 +189,33 @@ export default function ItineraryView() {
         }
     }, [autoOpenCardView, itinerary, openCardView, router]);
 
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (isCardViewOpened) {
+                    closeCardView();
+                    return true;
+                }
+                if (isInfoModalOpen) {
+                    setIsInfoModalOpen(false);
+                    return true;
+                }
+                if (mode !== Mode.Viewing) {
+                    if (mode === Mode.Visualizing) {
+                        cancelVisualization();
+                    } else {
+                        switchMode(Mode.Viewing);
+                    }
+                    return true;
+                }
+                return false;
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => subscription.remove();
+        }, [isCardViewOpened, isInfoModalOpen, mode, cancelVisualization, switchMode, closeCardView])
+    );
 
     // Loading State
     if (isLoading || !itinerary) {
