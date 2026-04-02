@@ -11,7 +11,7 @@ import {
     SquareStack
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, TouchableOpacity } from 'react-native';
 
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -237,35 +237,50 @@ export function ViewingModeBottomSheet({
                     </Button>
                 </HStack>
                 <Divider />
-                <HStack className='justify-end px-4 gap-4'
-                >
-                    {
-                        itinerary.stops.length > 0 && (
-                            <Button action='secondary' className='rounded-2xl shadow-md'
-                                onPress={() => onCardViewOpen(true)}
-                            >
-                                <ButtonIcon as={SquareStack} />
-                            </Button>
-                        )
-                    }
-                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={handleReorderPress}
-                        isDisabled={pendingStops.length < 2}
+                <VStack className='px-4 w-full' space="md">
+                    <TouchableOpacity 
+                        className={`flex-row justify-center items-center py-3.5 rounded-2xl bg-primary-600 ${pendingStops.length < 1 ? 'opacity-50' : ''}`}
+                        onPress={goNavigationMode}
+                        disabled={pendingStops.length < 1}
+                        activeOpacity={0.8}
                     >
-                        <ButtonIcon as={ArrowDownUp} className='mr-2' />
-                        <ButtonText>Reorder</ButtonText>
-                    </Button>
-                    <Button action='secondary' className='rounded-2xl shadow-md ' onPress={startVisualization}
-                        isDisabled={pendingStops.length < 1}
-                    >
-                        <ButtonIcon as={Eye} className='mr-2' />
-                        <ButtonText>Visualize</ButtonText>
-                    </Button>
-                    <Button className='rounded-2xl shadow-md  ' onPress={goNavigationMode} isDisabled={pendingStops.length < 1}>
-                        <ButtonIcon as={Navigation} className='mr-2' />
-                        <ButtonText>Navigate</ButtonText>
-                    </Button>
+                        <Icon as={Navigation} className='text-typography-0 mr-2' size="md" />
+                        <Text size="md" className='font-bold text-typography-0'>Start Navigation</Text>
+                    </TouchableOpacity>
 
-                </HStack>
+                    {itinerary.stops.length > 0 && (
+                        <HStack className='w-full' space="md">
+                            <TouchableOpacity 
+                                className={`flex-1 items-center justify-center py-3.5 rounded-2xl border border-outline-100 bg-background-0 ${pendingStops.length < 1 ? 'opacity-50' : ''}`}
+                                onPress={startVisualization}
+                                disabled={pendingStops.length < 1}
+                                activeOpacity={0.7}
+                            >
+                                <Icon as={Eye} className='text-typography-800 mb-1.5' size="md" />
+                                <Text size="xs" className='font-semibold text-typography-600'>Visualize</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                className={`flex-1 items-center justify-center py-3.5 rounded-2xl border border-outline-100 bg-background-0 ${pendingStops.length < 2 ? 'opacity-50' : ''}`}
+                                onPress={handleReorderPress}
+                                disabled={pendingStops.length < 2}
+                                activeOpacity={0.7}
+                            >
+                                <Icon as={ArrowDownUp} className='text-typography-800 mb-1.5' size="md" />
+                                <Text size="xs" className='font-semibold text-typography-600'>Reorder</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                className='flex-1 items-center justify-center py-3.5 rounded-2xl border border-outline-100 bg-background-0'
+                                onPress={() => onCardViewOpen(true)}
+                                activeOpacity={0.7}
+                            >
+                                <Icon as={SquareStack} className='text-typography-800 mb-1.5' size="md" />
+                                <Text size="xs" className='font-semibold text-typography-600'>Cards</Text>
+                            </TouchableOpacity>
+                        </HStack>
+                    )}
+                </VStack>
                 {itinerary.stops.map((item, currentIndex) => {
                     const isVisited = !!item.visited_at;
                     const displayNumber = currentIndex + 1;
