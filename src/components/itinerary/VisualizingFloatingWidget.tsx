@@ -1,13 +1,13 @@
-import React from 'react';
 import { Box } from '@/components/ui/box';
 import { Button, ButtonIcon } from '@/components/ui/button';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
 import { Divider } from '@/components/ui/divider';
-import { ChevronLeft, ChevronRight, Car, Footprints, Bike, X } from 'lucide-react-native';
+import { HStack } from '@/components/ui/hstack';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { formatDistance } from '@/src/utils/format/distance';
 import { formatDuration } from '@/src/utils/format/time';
+import { Bike, Car, ChevronLeft, ChevronRight, Footprints, X } from 'lucide-react-native';
+import React from 'react';
 
 interface VisualizingFloatingWidgetProps {
     isVisible: boolean;
@@ -45,32 +45,32 @@ export function VisualizingFloatingWidget({
             <VStack space='md'>
                 <HStack className='justify-between items-start'>
                     <VStack className='flex-1 pr-2'>
-                        <Text size='sm' className='text-primary-500 font-semibold uppercase tracking-wider mb-1'>
+                        <Text className='text-primary-500 font-semibold uppercase tracking-wider mb-1'>
                             Step {currentLegIndex + 1} of {totalLegs}
                         </Text>
                         <Text size='md' className='text-typography-900 font-medium' numberOfLines={1}>
                             {startName}
                         </Text>
-                        <Text size='sm' className='text-typography-500' numberOfLines={1}>
+                        <Text className='text-typography-500' numberOfLines={1}>
                             to {endName}
                         </Text>
                     </VStack>
-                    <Button variant='link' action='secondary' size='sm' onPress={onCancel} className='p-1'>
-                        <ButtonIcon as={X} size='xl' className='text-typography-500'/>
+                    <Button variant='link' action='secondary' onPress={onCancel} className='p-1'>
+                        <ButtonIcon as={X} size='xl' className='text-typography-500' />
                     </Button>
                 </HStack>
 
                 <HStack space='lg' className='items-center'>
                     <VStack>
-                        <Text size='xs' className='text-typography-500'>Duration</Text>
-                        <Text size='sm' className='font-bold text-typography-900'>
+                        <Text className='text-typography-500'>Duration</Text>
+                        <Text className='font-bold text-typography-900'>
                             {formatDuration(Math.round(duration / 60))}
                         </Text>
                     </VStack>
-                    <Divider orientation="vertical" className='bg-outline-200 h-8'/>
+                    <Divider orientation="vertical" className='bg-outline-200 h-8' />
                     <VStack>
-                        <Text size='xs' className='text-typography-500'>Distance</Text>
-                        <Text size='sm' className='font-bold text-typography-900'>
+                        <Text className='text-typography-500'>Distance</Text>
+                        <Text className='font-bold text-typography-900'>
                             {formatDistance(distance)}
                         </Text>
                     </VStack>
@@ -80,55 +80,50 @@ export function VisualizingFloatingWidget({
 
                 <HStack className='justify-between items-center w-full'>
                     {/* Profile Switchers */}
-                    <HStack space='xs'>
-                        <Button 
-                            variant={profile === 'driving' ? 'solid' : 'outline'} 
-                            action='primary' 
-                            size='sm' 
+                    <HStack space='sm'>
+                        <Button
+                            variant={profile === 'driving' ? 'solid' : 'outline'}
+                            action='primary'
                             className='rounded-xl p-2'
                             onPress={() => onChangeProfile('driving')}
                         >
-                            <ButtonIcon as={Car} size='sm' className={profile === 'driving' ? 'text-typography-0' : 'text-primary-500'} />
+                            <ButtonIcon as={Car} className={profile === 'driving' ? 'text-typography-0' : 'text-primary-500'} />
                         </Button>
-                        <Button 
-                            variant={profile === 'walking' ? 'solid' : 'outline'} 
-                            action='primary' 
-                            size='sm' 
+                        <Button
+                            variant={profile === 'walking' ? 'solid' : 'outline'}
+                            action='primary'
                             className='rounded-xl p-2'
                             onPress={() => onChangeProfile('walking')}
                         >
-                            <ButtonIcon as={Footprints} size='sm' className={profile === 'walking' ? 'text-typography-0' : 'text-primary-500'} />
+                            <ButtonIcon as={Footprints} className={profile === 'walking' ? 'text-typography-0' : 'text-primary-500'} />
                         </Button>
-                        <Button 
-                            variant={profile === 'cycling' ? 'solid' : 'outline'} 
-                            action='primary' 
-                            size='sm' 
+                        <Button
+                            variant={profile === 'cycling' ? 'solid' : 'outline'}
+                            action='primary'
                             className='rounded-xl p-2'
                             onPress={() => onChangeProfile('cycling')}
                         >
-                            <ButtonIcon as={Bike} size='sm' className={profile === 'cycling' ? 'text-typography-0' : 'text-primary-500'} />
+                            <ButtonIcon as={Bike} className={profile === 'cycling' ? 'text-typography-0' : 'text-primary-500'} />
                         </Button>
                     </HStack>
 
                     {/* Navigation */}
                     <HStack space='md'>
-                        <Button 
-                            action='secondary' 
-                            size='sm' 
+                        <Button
+                            action='secondary'
                             className='rounded-xl'
                             isDisabled={currentLegIndex === 0}
                             onPress={onPrevious}
                         >
-                            <ButtonIcon as={ChevronLeft} size='xl'/>
+                            <ButtonIcon as={ChevronLeft} size='xl' />
                         </Button>
-                        <Button 
-                            action='secondary' 
-                            size='sm' 
+                        <Button
+                            action='secondary'
                             className='rounded-xl'
                             isDisabled={currentLegIndex >= totalLegs - 1}
                             onPress={onNext}
                         >
-                            <ButtonIcon as={ChevronRight} size='xl'/>
+                            <ButtonIcon as={ChevronRight} size='xl' />
                         </Button>
                     </HStack>
                 </HStack>
