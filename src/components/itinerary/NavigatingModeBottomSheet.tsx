@@ -113,7 +113,7 @@ export function NavigatingModeBottomSheet({
     };
 
     return (
-        <VStack className='h-full bg-background-0'>
+        <VStack className='h-full bg-background-0 pb-8'>
             {/* Compact Header - Always Visible */}
             <VStack space="md" className="px-4 pt-3 pb-4">
                 {/* Drag Indicator & Exit Button Row */}
@@ -315,30 +315,7 @@ export function NavigatingModeBottomSheet({
                     </Button>
                 </VStack>
 
-                {/* Sneak Peek - Next Up */}
-                {subsequentStop && (
-                    <Box className="bg-background-50 p-3 rounded-2xl border border-outline-100 mt-2">
-                        <HStack space="md" className="items-center">
-                            <Box className="bg-background-200 p-2 rounded-xl">
-                                <Icon as={ArrowRight} size="sm" className="text-typography-500" />
-                            </Box>
-                            <VStack className="flex-1">
-                                <Text size="xs" className="text-typography-400 uppercase font-bold tracking-wide">
-                                    Next Up
-                                </Text>
-                                <Text size="sm" className="font-bold text-typography-900" numberOfLines={1}>
-                                    {subsequentStop.place.name}
-                                </Text>
-                            </VStack>
-                            <VStack className="items-end">
-                                <Text size="xs" className="text-typography-400">Est. Arr</Text>
-                                <Text size="sm" className="font-bold text-typography-700">
-                                    {estimatedNextArrival ? formatTime(estimatedNextArrival) : '--:--'}
-                                </Text>
-                            </VStack>
-                        </HStack>
-                    </Box>
-                )}
+
             </VStack>
 
             <Divider className="mx-4" />
@@ -360,6 +337,31 @@ export function NavigatingModeBottomSheet({
                     ))}
                 </VStack>
             </ScrollView>
+
+            {/* Sneak Peek - Next Up */}
+            {subsequentStop && (
+                <Box className="bg-background-50 p-3 rounded-2xl border border-outline-100 m-4">
+                    <HStack space="md" className="items-center">
+                        <Box className="bg-background-200 p-2 rounded-xl">
+                            <Icon as={ArrowRight} size="sm" className="text-typography-500" />
+                        </Box>
+                        <VStack className="flex-1">
+                            <Text size="xs" className="text-typography-400 uppercase font-bold tracking-wide">
+                                Next Up
+                            </Text>
+                            <Text size="sm" className="font-bold text-typography-900" numberOfLines={1}>
+                                {subsequentStop.place.name}
+                            </Text>
+                        </VStack>
+                        <VStack className="items-end">
+                            <Text size="xs" className="text-typography-400">Est. Arr</Text>
+                            <Text size="sm" className="font-bold text-typography-700">
+                                {estimatedNextArrival ? formatTime(estimatedNextArrival) : '--:--'}
+                            </Text>
+                        </VStack>
+                    </HStack>
+                </Box>
+            )}
         </VStack>
     );
 }
