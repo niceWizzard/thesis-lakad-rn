@@ -24,9 +24,9 @@ import { useItineraryData } from '@/src/hooks/itinerary/useItineraryData';
 import { useNavigationLogic } from '@/src/hooks/itinerary/useNavigationLogic';
 import { Mode, useNavigationState } from '@/src/hooks/itinerary/useNavigationState';
 import { useVisualizationLogic } from '@/src/hooks/itinerary/useVisualizationLogic';
+import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
 import { useUserLocation } from '@/src/hooks/useUserLocation';
-import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { bbox } from '@turf/turf';
 
 // Refactored Sub-components
@@ -121,7 +121,7 @@ export default function ItineraryView() {
         isVoiceEnabled,
         restartLocationUpdates
     });
-    
+
     // 5. Visualization Logic
     const {
         startVisualization,
@@ -151,7 +151,7 @@ export default function ItineraryView() {
             });
         }
     }, [userLocation, mode, cameraRef]);
-    
+
     // Auto-bounds for visualization mode
     useEffect(() => {
         if (mode === Mode.Visualizing && currentLegGeometry && cameraRef.current) {
@@ -161,9 +161,7 @@ export default function ItineraryView() {
                 const ne = [maxX, maxY];
                 const sw = [minX, minY];
                 // Fit bounds with maxZoom and padding (bottom padding is higher to account for the overlay widget)
-                cameraRef.current.fitBounds(ne, sw, [80, 50, 280, 50], 300); 
-                // We add a setTimeout hack since fitbounds might not enforce strict maxZoom in some versions 
-                // but standard bounds automatically calculate best zoom.
+                cameraRef.current.fitBounds(ne, sw, [80, 50, 280, 50], 600);
             } catch (error) {
                 console.warn("Could not fit camera to visualization bounds", error);
             }
@@ -316,7 +314,7 @@ export default function ItineraryView() {
                             />
                         </ShapeSource>
                     )}
-                    
+
                     {/* Visualization Line */}
                     {mode === Mode.Visualizing && currentLegGeometry && (
                         <ShapeSource id="visualizationSource" shape={currentLegGeometry as any}>
@@ -353,7 +351,7 @@ export default function ItineraryView() {
                     <ViewingModeMapView
                         stops={mode === Mode.Visualizing ? pendingStops : itinerary.stops}
                         show={mode === Mode.Viewing || mode === Mode.Visualizing}
-                        onStopPress={mode === Mode.Visualizing ? () => {} : onStopPress}
+                        onStopPress={mode === Mode.Visualizing ? () => { } : onStopPress}
                         selectedStopIds={mode === Mode.Visualizing ? currentLegStopIds : undefined}
                     />
 
@@ -422,7 +420,7 @@ export default function ItineraryView() {
                     loadingText={isVisualizationLoading ? "Calculating route..." : "Starting navigation..."}
                 />
                 <ReroutingIndicator visible={isCalculatingRoute && mode === Mode.Navigating} />
-                
+
                 <VisualizingFloatingWidget
                     isVisible={mode === Mode.Visualizing && isVisualizing}
                     currentLegIndex={currentVisualizationLegIndex}
