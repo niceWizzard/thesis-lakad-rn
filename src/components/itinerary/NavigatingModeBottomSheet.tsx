@@ -281,7 +281,6 @@ export function NavigatingModeBottomSheet({
                             <Icon
                                 as={Navigation2}
                                 size="xl"
-                                style={{ transform: [{ rotate: '45deg' }] }}
                             />
                         </Box>
                         <VStack className="flex-1">
