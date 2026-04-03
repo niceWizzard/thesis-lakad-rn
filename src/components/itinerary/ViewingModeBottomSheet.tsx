@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import {
     ArrowDownUp,
     ChevronDown,
-    ChevronRight,
+    ChevronUp,
     Clock,
     Eye,
     ListCheck,
@@ -339,7 +339,7 @@ export function ViewingModeBottomSheet({
                             <HStack space='sm' className='items-center'>
                                 <Heading>Travel History ({stats.completed})</Heading>
                             </HStack>
-                            <Icon as={showHistory ? ChevronDown : ChevronRight} size='sm' className='text-typography-400' />
+                            <Icon as={showHistory ? ChevronUp : ChevronDown} className='text-typography-400' />
                         </Pressable>
 
                         {showHistory && (
