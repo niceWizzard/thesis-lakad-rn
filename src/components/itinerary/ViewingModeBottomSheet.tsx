@@ -328,7 +328,7 @@ export function ViewingModeBottomSheet({
 
                 {/* History Collapsible Section */}
                 {stats.completed > 0 && (
-                    <VStack className='mt-6 px-4'>
+                    <VStack className='px-4'>
                         <Pressable
                             onPress={() => {
                                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -367,7 +367,7 @@ export function ViewingModeBottomSheet({
                     </VStack>
                 )}
                 <VStack className='flex-1 pb-10'>
-                    <Heading className=' ml-4'>Pending Stops</Heading>
+                    <Heading className=' ml-4 mb-4'>Pending Stops</Heading>
                     {/* Pending Stops Section */}
                     <VStack className='px-4' space='sm'>
                         {itinerary.stops.filter(s => !s.visited_at).map((item, index, arr) => {
