@@ -1,7 +1,11 @@
+import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
+import useThemeConfig from '@/src/hooks/useThemeConfig';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
     ArrowDownUp,
+    ChevronDown,
+    ChevronRight,
     Clock,
     Eye,
     ListCheck,
@@ -11,7 +15,8 @@ import {
     SquareStack
 } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, TouchableOpacity, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 import { Mode } from '@/src/hooks/itinerary/useNavigationState';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
@@ -69,9 +74,19 @@ export function ViewingModeBottomSheet({
     const router = useRouter();
     const [isUpdating, setIsUpdating] = useState(false);
     const [editingStop, setEditingStop] = useState<StopWithPlace | null>(null);
+    const [showHistory, setShowHistory] = useState(false);
     const queryClient = useQueryClient();
     const { session } = useAuthStore()
     const userId = session?.user.id;
+    const theme = useThemeConfig();
+
+    const stats = useMemo(() => {
+        if (!itinerary) return { completed: 0, total: 0, percentage: 0 };
+        const completed = itinerary.stops.filter(s => !!s.visited_at).length;
+        const total = itinerary.stops.length;
+        const percentage = total > 0 ? (completed / total) * 100 : 0;
+        return { completed, total, percentage };
+    }, [itinerary]);
 
     // Auto-scroll to top when sheet opens
     useEffect(() => {
@@ -115,6 +130,7 @@ export function ViewingModeBottomSheet({
     const handleVisitedPress = async (stop: Stop) => {
         setIsUpdating(true);
         try {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             await toggleStopStatus(stop);
             await refetch();
             await queryClient.invalidateQueries({ queryKey: [QueryKey.ITINERARY_BY_ID, itinerary.id] });
@@ -205,37 +221,64 @@ export function ViewingModeBottomSheet({
                     <Box className='w-12 h-1 bg-outline-300 rounded-full' />
                 </Box>
 
-                <HStack className='justify-between items-center px-4'>
-                    <VStack className='flex-1'>
-                        <Heading size='xl'>{itinerary.name}</Heading>
-                        <HStack space='sm' className='items-center flex-wrap'>
-                            <Icon as={ListCheck} size='sm' className='text-typography-400' />
-                            <Text size='md' className='text-typography-500'>
-                                {itinerary.stops.length} Stops
+                <VStack space='md'>
+                    <HStack className='justify-between items-center px-4'>
+                        <VStack className='flex-1'>
+                            <Heading size='xl'>{itinerary.name}</Heading>
+                            <Text size='sm' className='text-typography-500 font-medium'>
+                                {stats.completed} of {stats.total} landmarks explored
                             </Text>
-                            <HStack className='items-center' space='xs'>
-                                <Icon as={Ruler} size='sm' className='text-typography-400' />
-                                <Text size='md' className='text-typography-500'>
-                                    Distance: {formatDistance(itinerary.distance)}
-                                </Text>
-                            </HStack>
-                            <HStack className='items-center' space='xs'>
-                                <Icon as={Clock} size='sm' className='text-typography-400' />
-                                <Text size='md' className='text-typography-500'>
-                                    Duration: {formatDuration(totalDuration)}
-                                </Text>
-                            </HStack>
-                        </HStack>
-                    </VStack>
-                    <Button
-                        variant='link'
-                        onPress={handleAddPoi}
-                        isDisabled={itinerary.stops.length >= 50}
+                        </VStack>
+                        <Button
+                            size='sm'
+                            variant='outline'
+                            action='primary'
+                            className='rounded-full px-4'
+                            onPress={handleAddPoi}
+                            isDisabled={itinerary.stops.length >= 50}
+                        >
+                            <ButtonIcon as={PlusCircle} className='mr-1' />
+                            <ButtonText>Stop</ButtonText>
+                        </Button>
+                    </HStack>
+
+                    <Box className='px-4'>
+                        <Progress value={stats.percentage} size='sm' className='bg-background-100'>
+                            <ProgressFilledTrack className='bg-primary-600' />
+                        </Progress>
+                    </Box>
+
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingHorizontal: 16 }}
+                        className='flex-grow-0'
                     >
-                        <ButtonIcon as={PlusCircle} size='xl' className='text-primary-600' />
-                        <ButtonText>Add</ButtonText>
-                    </Button>
-                </HStack>
+                        <HStack space='sm'>
+                            <Box className='bg-background-50 px-3 py-2 rounded-xl border border-outline-100 flex-row items-center'>
+                                <Icon as={Clock} size='sm' className='text-primary-600 mr-2' />
+                                <VStack>
+                                    <Text size='xs' className='text-typography-400 leading-none'>Duration</Text>
+                                    <Text size='sm' className='font-bold text-typography-900'>{formatDuration(totalDuration)}</Text>
+                                </VStack>
+                            </Box>
+                            <Box className='bg-background-50 px-3 py-2 rounded-xl border border-outline-100 flex-row items-center'>
+                                <Icon as={Ruler} size='sm' className='text-primary-600 mr-2' />
+                                <VStack>
+                                    <Text size='xs' className='text-typography-400 leading-none'>Distance</Text>
+                                    <Text size='sm' className='font-bold text-typography-900'>{formatDistance(itinerary.distance)}</Text>
+                                </VStack>
+                            </Box>
+                            <Box className='bg-background-50 px-3 py-2 rounded-xl border border-outline-100 flex-row items-center'>
+                                <Icon as={ListCheck} size='sm' className='text-primary-600 mr-2' />
+                                <VStack>
+                                    <Text size='xs' className='text-typography-400 leading-none'>Remaining</Text>
+                                    <Text size='sm' className='font-bold text-typography-900'>{itinerary.stops.length - stats.completed} Stops</Text>
+                                </VStack>
+                            </Box>
+                        </HStack>
+                    </ScrollView>
+                </VStack>
                 <Divider />
                 <VStack className='px-4 w-full' space="md">
                     <TouchableOpacity
@@ -281,33 +324,110 @@ export function ViewingModeBottomSheet({
                         </HStack>
                     )}
                 </VStack>
-                {itinerary.stops.map((item, currentIndex) => {
-                    const isVisited = !!item.visited_at;
-                    const displayNumber = currentIndex + 1;
-                    return (
-                        <View
-                            className='px-4 py-4 border-b border-outline-50'
-                            key={item.id}
+
+
+                {/* History Collapsible Section */}
+                {stats.completed > 0 && (
+                    <VStack className='mt-6 px-4'>
+                        <Pressable
+                            onPress={() => {
+                                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                                setShowHistory(!showHistory);
+                            }}
+                            className='flex-row items-center justify-between py-4 border-b border-outline-50'
                         >
-                            <StopListItem
-                                displayNumber={displayNumber}
-                                isVisited={isVisited}
-                                landmark={item.place}
-                                onVisitToggle={() => handleVisitedPress(item)}
-                                onDelete={() => handleRemoveStop(item.id)}
-                                onLocate={() => locatePOI(item.place.longitude, item.place.latitude)}
-                                onShowStopInfo={() => onShowStopInfo(item)}
-                                visitDuration={item.visit_duration}
-                                onEditDuration={() => setEditingStop(item)}
-                            />
-                        </View>
-                    );
-                })}
-                {
-                    itinerary.stops.length === 0 && (
-                        <Text className='text-center text-typography-500'>No stops added yet.</Text>
-                    )
-                }
+                            <HStack space='sm' className='items-center'>
+                                <Heading>Travel History ({stats.completed})</Heading>
+                            </HStack>
+                            <Icon as={showHistory ? ChevronDown : ChevronRight} size='sm' className='text-typography-400' />
+                        </Pressable>
+
+                        {showHistory && (
+                            <VStack space='xs' className='mt-2 opacity-60'>
+                                {itinerary.stops.filter(s => !!s.visited_at).map((item) => {
+                                    const displayNumber = itinerary.stops.indexOf(item) + 1;
+                                    return (
+                                        <View key={item.id} className='py-1'>
+                                            <StopListItem
+                                                displayNumber={displayNumber}
+                                                isVisited={true}
+                                                landmark={item.place}
+                                                onVisitToggle={() => handleVisitedPress(item)}
+                                                onDelete={() => handleRemoveStop(item.id)}
+                                                onLocate={() => locatePOI(item.place.longitude, item.place.latitude)}
+                                                onShowStopInfo={() => onShowStopInfo(item)}
+                                                visitDuration={item.visit_duration}
+                                                onEditDuration={() => setEditingStop(item)}
+                                            />
+                                        </View>
+                                    );
+                                })}
+                            </VStack>
+                        )}
+                    </VStack>
+                )}
+                <VStack className='flex-1 pb-10'>
+                    <Heading className=' ml-4'>Pending Stops</Heading>
+                    {/* Pending Stops Section */}
+                    <VStack className='px-4' space='sm'>
+                        {itinerary.stops.filter(s => !s.visited_at).map((item, index, arr) => {
+                            const isLastPending = index === arr.length - 1;
+                            const displayNumber = itinerary.stops.indexOf(item) + 1;
+
+                            return (
+                                <View key={item.id} className='relative'>
+                                    {/* Timeline Line */}
+                                    {!isLastPending && (
+                                        <View className="absolute w-8 items-center" style={{ top: 32, bottom: -16 }}>
+                                            <LinearGradient
+                                                colors={[
+                                                    theme.outline?.['300'] || '#e5e5e5',
+                                                    theme.outline?.['800'] || '#e5e5e5'
+                                                ]}
+                                                style={{
+                                                    width: 2,
+                                                    flex: 1,
+                                                    opacity: 0.5
+                                                }}
+                                            />
+                                        </View>
+                                    )}
+
+                                    <Box
+                                        className={'rounded-2xl border-transparent'}
+                                    >
+                                        <View className='py-2'>
+                                            <StopListItem
+                                                displayNumber={displayNumber}
+                                                isVisited={false}
+                                                landmark={item.place}
+                                                onVisitToggle={() => handleVisitedPress(item)}
+                                                onDelete={() => handleRemoveStop(item.id)}
+                                                onLocate={() => locatePOI(item.place.longitude, item.place.latitude)}
+                                                onShowStopInfo={() => onShowStopInfo(item)}
+                                                visitDuration={item.visit_duration}
+                                                onEditDuration={() => setEditingStop(item)}
+                                            />
+                                        </View>
+                                    </Box>
+                                </View>
+                            );
+                        })}
+                    </VStack>
+
+
+                    {itinerary.stops.length === 0 && (
+                        <Box className='items-center justify-center py-20 px-10'>
+                            <Box className='bg-background-50 p-6 rounded-full mb-4'>
+                                <Icon as={PlusCircle} size='xl' className='text-typography-300' />
+                            </Box>
+                            <Text className='text-center text-typography-500 font-medium'>No stops added to your journey yet.</Text>
+                            <TouchableOpacity onPress={handleAddPoi} className='mt-4'>
+                                <Text className='text-primary-600 font-bold'>Add your first stop</Text>
+                            </TouchableOpacity>
+                        </Box>
+                    )}
+                </VStack>
             </VStack>
         </>
     );

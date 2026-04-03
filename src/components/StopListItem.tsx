@@ -105,44 +105,47 @@ const StopListItem = ({
             </Pressable>
 
             {isExpanded && (
-                <HStack className='pt-3 mt-3 border-t border-outline-100 justify-around items-center'>
-                    <TouchableOpacity onPress={() => { toggleExpand(); onVisitToggle(); }} className='items-center w-16'>
-                        <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
-                            <Icon as={Check} size='md' className={isVisited ? 'text-typography-500' : 'text-primary-600'} />
-                        </Box>
-                        <Text size='2xs' className='text-typography-600 font-medium text-center'>{isVisited ? 'Unvisit' : 'Visited'}</Text>
-                    </TouchableOpacity>
-
-                    {onEditDuration && (
-                        <TouchableOpacity onPress={() => { toggleExpand(); onEditDuration(); }} className='items-center w-16'>
+                <VStack className='pt-3 mt-3 pl-7'>
+                    <Box className='h-[1px] bg-outline-100 ml-4' />
+                    <HStack className='pt-3 justify-around items-center'>
+                        <TouchableOpacity onPress={() => { toggleExpand(); onVisitToggle(); }} className='items-center w-16'>
                             <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
-                                <Icon as={Clock} size='md' className='text-primary-600' />
+                                <Icon as={Check} size='md' className={isVisited ? 'text-typography-500' : 'text-primary-600'} />
                             </Box>
-                            <Text size='2xs' className='text-typography-600 font-medium text-center'>Stay</Text>
+                            <Text size='2xs' className='text-typography-600 font-medium text-center'>{isVisited ? 'Unvisit' : 'Visited'}</Text>
                         </TouchableOpacity>
-                    )}
 
-                    <TouchableOpacity onPress={() => { toggleExpand(); onLocate(); }} className='items-center w-16'>
-                        <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
-                            <Icon as={MapPin} size='md' className='text-primary-600' />
-                        </Box>
-                        <Text size='2xs' className='text-typography-600 font-medium text-center'>Locate</Text>
-                    </TouchableOpacity>
+                        {onEditDuration && (
+                            <TouchableOpacity onPress={() => { toggleExpand(); onEditDuration(); }} className='items-center w-16'>
+                                <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
+                                    <Icon as={Clock} size='md' className='text-primary-600' />
+                                </Box>
+                                <Text size='2xs' className='text-typography-600 font-medium text-center'>Stay</Text>
+                            </TouchableOpacity>
+                        )}
 
-                    <TouchableOpacity onPress={() => { toggleExpand(); onShowStopInfo(); }} className='items-center w-16'>
-                        <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
-                            <Icon as={Info} size='md' className='text-primary-600' />
-                        </Box>
-                        <Text size='2xs' className='text-typography-600 font-medium text-center'>Info</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity onPress={() => { toggleExpand(); onLocate(); }} className='items-center w-16'>
+                            <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
+                                <Icon as={MapPin} size='md' className='text-primary-600' />
+                            </Box>
+                            <Text size='2xs' className='text-typography-600 font-medium text-center'>Locate</Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => { toggleExpand(); setShowDeleteDialog(true); }} className='items-center w-16'>
-                        <Box className='bg-error-50 p-2.5 rounded-full mb-1.5'>
-                            <Icon as={Trash} size='md' className='text-error-600' />
-                        </Box>
-                        <Text size='2xs' className='text-error-600 font-medium text-center'>Remove</Text>
-                    </TouchableOpacity>
-                </HStack>
+                        <TouchableOpacity onPress={() => { toggleExpand(); onShowStopInfo(); }} className='items-center w-16'>
+                            <Box className='bg-background-100 p-2.5 rounded-full mb-1.5'>
+                                <Icon as={Info} size='md' className='text-primary-600' />
+                            </Box>
+                            <Text size='2xs' className='text-typography-600 font-medium text-center'>Info</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => { toggleExpand(); setShowDeleteDialog(true); }} className='items-center w-16'>
+                            <Box className='bg-error-50 p-2.5 rounded-full mb-1.5'>
+                                <Icon as={Trash} size='md' className='text-error-600' />
+                            </Box>
+                            <Text size='2xs' className='text-error-600 font-medium text-center'>Remove</Text>
+                        </TouchableOpacity>
+                    </HStack>
+                </VStack>
             )}
             {/* Deletion Confirmation Modal */}
             <AlertDialog
