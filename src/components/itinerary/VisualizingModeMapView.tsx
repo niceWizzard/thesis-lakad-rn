@@ -2,13 +2,13 @@ import PlaceMarker from '@/src/components/PlaceMarker';
 import { StopWithPlace } from '@/src/model/stops.types';
 import React from 'react';
 
-interface ViewingModeMapViewProps {
+interface VisualizingModeMapViewProps {
     show: boolean;
     stops: StopWithPlace[];
-    onStopPress: (stop: StopWithPlace) => void;
+    selectedStopIds?: (string | number)[];
 }
 
-export function ViewingModeMapView({ show, stops, onStopPress }: ViewingModeMapViewProps) {
+export function VisualizingModeMapView({ show, stops, selectedStopIds }: VisualizingModeMapViewProps) {
     if (!show) return null;
 
     return (
@@ -17,8 +17,8 @@ export function ViewingModeMapView({ show, stops, onStopPress }: ViewingModeMapV
                 <PlaceMarker
                     place={stop.place}
                     key={stop.id}
-                    allowOverlap
-                    handleMarkerPress={() => onStopPress(stop)}
+                    allowOverlap={selectedStopIds ? selectedStopIds.includes(stop.id!) : false}
+                    isSelected={selectedStopIds ? selectedStopIds.includes(stop.id!) : false}
                 />
             ))}
         </>

@@ -39,6 +39,7 @@ import StopoverCardSwiper from '@/src/components/itinerary/StopoverCardSwiper';
 import { ViewingModeBottomSheet } from '@/src/components/itinerary/ViewingModeBottomSheet';
 import { ViewingModeMapView } from '@/src/components/itinerary/ViewingModeMapView';
 import { VisualizingFloatingWidget } from '@/src/components/itinerary/VisualizingFloatingWidget';
+import { VisualizingModeMapView } from '@/src/components/itinerary/VisualizingModeMapView';
 import LoadingModal from '@/src/components/LoadingModal';
 import { QueryKey } from '@/src/constants/QueryKey';
 import { ItineraryWithStops } from '@/src/model/itinerary.types';
@@ -385,9 +386,14 @@ export default function ItineraryView() {
                     />
 
                     <ViewingModeMapView
-                        stops={mode === Mode.Visualizing ? pendingStops : itinerary.stops}
-                        show={mode === Mode.Viewing || mode === Mode.Visualizing}
-                        onStopPress={mode === Mode.Visualizing ? () => { } : onShowStopInfo}
+                        stops={itinerary.stops}
+                        show={mode === Mode.Viewing}
+                        onStopPress={onShowStopInfo}
+                    />
+
+                    <VisualizingModeMapView
+                        stops={pendingStops}
+                        show={mode === Mode.Visualizing}
                         selectedStopIds={mode === Mode.Visualizing ? currentLegStopIds : undefined}
                     />
 
