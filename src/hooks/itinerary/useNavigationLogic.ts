@@ -61,9 +61,8 @@ export const useNavigationLogic = ({
     // Track where we last rerouted to prevent infinite loops when stationary
     const lastRerouteLocation = useRef<[number, number] | null>(null);
 
-    useEffect(() => {
-        userLocationRef.current = userLocation;
-    }, [userLocation]);
+    // Sync ref during render (avoids useEffect)
+    userLocationRef.current = userLocation;
 
     // Loading states
     const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
@@ -71,10 +70,13 @@ export const useNavigationLogic = ({
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [currentStepRemainingDistance, setCurrentStepRemainingDistance] = useState(0);
 
-    useEffect(() => {
+    // Reset step states when route changes without using useEffect
+    const prevRouteRef = useRef(navigationRoute);
+    if (prevRouteRef.current !== navigationRoute) {
         setCurrentStepIndex(0);
         setCurrentStepRemainingDistance(0);
-    }, [navigationRoute]);
+        prevRouteRef.current = navigationRoute;
+    }
 
     // -------------------------------------------------------------------------
     // 1. Logic for Completing Navigation (Arrival)
@@ -379,12 +381,9 @@ export const useNavigationLogic = ({
     // -------------------------------------------------------------------------
     // 5. Route Line Slicing (Visuals)
     // -------------------------------------------------------------------------
-    const [routeLine, setRouteLine] = useState<any>(null);
-
-    useEffect(() => {
+    const routeLine = useMemo(() => {
         if (!navigationRoute.length) {
-            setRouteLine(null);
-            return;
+            return null;
         }
 
         const fullLine = navigationRoute[0].geometry;
@@ -398,15 +397,14 @@ export const useNavigationLogic = ({
 
                 // lineSlice requires the start point to be on the line (nearestPointOnLine ensures this mostly, but snapping helps)
                 // If the user is very far, nearestPointOnLine still finds the projection.
-                const sliced = lineSlice(snapped, endP, fullLine);
-                setRouteLine(sliced);
+                return lineSlice(snapped, endP, fullLine);
             } catch (e) {
                 console.warn("Error slicing route line:", e);
-                setRouteLine(fullLine);
+                return fullLine;
             }
-        } else {
-            setRouteLine(fullLine);
         }
+        
+        return fullLine;
     }, [navigationRoute, userLocation, mode]);
 
 
