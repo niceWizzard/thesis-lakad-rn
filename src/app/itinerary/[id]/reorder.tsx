@@ -56,8 +56,6 @@ const ReorderScreen = () => {
     const { showToast } = useToastNotification();
     const { userLocation } = useUserLocation();
 
-    const [queryProgress] = useState(0)
-
     const [loadingModalMode, setLoadingModalMode] = useState(LoadingMode.Hidden);
     const [resultModalData, setResultModalData] = useState<{
         originalStops: StopWithPlace[];
@@ -356,7 +354,7 @@ const ReorderScreen = () => {
             case LoadingMode.Updating:
                 return 'Updating...';
             case LoadingMode.Fetching:
-                return `Fetching (${queryProgress}%)`;
+                return `Fetching...`;
             case LoadingMode.Saving:
                 return 'Saving...';
             default:
