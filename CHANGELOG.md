@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [1.4.0](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.3.1...1.4.0)
+
 ### Added
 - Added visualization feature for itinerary viewing
 - Added confirmation dialog when removing a stop
