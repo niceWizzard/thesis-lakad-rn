@@ -18,6 +18,7 @@ interface VisualizationState {
     legIndex: number;
     profile: VisualizationProfile;
     staticUserLocation: [number, number] | null;
+    exclude: string[];
 }
 
 const initialState: VisualizationState = {
@@ -29,10 +30,11 @@ const initialState: VisualizationState = {
     legIndex: 0,
     profile: 'driving',
     staticUserLocation: null,
+    exclude: [],
 };
 
 type Action =
-    | { type: 'START_LOADING', payload?: { staticUserLocation?: [number, number] | null, profile?: VisualizationProfile } }
+    | { type: 'START_LOADING', payload?: { staticUserLocation?: [number, number] | null, profile?: VisualizationProfile, exclude?: string[] } }
     | { type: 'SET_ROUTE_DATA', payload: { route: MapboxRoute, names: string[], stopIds: (string | number | null)[], keepLegIndex?: boolean } }
     | { type: 'ERROR' }
     | { type: 'NEXT_LEG' }
@@ -46,7 +48,8 @@ function visualizationReducer(state: VisualizationState, action: Action): Visual
                 ...state,
                 isLoading: true,
                 ...(action.payload?.staticUserLocation !== undefined && { staticUserLocation: action.payload.staticUserLocation }),
-                ...(action.payload?.profile && { profile: action.payload.profile })
+                ...(action.payload?.profile && { profile: action.payload.profile }),
+                ...(action.payload?.exclude !== undefined && { exclude: action.payload.exclude })
             };
         case 'SET_ROUTE_DATA': {
             const keepIndex = action.payload.keepLegIndex && state.legIndex < action.payload.route.legs.length ? state.legIndex : 0;
@@ -78,7 +81,8 @@ function visualizationReducer(state: VisualizationState, action: Action): Visual
         case 'CANCEL':
             return {
                 ...initialState,
-                profile: state.profile // Preserve profile preferences
+                profile: state.profile, // Preserve profile preferences
+                exclude: state.exclude
             };
         default:
             return state;
@@ -130,7 +134,7 @@ export const useVisualizationLogic = (
         }
 
         try {
-            const data = await fetchDirections({ waypoints, profile: state.profile, exclude: [] });
+            const data = await fetchDirections({ waypoints, profile: state.profile, exclude: state.exclude });
 
             if (data.routes && data.routes.length > 0) {
                 dispatch({
@@ -145,17 +149,17 @@ export const useVisualizationLogic = (
             showToast({ title: "Error starting visualization", description: error.message, action: "error" });
             dispatch({ type: 'ERROR' });
         }
-    }, [pendingStops, userLocation, state.profile, getWaypointsAndMetadata, showToast, switchMode]);
+    }, [pendingStops, userLocation, state.profile, state.exclude, getWaypointsAndMetadata, showToast, switchMode]);
 
-    const reFetchProfile = useCallback(async (newProfile: VisualizationProfile) => {
+    const reFetchSettings = useCallback(async (newProfile: VisualizationProfile, newExclude: string[]) => {
         if (!state.isVisualizing || pendingStops.length < 1) return;
 
-        dispatch({ type: 'START_LOADING', payload: { profile: newProfile } });
+        dispatch({ type: 'START_LOADING', payload: { profile: newProfile, exclude: newExclude } });
 
         const { waypoints, finalNames, finalStopIds } = getWaypointsAndMetadata(state.staticUserLocation);
 
         try {
-            const data = await fetchDirections({ waypoints, profile: newProfile, exclude: [] });
+            const data = await fetchDirections({ waypoints, profile: newProfile, exclude: newExclude });
 
             if (data.routes && data.routes.length > 0) {
                 dispatch({
@@ -173,7 +177,17 @@ export const useVisualizationLogic = (
 
     const changeProfile = (p: VisualizationProfile) => {
         if (p === state.profile) return;
-        reFetchProfile(p);
+        
+        let newExclude = state.exclude;
+        if (p !== 'driving') {
+            newExclude = state.exclude.filter(e => e !== 'toll' && e !== 'motorway');
+        }
+
+        reFetchSettings(p, newExclude);
+    };
+
+    const changeExclude = (e: string[]) => {
+        reFetchSettings(state.profile, e);
     };
 
     const cancelVisualization = useCallback(() => {
@@ -219,7 +233,9 @@ export const useVisualizationLogic = (
         nextLeg,
         previousLeg,
         visualizationProfile: state.profile,
+        exclude: state.exclude,
         changeProfile,
+        changeExclude,
         currentLegGeometry,
         currentLegDuration,
         currentLegDistance,

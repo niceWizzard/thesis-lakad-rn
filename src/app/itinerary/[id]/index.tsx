@@ -138,6 +138,8 @@ export default function ItineraryView() {
         currentLegStartName,
         currentLegEndName,
         currentLegStopIds,
+        exclude: visualizationExclude,
+        changeExclude: changeVisualizationExclude,
         isLoading: isVisualizationLoading,
         isVisualizing
     } = useVisualizationLogic(mode, switchMode, userLocation, pendingStops);
@@ -430,9 +432,11 @@ export default function ItineraryView() {
                     duration={currentLegDuration}
                     distance={currentLegDistance}
                     profile={visualizationProfile}
+                    exclude={visualizationExclude}
                     onNext={nextLeg}
                     onPrevious={previousLeg}
                     onChangeProfile={changeProfile}
+                    onChangeExclude={changeVisualizationExclude}
                     onCancel={cancelVisualization}
                 />
             </VStack>
