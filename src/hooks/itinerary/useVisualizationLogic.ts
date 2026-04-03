@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
 import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
 import { StopWithPlace } from '@/src/model/stops.types';
@@ -184,20 +184,26 @@ export const useVisualizationLogic = (
     };
 
     const currentLeg = visualizationRoute ? visualizationRoute.legs[currentVisualizationLegIndex] : null;
-    const currentLegGeometry = currentLeg ? {
-        type: "LineString" as const,
-        coordinates: currentLeg.steps.map(step => step.geometry.coordinates).flat()
-    } as GeoJSON.LineString : null;
+
+    const currentLegGeometry = useMemo(() => {
+        return currentLeg ? {
+            type: "LineString" as const,
+            coordinates: currentLeg.steps.map(step => step.geometry.coordinates).flat()
+        } as GeoJSON.LineString : null;
+    }, [currentLeg]);
 
     const currentLegDuration = currentLeg ? currentLeg.duration : 0;
     const currentLegDistance = currentLeg ? currentLeg.distance : 0;
     
     const currentLegStartName = visualizationNames[currentVisualizationLegIndex] || "Unknown";
     const currentLegEndName = visualizationNames[currentVisualizationLegIndex + 1] || "Unknown";
-    const currentLegStopIds = [
-        visualizationStopIds[currentVisualizationLegIndex],
-        visualizationStopIds[currentVisualizationLegIndex + 1]
-    ].filter(id => id !== null && id !== undefined) as (string | number)[];
+    
+    const currentLegStopIds = useMemo(() => {
+        return [
+            visualizationStopIds[currentVisualizationLegIndex],
+            visualizationStopIds[currentVisualizationLegIndex + 1]
+        ].filter(id => id !== null && id !== undefined) as (string | number)[];
+    }, [visualizationStopIds, currentVisualizationLegIndex]);
 
     const totalLegs = visualizationRoute ? visualizationRoute.legs.length : 0;
 
