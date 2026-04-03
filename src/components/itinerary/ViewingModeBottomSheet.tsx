@@ -367,7 +367,11 @@ export function ViewingModeBottomSheet({
                     </VStack>
                 )}
                 <VStack className='flex-1 pb-10'>
-                    <Heading className=' ml-4 mb-4'>Pending Stops</Heading>
+                    {
+                        pendingStops.length > 0 && (
+                            <Heading className=' ml-4 mb-4'>Pending Stops</Heading>
+                        )
+                    }
                     {/* Pending Stops Section */}
                     <VStack className='px-4' space='sm'>
                         {itinerary.stops.filter(s => !s.visited_at).map((item, index, arr) => {
@@ -414,7 +418,6 @@ export function ViewingModeBottomSheet({
                             );
                         })}
                     </VStack>
-
 
                     {itinerary.stops.length === 0 && (
                         <Box className='items-center justify-center py-20 px-10'>
