@@ -205,6 +205,13 @@ export const useNavigationLogic = ({
     // -------------------------------------------------------------------------
     // 2.5 TTS Logic (Text-to-Speech)
     // -------------------------------------------------------------------------
+    // Stop speech when the hook is unmounted (exiting the route/screen)
+    useEffect(() => {
+        return () => {
+            Speech.stop();
+        };
+    }, []);
+
     const lastSpokenInstruction = useRef<string | null>(null);
 
     useEffect(() => {
@@ -223,9 +230,13 @@ export const useNavigationLogic = ({
                 }
             }
         } else {
-            // Reset if we exit navigation or voice is disabled, so if we re-enter it speaks again if needed
-            if (mode !== Mode.Navigating) {
-                lastSpokenInstruction.current = null;
+            // Stop speech if we exit navigation or voice is disabled
+            // We check lastSpokenInstruction to avoid calling Speech.stop() on every re-render when not navigating
+            if (lastSpokenInstruction.current !== null) {
+                Speech.stop();
+                if (mode !== Mode.Navigating) {
+                    lastSpokenInstruction.current = null;
+                }
             }
         }
     }, [currentStepIndex, mode, isVoiceEnabled, navigationRoute, userLocation]);
