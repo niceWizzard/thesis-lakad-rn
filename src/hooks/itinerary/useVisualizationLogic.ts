@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useReducer } from 'react';
 import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
 import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
 import { StopWithPlace } from '@/src/model/stops.types';
@@ -7,6 +7,84 @@ import { Mode } from './useNavigationState';
 
 const MAX_USER_DISTANCE_KM = 100; // 100km fallback
 
+type VisualizationProfile = 'driving' | 'walking' | 'cycling';
+
+interface VisualizationState {
+    isVisualizing: boolean;
+    isLoading: boolean;
+    route: MapboxRoute | null;
+    names: string[];
+    stopIds: (string | number | null)[];
+    legIndex: number;
+    profile: VisualizationProfile;
+    staticUserLocation: [number, number] | null;
+}
+
+const initialState: VisualizationState = {
+    isVisualizing: false,
+    isLoading: false,
+    route: null,
+    names: [],
+    stopIds: [],
+    legIndex: 0,
+    profile: 'driving',
+    staticUserLocation: null,
+};
+
+type Action = 
+    | { type: 'START_LOADING', payload?: { staticUserLocation?: [number, number] | null, profile?: VisualizationProfile } }
+    | { type: 'SET_ROUTE_DATA', payload: { route: MapboxRoute, names: string[], stopIds: (string | number | null)[], keepLegIndex?: boolean } }
+    | { type: 'ERROR' }
+    | { type: 'NEXT_LEG' }
+    | { type: 'PREVIOUS_LEG' }
+    | { type: 'CANCEL' };
+
+function visualizationReducer(state: VisualizationState, action: Action): VisualizationState {
+    switch (action.type) {
+        case 'START_LOADING':
+            return { 
+                ...state, 
+                isLoading: true, 
+                ...(action.payload?.staticUserLocation !== undefined && { staticUserLocation: action.payload.staticUserLocation }),
+                ...(action.payload?.profile && { profile: action.payload.profile })
+            };
+        case 'SET_ROUTE_DATA': {
+            const keepIndex = action.payload.keepLegIndex && state.legIndex < action.payload.route.legs.length ? state.legIndex : 0;
+            return {
+                ...state,
+                isLoading: false,
+                isVisualizing: true,
+                route: action.payload.route,
+                names: action.payload.names,
+                stopIds: action.payload.stopIds,
+                legIndex: keepIndex
+            };
+        }
+        case 'ERROR':
+            return {
+                ...state,
+                isLoading: false,
+            };
+        case 'NEXT_LEG':
+            if (state.route && state.legIndex < state.route.legs.length - 1) {
+                return { ...state, legIndex: state.legIndex + 1 };
+            }
+            return state;
+        case 'PREVIOUS_LEG':
+            if (state.legIndex > 0) {
+                return { ...state, legIndex: state.legIndex - 1 };
+            }
+            return state;
+        case 'CANCEL':
+            return {
+                ...initialState,
+                profile: state.profile // Preserve profile preferences
+            };
+        default:
+            return state;
+    }
+}
+
 export const useVisualizationLogic = (
     mode: Mode,
     switchMode: (newMode: Mode) => void,
@@ -14,19 +92,26 @@ export const useVisualizationLogic = (
     pendingStops: StopWithPlace[] // Should be sorted already
 ) => {
     const { showToast } = useToastNotification();
+    const [state, dispatch] = useReducer(visualizationReducer, initialState);
 
-    const [isVisualizing, setIsVisualizing] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    
-    // Store full route and waypoints
-    const [visualizationRoute, setVisualizationRoute] = useState<MapboxRoute | null>(null);
-    const [visualizationNames, setVisualizationNames] = useState<string[]>([]); // To track names of each waypoint
-    const [visualizationStopIds, setVisualizationStopIds] = useState<(string | number | null)[]>([]); // To track stop IDs
-    
-    // Core state
-    const [currentVisualizationLegIndex, setCurrentVisualizationLegIndex] = useState(0);
-    const [visualizationProfile, setVisualizationProfile] = useState<'driving' | 'walking' | 'cycling'>('driving');
-    const [staticUserLocation, setStaticUserLocation] = useState<[number, number] | null>(null);
+    const getWaypointsAndMetadata = useCallback((locationToUse: [number, number] | null) => {
+        const stopsCoords: [number, number][] = pendingStops.map(s => [s.place.longitude, s.place.latitude]);
+        const names: string[] = pendingStops.map(s => s.place.name);
+
+        let waypoints: [number, number][] = [...stopsCoords];
+        let finalNames: string[] = [...names];
+        let finalStopIds: (string | number | null)[] = pendingStops.map(s => s.id);
+
+        if (locationToUse && stopsCoords.length > 0) {
+            const distanceKM = getHaversineDistance(locationToUse, stopsCoords[0]) / 1000;
+            if (distanceKM <= MAX_USER_DISTANCE_KM) {
+                waypoints = [locationToUse, ...stopsCoords];
+                finalNames = ["Your Location", ...names];
+                finalStopIds = [null, ...finalStopIds];
+            }
+        }
+        return { waypoints, finalNames, finalStopIds };
+    }, [pendingStops]);
 
     const startVisualization = useCallback(async () => {
         if (pendingStops.length < 1) {
@@ -34,156 +119,72 @@ export const useVisualizationLogic = (
              return;
         }
 
-        setIsLoading(true);
-        // Take a static snapshot
-        setStaticUserLocation(userLocation);
+        dispatch({ type: 'START_LOADING', payload: { staticUserLocation: userLocation } });
 
-        const stopsCoords: [number, number][] = pendingStops.map(s => [s.place.longitude, s.place.latitude]);
-        const names: string[] = pendingStops.map(s => s.place.name);
+        const { waypoints, finalNames, finalStopIds } = getWaypointsAndMetadata(userLocation);
 
-        let waypoints: [number, number][] = [];
-        let finalNames: string[] = [];
-        let finalStopIds: (string | number | null)[] = [];
-
-        if (userLocation) {
-            const distanceKM = getHaversineDistance(userLocation, stopsCoords[0]) / 1000;
-            if (distanceKM > MAX_USER_DISTANCE_KM) {
-                waypoints = [...stopsCoords];
-                finalNames = [...names];
-                finalStopIds = pendingStops.map(s => s.id);
-            } else {
-                waypoints = [userLocation, ...stopsCoords];
-                finalNames = ["Your Location", ...names];
-                finalStopIds = [null, ...pendingStops.map(s => s.id)];
-            }
-        } else {
-            waypoints = [...stopsCoords];
-            finalNames = [...names];
-            finalStopIds = pendingStops.map(s => s.id);
-        }
-
-        // Just in case it's 1 point (doesn't make sense for MapBox Directions)
         if (waypoints.length < 2) {
              showToast({ title: "Not enough points to visualize route", action: "info" });
-             setIsLoading(false);
+             dispatch({ type: 'ERROR' });
              return;
         }
 
         try {
-            const data = await fetchDirections({
-                waypoints,
-                profile: visualizationProfile,
-                exclude: [] // We can keep empty unless tolls matter
-            });
+            const data = await fetchDirections({ waypoints, profile: state.profile, exclude: [] });
             
             if (data.routes && data.routes.length > 0) {
-                setVisualizationRoute(data.routes[0]);
-                setVisualizationNames(finalNames);
-                setVisualizationStopIds(finalStopIds);
-                setCurrentVisualizationLegIndex(0);
-                setIsVisualizing(true);
+                dispatch({ 
+                    type: 'SET_ROUTE_DATA', 
+                    payload: { route: data.routes[0], names: finalNames, stopIds: finalStopIds }
+                });
                 switchMode(Mode.Visualizing);
             } else {
                 throw new Error("No routes found.");
             }
         } catch (error: any) {
-            showToast({
-                title: "Error starting visualization",
-                description: error.message,
-                action: "error"
-            });
-        } finally {
-            setIsLoading(false);
+            showToast({ title: "Error starting visualization", description: error.message, action: "error" });
+            dispatch({ type: 'ERROR' });
         }
-    }, [pendingStops, userLocation, visualizationProfile, showToast, switchMode]);
+    }, [pendingStops, userLocation, state.profile, getWaypointsAndMetadata, showToast, switchMode]);
 
-    const reFetchProfile = useCallback(async (newProfile: 'driving' | 'walking' | 'cycling') => {
-        if (!isVisualizing || pendingStops.length < 1) return;
+    const reFetchProfile = useCallback(async (newProfile: VisualizationProfile) => {
+        if (!state.isVisualizing || pendingStops.length < 1) return;
         
-        setIsLoading(true);
-        setVisualizationProfile(newProfile);
+        dispatch({ type: 'START_LOADING', payload: { profile: newProfile } });
         
-        const stopsCoords: [number, number][] = pendingStops.map(s => [s.place.longitude, s.place.latitude]);
-        const names: string[] = pendingStops.map(s => s.place.name);
-
-        let waypoints: [number, number][] = [];
-        let finalNames: string[] = [];
-        let finalStopIds: (string | number | null)[] = [];
-
-        if (staticUserLocation) {
-            const distanceKM = getHaversineDistance(staticUserLocation, stopsCoords[0]) / 1000;
-            if (distanceKM > MAX_USER_DISTANCE_KM) {
-                waypoints = [...stopsCoords];
-                finalNames = [...names];
-                finalStopIds = pendingStops.map(s => s.id);
-            } else {
-                waypoints = [staticUserLocation, ...stopsCoords];
-                finalNames = ["Your Location", ...names];
-                finalStopIds = [null, ...pendingStops.map(s => s.id)];
-            }
-        } else {
-            waypoints = [...stopsCoords];
-            finalNames = [...names];
-            finalStopIds = pendingStops.map(s => s.id);
-        }
+        const { waypoints, finalNames, finalStopIds } = getWaypointsAndMetadata(state.staticUserLocation);
 
         try {
-            const data = await fetchDirections({
-                waypoints,
-                profile: newProfile,
-                exclude: []
-            });
+            const data = await fetchDirections({ waypoints, profile: newProfile, exclude: [] });
             
             if (data.routes && data.routes.length > 0) {
-                setVisualizationRoute(data.routes[0]);
-                setVisualizationNames(finalNames);
-                setVisualizationStopIds(finalStopIds);
-                // Keep the current leg index if possible, otherwise reset
-                if (currentVisualizationLegIndex >= data.routes[0].legs.length) {
-                     setCurrentVisualizationLegIndex(0);
-                }
+                dispatch({ 
+                    type: 'SET_ROUTE_DATA', 
+                    payload: { route: data.routes[0], names: finalNames, stopIds: finalStopIds, keepLegIndex: true }
+                });
             } else {
                 throw new Error("No routes found.");
             }
         } catch (error: any) {
-            showToast({
-                title: "Error fetching profile",
-                description: error.message,
-                action: "error"
-            });
-            // Revert profile on fail
-        } finally {
-            setIsLoading(false);
+            showToast({ title: "Error fetching profile", description: error.message, action: "error" });
+            dispatch({ type: 'ERROR' });
         }
-    }, [isVisualizing, pendingStops, staticUserLocation, currentVisualizationLegIndex, showToast]);
+    }, [state.isVisualizing, pendingStops, state.staticUserLocation, getWaypointsAndMetadata, showToast]);
 
-    const changeProfile = (p: 'driving' | 'walking' | 'cycling') => {
-        if (p === visualizationProfile) return;
+    const changeProfile = (p: VisualizationProfile) => {
+        if (p === state.profile) return;
         reFetchProfile(p);
     };
 
     const cancelVisualization = useCallback(() => {
-        setIsVisualizing(false);
-        setVisualizationRoute(null);
-        setVisualizationNames([]);
-        setVisualizationStopIds([]);
-        setCurrentVisualizationLegIndex(0);
+        dispatch({ type: 'CANCEL' });
         switchMode(Mode.Viewing);
     }, [switchMode]);
 
-    const nextLeg = () => {
-        if (visualizationRoute && currentVisualizationLegIndex < visualizationRoute.legs.length - 1) {
-            setCurrentVisualizationLegIndex(prev => prev + 1);
-        }
-    };
+    const nextLeg = () => dispatch({ type: 'NEXT_LEG' });
+    const previousLeg = () => dispatch({ type: 'PREVIOUS_LEG' });
 
-    const previousLeg = () => {
-        if (currentVisualizationLegIndex > 0) {
-            setCurrentVisualizationLegIndex(prev => prev - 1);
-        }
-    };
-
-    const currentLeg = visualizationRoute ? visualizationRoute.legs[currentVisualizationLegIndex] : null;
+    const currentLeg = state.route ? state.route.legs[state.legIndex] : null;
 
     const currentLegGeometry = useMemo(() => {
         return currentLeg ? {
@@ -195,28 +196,26 @@ export const useVisualizationLogic = (
     const currentLegDuration = currentLeg ? currentLeg.duration : 0;
     const currentLegDistance = currentLeg ? currentLeg.distance : 0;
     
-    const currentLegStartName = visualizationNames[currentVisualizationLegIndex] || "Unknown";
-    const currentLegEndName = visualizationNames[currentVisualizationLegIndex + 1] || "Unknown";
+    const currentLegStartName = state.names[state.legIndex] || "Unknown";
+    const currentLegEndName = state.names[state.legIndex + 1] || "Unknown";
     
     const currentLegStopIds = useMemo(() => {
         return [
-            visualizationStopIds[currentVisualizationLegIndex],
-            visualizationStopIds[currentVisualizationLegIndex + 1]
+            state.stopIds[state.legIndex],
+            state.stopIds[state.legIndex + 1]
         ].filter(id => id !== null && id !== undefined) as (string | number)[];
-    }, [visualizationStopIds, currentVisualizationLegIndex]);
-
-    const totalLegs = visualizationRoute ? visualizationRoute.legs.length : 0;
+    }, [state.stopIds, state.legIndex]);
 
     return {
-        isLoading,
-        isVisualizing,
+        isLoading: state.isLoading,
+        isVisualizing: state.isVisualizing,
         startVisualization,
         cancelVisualization,
-        currentVisualizationLegIndex,
-        totalLegs,
+        currentVisualizationLegIndex: state.legIndex,
+        totalLegs: state.route ? state.route.legs.length : 0,
         nextLeg,
         previousLeg,
-        visualizationProfile,
+        visualizationProfile: state.profile,
         changeProfile,
         currentLegGeometry,
         currentLegDuration,
