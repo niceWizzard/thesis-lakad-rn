@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useReducer } from 'react';
-import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
-import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
-import { StopWithPlace } from '@/src/model/stops.types';
 import { useToastNotification } from '@/src/hooks/useToastNotification';
+import { StopWithPlace } from '@/src/model/stops.types';
+import { getHaversineDistance } from '@/src/utils/distance/getHaversineDistance';
+import { fetchDirections, MapboxRoute } from '@/src/utils/navigation/fetchDirections';
+import { useCallback, useMemo, useReducer } from 'react';
 import { Mode } from './useNavigationState';
 
 const MAX_USER_DISTANCE_KM = 100; // 100km fallback
@@ -31,7 +31,7 @@ const initialState: VisualizationState = {
     staticUserLocation: null,
 };
 
-type Action = 
+type Action =
     | { type: 'START_LOADING', payload?: { staticUserLocation?: [number, number] | null, profile?: VisualizationProfile } }
     | { type: 'SET_ROUTE_DATA', payload: { route: MapboxRoute, names: string[], stopIds: (string | number | null)[], keepLegIndex?: boolean } }
     | { type: 'ERROR' }
@@ -42,9 +42,9 @@ type Action =
 function visualizationReducer(state: VisualizationState, action: Action): VisualizationState {
     switch (action.type) {
         case 'START_LOADING':
-            return { 
-                ...state, 
-                isLoading: true, 
+            return {
+                ...state,
+                isLoading: true,
                 ...(action.payload?.staticUserLocation !== undefined && { staticUserLocation: action.payload.staticUserLocation }),
                 ...(action.payload?.profile && { profile: action.payload.profile })
             };
@@ -115,8 +115,8 @@ export const useVisualizationLogic = (
 
     const startVisualization = useCallback(async () => {
         if (pendingStops.length < 1) {
-             showToast({ title: "No unvisited stops", action: "info" });
-             return;
+            showToast({ title: "No unvisited stops", action: "info" });
+            return;
         }
 
         dispatch({ type: 'START_LOADING', payload: { staticUserLocation: userLocation } });
@@ -124,17 +124,17 @@ export const useVisualizationLogic = (
         const { waypoints, finalNames, finalStopIds } = getWaypointsAndMetadata(userLocation);
 
         if (waypoints.length < 2) {
-             showToast({ title: "Not enough points to visualize route", action: "info" });
-             dispatch({ type: 'ERROR' });
-             return;
+            showToast({ title: "Not enough points to visualize route", action: "info" });
+            dispatch({ type: 'ERROR' });
+            return;
         }
 
         try {
             const data = await fetchDirections({ waypoints, profile: state.profile, exclude: [] });
-            
+
             if (data.routes && data.routes.length > 0) {
-                dispatch({ 
-                    type: 'SET_ROUTE_DATA', 
+                dispatch({
+                    type: 'SET_ROUTE_DATA',
                     payload: { route: data.routes[0], names: finalNames, stopIds: finalStopIds }
                 });
                 switchMode(Mode.Visualizing);
@@ -149,17 +149,17 @@ export const useVisualizationLogic = (
 
     const reFetchProfile = useCallback(async (newProfile: VisualizationProfile) => {
         if (!state.isVisualizing || pendingStops.length < 1) return;
-        
+
         dispatch({ type: 'START_LOADING', payload: { profile: newProfile } });
-        
+
         const { waypoints, finalNames, finalStopIds } = getWaypointsAndMetadata(state.staticUserLocation);
 
         try {
             const data = await fetchDirections({ waypoints, profile: newProfile, exclude: [] });
-            
+
             if (data.routes && data.routes.length > 0) {
-                dispatch({ 
-                    type: 'SET_ROUTE_DATA', 
+                dispatch({
+                    type: 'SET_ROUTE_DATA',
                     payload: { route: data.routes[0], names: finalNames, stopIds: finalStopIds, keepLegIndex: true }
                 });
             } else {
@@ -178,7 +178,10 @@ export const useVisualizationLogic = (
 
     const cancelVisualization = useCallback(() => {
         dispatch({ type: 'CANCEL' });
-        switchMode(Mode.Viewing);
+
+        setTimeout(() => {
+            switchMode(Mode.Viewing);
+        }, 50);
     }, [switchMode]);
 
     const nextLeg = () => dispatch({ type: 'NEXT_LEG' });
@@ -195,10 +198,10 @@ export const useVisualizationLogic = (
 
     const currentLegDuration = currentLeg ? currentLeg.duration : 0;
     const currentLegDistance = currentLeg ? currentLeg.distance : 0;
-    
+
     const currentLegStartName = state.names[state.legIndex] || "Unknown";
     const currentLegEndName = state.names[state.legIndex + 1] || "Unknown";
-    
+
     const currentLegStopIds = useMemo(() => {
         return [
             state.stopIds[state.legIndex],
