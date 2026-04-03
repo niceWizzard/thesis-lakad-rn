@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added visualization feature for itinerary viewing
+- Added confirmation dialog when removing a stop
+- Added a dedicated info button for showing the stop as a card
+
+### Changed
+- Changed the stop menu from popover to an accordion
+- Changed behavior of pressing the itinerary stop item to open the stop item accordion
+- Replaced emoji with ChevronsDown in the 'saved distance' in reorder screen
+
+### Fixed
+- Reduced laggy/jittery ui of the itinerary screen
+- Fixed itinerary card still visible after swiping
+
 
 ## [1.3.1](https://github.com/niceWizzard/thesis-lakad-rn/compare/1.3.0...1.3.1)
 
