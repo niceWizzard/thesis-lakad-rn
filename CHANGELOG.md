@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Conditionally render pending stops heading
 - Decoupled visualization logic from viewing mode 
 - Removed fetching progress percentage in reorder screen
+- Removed the dead space on the right side of the bottom sheet viewing mode stats (Centered it.)
 
 ### Fixed
 - Fixed itinerary viewing mode bottom sheet vertical spacing between elements

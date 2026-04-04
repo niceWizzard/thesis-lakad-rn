@@ -251,10 +251,10 @@ export function ViewingModeBottomSheet({
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: 16 }}
+                        contentContainerStyle={{ paddingHorizontal: 16, width: '100%' }}
                         className='flex-grow-0'
                     >
-                        <HStack space='sm'>
+                        <HStack space='sm' className='justify-center items-center w-full'>
                             <Box className='bg-background-50 px-3 py-2 rounded-xl border border-outline-100 flex-row items-center'>
                                 <Icon as={Clock} size='sm' className='text-primary-600 mr-2' />
                                 <VStack>
