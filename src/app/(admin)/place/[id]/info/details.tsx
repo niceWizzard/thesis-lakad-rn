@@ -249,11 +249,11 @@ export default function AdminLandmarkDetailScreen() {
               <HStack space="md">
                 <VStack className="flex-1 bg-background-100 p-3 rounded-xl border border-outline-50">
                   <Text size="xs" className="text-typography-400 font-bold uppercase mb-1">Lat</Text>
-                  <Text size="sm" className="font-mono">{landmark.latitude}</Text>
+                  <Text size="sm" className="font-mono">{landmark.latitude.toFixed(8).replace(/\.?0+$/, '')}</Text>
                 </VStack>
                 <VStack className="flex-1 bg-background-100 p-3 rounded-xl border border-outline-50">
                   <Text size="xs" className="text-typography-400 font-bold uppercase mb-1">Lng</Text>
-                  <Text size="sm" className="font-mono">{landmark.longitude}</Text>
+                  <Text size="sm" className="font-mono">{landmark.longitude.toFixed(8).replace(/\.?0+$/, '')}</Text>
                 </VStack>
               </HStack>
             </VStack>
